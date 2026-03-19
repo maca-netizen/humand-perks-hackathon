@@ -2529,24 +2529,21 @@ export default function App() {
         display: "flex", flexDirection: "column", transition: "width 0.25s cubic-bezier(0.4,0,0.2,1)", flexShrink: 0,
         position: "sticky", top: 0, height: "100vh", overflowY: "auto",
       }}>
-        {/* Logo */}
+        {/* Logo — NovaTech style matching Humand web app */}
         <div style={{
-          padding: sidebarCollapsed ? "20px 16px" : "20px 24px",
-          display: "flex", alignItems: "center", gap: 12, borderBottom: `1px solid ${tokens.semantic.borderLight}`,
+          padding: sidebarCollapsed ? "16px" : "16px 20px",
+          display: "flex", alignItems: "center", gap: 10, borderBottom: `1px solid ${tokens.semantic.borderLight}`,
+          height: 56,
         }}>
-          <div style={{
-            width: 36, height: 36, borderRadius: tokens.radius.m,
-            background: `linear-gradient(135deg, ${tokens.colors.humand[500]}, ${tokens.colors.purple[500]})`,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            color: "#fff", fontWeight: 600, fontSize: 14, flexShrink: 0, letterSpacing: "0.2px",
-          }}>
-            hu
+          {/* Diamond logo icon */}
+          <div style={{ width: 32, height: 32, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+              <rect x="4" y="4" width="20" height="20" rx="4" transform="rotate(0 14 14)" fill={tokens.colors.humand[500]} />
+              <path d="M10 14L14 10L18 14L14 18Z" fill="white" />
+            </svg>
           </div>
           {!sidebarCollapsed && (
-            <div>
-              <div style={{ fontWeight: 600, fontSize: 16, letterSpacing: "0.2px", lineHeight: 1.4 }}>Perks</div>
-              <Badge variant="default">Admin</Badge>
-            </div>
+            <span style={{ fontWeight: 700, fontSize: 18, color: tokens.semantic.textDefault, letterSpacing: "-0.2px" }}>NovaTech</span>
           )}
         </div>
 
@@ -2649,41 +2646,50 @@ export default function App() {
           })}
         </nav>
 
-        {/* Collapse toggle */}
-        <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} style={{
-          padding: 16, background: "none", border: "none", boxShadow: `inset 0 1px 0 ${tokens.semantic.borderLight}`,
-          cursor: "pointer", color: tokens.semantic.textLighter, display: "flex",
-          alignItems: "center", justifyContent: "center", gap: 8, fontSize: 12, fontFamily: "Roboto", letterSpacing: "0.2px",
-        }}>
-          {sidebarCollapsed ? <ChevronRight size={16} /> : <><ChevronLeft size={16} /> {t("collapse")}</>}
-        </button>
       </aside>
 
       {/* Main content */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, background: tokens.semantic.bgPage }}>
-        {/* Top bar */}
+        {/* Top bar — Humand web app style */}
         <header style={{
           height: 56,
-          background: "rgba(255,255,255,0.8)",
-          backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+          background: "#ffffff",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
           display: "flex", alignItems: "center", justifyContent: "space-between",
           padding: "0 24px", position: "sticky", top: 0, zIndex: 10, flexShrink: 0,
         }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <span style={{ fontSize: 14, color: tokens.semantic.textLighter, letterSpacing: "0.2px" }}>
-              {t("platformName")}
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            {/* Hamburger menu button */}
+            <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} style={{ background: "none", border: "none", cursor: "pointer", color: tokens.semantic.textDefault, padding: 4, display: "flex", alignItems: "center" }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+            {/* Admin badge */}
+            <span style={{
+              display: "inline-flex", alignItems: "center", padding: "4px 14px",
+              borderRadius: 999, fontSize: 13, fontWeight: 600,
+              borderTop: `1.5px solid ${tokens.colors.humand[500]}`,
+              borderRight: `1.5px solid ${tokens.colors.humand[500]}`,
+              borderBottom: `1.5px solid ${tokens.colors.humand[500]}`,
+              borderLeft: `1.5px solid ${tokens.colors.humand[500]}`,
+              color: tokens.colors.humand[600], background: "transparent",
+              letterSpacing: "0.2px",
+            }}>
+              Admin
             </span>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <button style={{ background: "none", border: "none", cursor: "pointer", color: tokens.semantic.textLighter, padding: 4 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <button style={{ background: "none", border: "none", cursor: "pointer", color: tokens.semantic.textLighter, padding: 8, borderRadius: "50%", display: "flex", alignItems: "center", transition: "background 0.15s" }}
+              onMouseEnter={e => (e.currentTarget.style.background = tokens.colors.neutral[100])}
+              onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
               <HelpCircle size={20} />
             </button>
-            <button style={{ background: "none", border: "none", cursor: "pointer", color: tokens.semantic.textLighter, padding: 4 }}>
+            <LanguageSelector />
+            <button style={{ background: "none", border: "none", cursor: "pointer", color: tokens.semantic.textLighter, padding: 8, borderRadius: "50%", display: "flex", alignItems: "center", transition: "background 0.15s" }}
+              onMouseEnter={e => (e.currentTarget.style.background = tokens.colors.neutral[100])}
+              onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
               <Bell size={20} />
             </button>
-            <LanguageSelector />
-            <Avatar initials="FC" size={32} />
+            <Avatar initials="MG" size={34} />
           </div>
         </header>
 
