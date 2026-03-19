@@ -680,6 +680,7 @@ function FilteredPieChart({ data, dateFrom, dateTo }: { data: any; dateFrom?: st
 }
 
 function DashboardPage({ data }: { data: any }) {
+  const { t } = useLanguage();
   const { employees, recentActivity } = data;
 
   // Monthly comparison: this month vs previous month
