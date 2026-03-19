@@ -83,6 +83,8 @@ const categoryEmojis: Record<string, string> = {
   educacion: "📚", educación: "📚", entretenimiento: "🎬", shopping: "🛍️",
 };
 
+function normCat(s: string) { return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); }
+
 function getInitials(name: string) {
   return name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
 }
@@ -1318,14 +1320,14 @@ function BenefitsPage({ data }: { data: any }) {
   const filtered = data.benefits.filter((b: any) => {
     const matchSearch = b.name.toLowerCase().includes(search.toLowerCase()) ||
       (b.category || "").toLowerCase().includes(search.toLowerCase());
-    const matchCategory = selectedCategory === "todas" || (b.category || "").toLowerCase() === selectedCategory.toLowerCase();
+    const matchCategory = selectedCategory === "todas" || normCat(b.category || "") === normCat(selectedCategory);
     return matchSearch && matchCategory;
   });
 
   const catalogFiltered = BENEFIT_CATALOG.filter(b => {
     const alreadyPublished = data.benefits.some((pub: any) => pub.name.toLowerCase() === b.name.toLowerCase());
     const matchSearch = b.name.toLowerCase().includes(catalogSearch.toLowerCase()) || b.provider.toLowerCase().includes(catalogSearch.toLowerCase());
-    const matchCat = catalogCategory === "todas" || b.category === catalogCategory.replace("í", "i").replace("ó", "o");
+    const matchCat = catalogCategory === "todas" || normCat(b.category) === normCat(catalogCategory);
     return !alreadyPublished && matchSearch && matchCat;
   });
 
@@ -1412,7 +1414,7 @@ function BenefitsPage({ data }: { data: any }) {
             const isActive = selectedCategory === cat.key;
             const count = cat.key === "todas"
               ? data.benefits.length
-              : data.benefits.filter((b: any) => (b.category || "").toLowerCase() === cat.key.replace("í", "i").replace("ó", "o")).length;
+              : data.benefits.filter((b: any) => normCat(b.category || "") === normCat(cat.key)).length;
             return (
               <button key={cat.key} onClick={() => setSelectedCategory(cat.key)} style={{
                 width: "100%", display: "flex", alignItems: "center", gap: 10,
