@@ -2534,12 +2534,12 @@ function BuyCreditsPage({ data, onRefresh }: { data: any; onRefresh: () => void 
       <Card style={{ marginBottom: 24, background: `linear-gradient(135deg, ${tokens.colors.humand[50]}, ${tokens.colors.purple[50]})` }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
-            <div style={{ fontSize: 13, color: tokens.semantic.textLighter, marginBottom: 4 }}>{t("creditsAvailable")}</div>
-            <div style={{ fontSize: 36, fontWeight: 700, color: tokens.colors.humand[600] }}>{fmtCurrency(data.wallets.reduce((s: number, w: any) => s + Number(w.balance), 0))}</div>
+            <div style={{ fontSize: 13, color: tokens.semantic.textLighter, marginBottom: 4 }}>{t("creditsInWallets")}</div>
+            <div style={{ fontSize: 36, fontWeight: 700, color: tokens.colors.humand[600] }}>{fmtCurrency((data.wallets || []).reduce((s: number, w: any) => s + Number(w.balance || 0), 0))}</div>
           </div>
           <div style={{ textAlign: "right" as const }}>
-            <div style={{ fontSize: 13, color: tokens.semantic.textLighter, marginBottom: 4 }}>{t("creditsAssigned")}</div>
-            <div style={{ fontSize: 20, fontWeight: 600 }}>{fmtCurrency(data.totalCredited)}</div>
+            <div style={{ fontSize: 13, color: tokens.semantic.textLighter, marginBottom: 4 }}>{t("totalAssigned")}</div>
+            <div style={{ fontSize: 20, fontWeight: 600 }}>{fmtCurrency(data.totalCredited || 0)}</div>
           </div>
         </div>
       </Card>
