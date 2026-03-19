@@ -14,7 +14,8 @@ import {
   DollarSign, ArrowUpRight, ArrowDownRight, Filter, Download,
   Eye, MoreVertical, Bell, HelpCircle, Star, Repeat,
   FileText, AlertCircle, CheckCircle, ChevronLeft, Home,
-  Layers, LayoutDashboard, Package, PieChart, UserCheck, Sparkles, PartyPopper, Globe
+  Layers, LayoutDashboard, Package, PieChart, UserCheck, Sparkles, PartyPopper, Globe,
+  ShoppingCart, Wallet
 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSelector } from "@/components/LanguageSelector";
@@ -314,11 +315,12 @@ function Button({ children, variant = "primary", size = "md", icon: Icon, onClic
     secondary: { bg: "#fff", color: tokens.colors.humand[500], border: `1px solid ${tokens.colors.humand[300]}` },
     ghost: { bg: "transparent", color: tokens.semantic.textLighter, border: "none" },
     danger: { bg: `linear-gradient(135deg, ${tokens.colors.red[500]}, ${tokens.colors.red[600]})`, color: "#fff", border: "none" },
+    gradient: { bg: `linear-gradient(135deg, ${tokens.colors.humand[500]}, ${tokens.colors.purple[500]})`, color: "#fff", border: "none" },
   };
-  const v = variants[variant];
-  const s = sizes[size];
+  const v = variants[variant] || variants.primary;
+  const s = sizes[size] || sizes.md;
   const hoverStyle = hovered ? (
-    variant === "primary" || variant === "danger"
+    variant === "primary" || variant === "danger" || variant === "gradient"
       ? { transform: "translateY(-1px)", boxShadow: tokens.shadow.glow }
       : variant === "secondary"
         ? { boxShadow: tokens.shadow.dp2, border: `1px solid ${tokens.colors.humand[400]}` }
@@ -1504,7 +1506,8 @@ function BenefitsPage({ data }: { data: any }) {
   const allDepts = [...new Set(data.users.map((u: any) => u.dept).filter(Boolean))] as string[];
   const employeeUsers = data.users.filter((u: any) => u.role === "employee" || !u.role);
 
-  const filtered = data.benefits.filter((b: any) => {
+  const activeBenefits = data.benefits.filter((b: any) => b.status === "active");
+  const filtered = activeBenefits.filter((b: any) => {
     const matchSearch = b.name.toLowerCase().includes(search.toLowerCase()) ||
       (b.category || "").toLowerCase().includes(search.toLowerCase());
     const matchCategory = selectedCategory === "todas" || normCat(b.category || "") === normCat(selectedCategory);
@@ -1549,9 +1552,7 @@ function BenefitsPage({ data }: { data: any }) {
 
   const handlePublishFromCatalog = async (item: any) => {
     try {
-      const id = `ben_${Math.random().toString(36).substring(2, 10)}`;
-      await supabase.from("benefits").insert({
-        id,
+      const { error } = await supabase.from("benefits").insert({
         name: item.name,
         category: item.category,
         merchant: item.provider,
@@ -1560,22 +1561,41 @@ function BenefitsPage({ data }: { data: any }) {
         image_url: null,
         active: true,
       });
+      if (error) { console.error("Insert error:", error); toast.error("Error al publicar: " + error.message); return; }
       toast.success(`"${item.name}" publicado exitosamente`);
       data.refresh();
-    } catch { toast.error("Error al publicar beneficio"); }
+    } catch (e) { console.error(e); toast.error("Error al publicar beneficio"); }
   };
 
   const handleToggleStatus = async (b: any) => {
     const newActive = b.status !== "active";
-    await supabase.from("benefits").update({ active: newActive }).eq("id", b.id);
+    const { error } = await supabase.from("benefits").update({ active: newActive }).eq("id", b.id);
+    if (error) { toast.error("Error: " + error.message); return; }
     toast.success(newActive ? `"${b.name}" activado` : `"${b.name}" pausado`);
     data.refresh();
   };
 
-  const handleDelete = async (b: any) => {
-    if (!confirm(`¿Eliminar el beneficio "${b.name}"?`)) return;
-    await supabase.from("benefits").delete().eq("id", b.id);
-    toast.success(`"${b.name}" eliminado`);
+  const [deleteConfirm, setDeleteConfirm] = useState<any>(null);
+  const handleDelete = (b: any) => {
+    setEditBenefit(null);
+    setDeleteConfirm(b);
+  };
+  const confirmDelete = async () => {
+    if (!deleteConfirm) return;
+    // Try hard delete first; if FK constraint blocks it, soft-delete (deactivate)
+    const { error } = await supabase.from("benefits").delete().eq("id", deleteConfirm.id);
+    if (error && error.code === "23503") {
+      // Has transactions — soft delete
+      await supabase.from("benefits").update({ active: false }).eq("id", deleteConfirm.id);
+      toast.success(`"${deleteConfirm.name}" desactivado del catálogo`);
+    } else if (error) {
+      toast.error("Error al eliminar: " + error.message);
+      return;
+    } else {
+      toast.success(`"${deleteConfirm.name}" eliminado del catálogo`);
+    }
+    setDeleteConfirm(null);
+    setEditBenefit(null);
     data.refresh();
   };
 
@@ -1603,8 +1623,8 @@ function BenefitsPage({ data }: { data: any }) {
           {BENEFIT_CATEGORIES.map(cat => {
             const isActive = selectedCategory === cat.key;
             const count = cat.key === "todas"
-              ? data.benefits.length
-              : data.benefits.filter((b: any) => normCat(b.category || "") === normCat(cat.key)).length;
+              ? activeBenefits.length
+              : activeBenefits.filter((b: any) => normCat(b.category || "") === normCat(cat.key)).length;
             return (
               <button key={cat.key} onClick={() => setSelectedCategory(cat.key)} style={{
                 width: "100%", display: "flex", alignItems: "center", gap: 10,
@@ -2081,7 +2101,7 @@ function BenefitsPage({ data }: { data: any }) {
           </div>
 
           <div style={{ display: "flex", gap: 12, justifyContent: "space-between", marginTop: 24, alignItems: "center" }}>
-            <Button variant="danger" size="sm" icon={Trash2} onClick={() => { handleDelete(editBenefit); setEditBenefit(null); }}>Eliminar</Button>
+            <Button variant="danger" size="sm" icon={Trash2} onClick={() => handleDelete(editBenefit)}>Eliminar</Button>
             <div style={{ display: "flex", gap: 12 }}>
               <Button variant="secondary" onClick={() => setEditBenefit(null)}>Cancelar</Button>
               <Button icon={Check} onClick={handleSaveEdit}>Guardar cambios</Button>
@@ -2134,6 +2154,31 @@ function BenefitsPage({ data }: { data: any }) {
           <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
             <Button variant="secondary" onClick={() => setShowModal(false)}>{t("cancel")}</Button>
             <Button icon={Plus}>{t("createBenefit")}</Button>
+          </div>
+        </Modal>
+      )}
+
+      {/* ── Delete confirmation modal ── */}
+      {deleteConfirm && (
+        <Modal title="Confirmar eliminación" onClose={() => setDeleteConfirm(null)}>
+          <div style={{ textAlign: "center", padding: "8px 0 20px" }}>
+            <div style={{
+              width: 56, height: 56, borderRadius: "50%", margin: "0 auto 16px",
+              background: tokens.colors.red[100],
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <Trash2 size={24} color={tokens.colors.red[500]} />
+            </div>
+            <p style={{ ...baseStyles, fontSize: 14, lineHeight: 1.5, margin: 0 }}>
+              ¿Estás seguro de que querés eliminar <strong>{deleteConfirm.name}</strong> del catálogo?
+            </p>
+            <p style={{ ...baseStyles, fontSize: 13, color: tokens.semantic.textLighter, marginTop: 8, lineHeight: 1.4 }}>
+              Esta acción no se puede deshacer. Los colaboradores ya no podrán canjear este beneficio.
+            </p>
+          </div>
+          <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+            <Button variant="secondary" onClick={() => setDeleteConfirm(null)}>Cancelar</Button>
+            <Button variant="danger" icon={Trash2} onClick={confirmDelete}>Sí, eliminar</Button>
           </div>
         </Modal>
       )}
@@ -2272,6 +2317,128 @@ function AnalyticsPage({ data }: { data: any }) {
 
 
 /* ════════════════════════════════════════════
+   PAGE: BUY CREDITS
+   ════════════════════════════════════════════ */
+function BuyCreditsPage({ data }: { data: any }) {
+  const [amount, setAmount] = useState("");
+  const [note, setNote] = useState("");
+  const pricePerCredit = 0.10;
+  const total = amount ? Number(amount) * pricePerCredit : 0;
+  const quickAmounts = [100, 500, 1000, 5000];
+
+  return (
+    <div>
+      <div style={{ marginBottom: 32 }}>
+        <h1 style={{ ...baseStyles, fontSize: 24, fontWeight: 600, lineHeight: 1.4, margin: 0 }}>Comprar créditos</h1>
+        <p style={{ ...baseStyles, fontSize: 14, color: tokens.semantic.textLighter, marginTop: 4, lineHeight: 1.4 }}>
+          Sumá créditos a tu cuenta para distribuir entre colaboradores
+        </p>
+      </div>
+
+      {/* Current balance */}
+      <Card style={{ marginBottom: 24, background: `linear-gradient(135deg, ${tokens.colors.humand[50]}, ${tokens.colors.purple[50]})` }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <div style={{ fontSize: 13, color: tokens.semantic.textLighter, marginBottom: 4 }}>Créditos disponibles para asignar</div>
+            <div style={{ fontSize: 36, fontWeight: 700, color: tokens.colors.humand[600] }}>{fmtCurrency(data.totalPending)}</div>
+          </div>
+          <div style={{ textAlign: "right" as const }}>
+            <div style={{ fontSize: 13, color: tokens.semantic.textLighter, marginBottom: 4 }}>Créditos asignados</div>
+            <div style={{ fontSize: 20, fontWeight: 600 }}>{fmtCurrency(data.totalCredited)}</div>
+          </div>
+        </div>
+      </Card>
+
+      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 24 }}>
+        {/* Left: add credits form */}
+        <Card>
+          <h3 style={{ ...baseStyles, fontSize: 18, fontWeight: 600, margin: "0 0 24px 0" }}>Sumar créditos</h3>
+
+          {/* Quick select */}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: tokens.semantic.textLighter, marginBottom: 10 }}>Monto rápido</div>
+            <div style={{ display: "flex", gap: 10 }}>
+              {quickAmounts.map(q => (
+                <button key={q} onClick={() => setAmount(String(q))}
+                  style={{
+                    flex: 1, padding: "14px 8px", textAlign: "center" as const,
+                    borderRadius: tokens.radius.m, cursor: "pointer",
+                    background: amount === String(q) ? tokens.colors.humand[500] : "#fff",
+                    color: amount === String(q) ? "#fff" : tokens.semantic.textDefault,
+                    borderTop: `2px solid ${amount === String(q) ? tokens.colors.humand[500] : tokens.semantic.border}`,
+                    borderRight: `2px solid ${amount === String(q) ? tokens.colors.humand[500] : tokens.semantic.border}`,
+                    borderBottom: `2px solid ${amount === String(q) ? tokens.colors.humand[500] : tokens.semantic.border}`,
+                    borderLeft: `2px solid ${amount === String(q) ? tokens.colors.humand[500] : tokens.semantic.border}`,
+                    fontFamily: "Roboto", fontWeight: 700, fontSize: 16,
+                    transition: tokens.transition.fast,
+                  }}>
+                  {fmtNum(q)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Custom amount */}
+          <FormField label="Cantidad personalizada de créditos">
+            <Input type="number" placeholder="Ej: 3000" value={amount} onChange={(e: any) => setAmount(e.target.value)} />
+          </FormField>
+          <FormField label="Nota (opcional)">
+            <Input placeholder="Ej: Compra Q2 2026" value={note} onChange={(e: any) => setNote(e.target.value)} />
+          </FormField>
+
+          {/* Price breakdown */}
+          {amount && Number(amount) > 0 && (
+            <div style={{ padding: 16, background: tokens.colors.neutral[50], borderRadius: tokens.radius.m, marginTop: 16 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 13, color: tokens.semantic.textLighter }}>
+                <span>{fmtNum(Number(amount))} créditos × {fmtCurrency(pricePerCredit)}</span>
+                <span>{fmtCurrency(total)}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", paddingTop: 8, borderTop: `1px solid ${tokens.semantic.borderLight}`, fontSize: 16, fontWeight: 700 }}>
+                <span>Total</span>
+                <span style={{ color: tokens.colors.humand[600] }}>{fmtCurrency(total)}</span>
+              </div>
+            </div>
+          )}
+
+          <Button variant="gradient" icon={ShoppingCart} size="lg"
+            style={{ width: "100%", justifyContent: "center", marginTop: 20 }}
+            onClick={() => { if (!amount || Number(amount) <= 0) { toast.error("Ingresá una cantidad"); return; } toast.success(`${fmtNum(Number(amount))} créditos agregados a tu cuenta`); setAmount(""); setNote(""); }}>
+            Sumar créditos
+          </Button>
+        </Card>
+
+        {/* Right: summary */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <Card style={{ background: tokens.colors.humand[50] }}>
+            <h4 style={{ ...baseStyles, fontSize: 14, fontWeight: 600, margin: "0 0 12px 0" }}>Resumen de compra</h4>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <span style={{ fontSize: 13, color: tokens.semantic.textLighter }}>Créditos</span>
+              <span style={{ fontSize: 28, fontWeight: 700, color: tokens.colors.humand[600] }}>{amount ? fmtNum(Number(amount)) : "0"}</span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 12, borderTop: `1px solid ${tokens.colors.humand[200]}` }}>
+              <span style={{ fontSize: 13, color: tokens.semantic.textLighter }}>Costo</span>
+              <span style={{ fontSize: 22, fontWeight: 700 }}>{fmtCurrency(total)}</span>
+            </div>
+          </Card>
+
+          <Card>
+            <h4 style={{ ...baseStyles, fontSize: 14, fontWeight: 600, margin: "0 0 12px 0" }}>Precios de referencia</h4>
+            {[{ qty: 100, price: 10 }, { qty: 500, price: 50 }, { qty: 1000, price: 100 }, { qty: 5000, price: 500 }].map(({ qty, price }) => (
+              <div key={qty} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${tokens.semantic.borderLight}`, fontSize: 13 }}>
+                <span style={{ color: tokens.semantic.textLighter }}>{fmtNum(qty)} créditos</span>
+                <span style={{ fontWeight: 600 }}>{fmtCurrency(price)}</span>
+              </div>
+            ))}
+            <div style={{ fontSize: 11, color: tokens.semantic.textDisabled, marginTop: 8 }}>{fmtCurrency(pricePerCredit)} por crédito</div>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+/* ════════════════════════════════════════════
    SIDEBAR & APP SHELL
    ════════════════════════════════════════════ */
 export default function App() {
@@ -2331,8 +2498,9 @@ export default function App() {
       case "dashboard": return <DashboardPage data={data} />;
       case "bulk": return <BulkLoadPage data={data} />;
       case "individual": return <IndividualLoadPage data={data} onRefresh={data.refresh} />;
-      case "auto": return <AutoRulesPage data={data} />;
+      case "auto": return <AutoRulesPage data={data} onRefresh={data.refresh} />;
       case "benefits": return <BenefitsPage data={data} />;
+      case "buy": return <BuyCreditsPage data={data} />;
       case "analytics": return <AnalyticsPage data={data} />;
       default: return <DashboardPage data={data} />;
     }
