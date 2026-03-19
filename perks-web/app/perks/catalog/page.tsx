@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { Search, ChevronLeft } from "lucide-react"
 import { PerkCard } from "@/components/perk-card"
@@ -15,7 +15,7 @@ const categories = [
   { id: "shopping", name: "Shopping" },
 ]
 
-export default function CatalogPage() {
+function CatalogContent() {
   const searchParams = useSearchParams()
   const initialCategory = searchParams.get("category") || "all"
   
@@ -89,5 +89,13 @@ export default function CatalogPage() {
         )}
       </main>
     </div>
+  )
+}
+
+export default function CatalogPage() {
+  return (
+    <Suspense fallback={<div>Cargando...</div>}>
+      <CatalogContent />
+    </Suspense>
   )
 }
