@@ -141,17 +141,19 @@ function useAdminData() {
   const totalPending = Math.round((totalCredited - totalRedeemed) * 100) / 100;
   const employees = users.filter(u => u.role === "employee");
 
-  // Users with wallet data merged
+  // Users with wallet data merged — consistent: balance is source of truth
   const usersWithWallet = users.map(u => {
     const w = wallets.find(w => w.user_id === u.id);
-    const userCredits = credits.filter(t => t.wallet_id === w?.id).reduce((s, t) => s + Number(t.amount), 0);
+    const bal = Number(w?.balance || 0);
     const userSpent = debits.filter(t => t.wallet_id === w?.id).reduce((s, t) => s + Number(t.amount), 0);
+    // Loaded = balance + spent (always consistent)
+    const userCredits = bal + userSpent;
     return {
       ...u,
       avatar: getInitials(u.name),
       credits: userCredits,
       spent: userSpent,
-      balance: w?.balance || 0,
+      balance: bal,
     };
   });
 
