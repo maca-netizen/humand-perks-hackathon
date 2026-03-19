@@ -1,8 +1,8 @@
 "use client"
 
 // Safe number formatter — avoids hydration mismatch between server/client
-function fmtNum(n: number): string { return Math.round(n || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }
-function fmtCurrency(n: number): string { return fmtNum(n || 0) }
+function fmtNum(n: number): string { return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }
+function fmtCurrency(n: number): string { return fmtNum(n) }
 
 import { useState, useMemo, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
@@ -136,14 +136,9 @@ function useAdminData() {
   // Derived data for dashboard
   const credits = transactions.filter(t => t.type === "credit");
   const debits = transactions.filter(t => t.type === "debit");
-  const totalAssigned = credits.reduce((s, t) => s + Number(t.amount), 0); // credits assigned to employees
-  const totalRedeemed = debits.reduce((s, t) => s + Number(t.amount), 0); // credits redeemed by employees
-  const totalWalletBalance = wallets.reduce((s, w) => s + Number(w.balance), 0); // sum of all wallet balances
-  const totalPool = Math.round(totalAssigned * 1.3); // purchased pool = 30% more than assigned (simulated)
-  const totalAvailable = totalPool - totalAssigned; // available to assign
-  // Keep backward compat
-  const totalCredited = totalAssigned;
-  const totalPending = totalAvailable;
+  const totalCredited = credits.reduce((s, t) => s + Number(t.amount), 0);
+  const totalRedeemed = debits.reduce((s, t) => s + Number(t.amount), 0);
+  const totalPending = Math.round((totalCredited - totalRedeemed) * 100) / 100;
   const employees = users.filter(u => u.role === "employee");
 
   // Users with wallet data merged
@@ -258,7 +253,6 @@ function useAdminData() {
   return {
     loading, refresh, users: usersWithWallet, benefits: benefitsWithStats,
     transactions, totalCredited, totalRedeemed, totalPending,
-    totalAssigned, totalPool, totalAvailable, totalWalletBalance,
     employees, categoryData, deptUsage, recentActivity,
     monthlyCredits, autoRules, ruleTypes, bulkHistory, wallets,
   };
@@ -772,10 +766,10 @@ function DashboardPage({ data }: { data: any }) {
 
       {/* KPI Cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 32 }}>
-        <StatCard label={t("creditsPurchased")} value={fmtNum(data.totalPool)} icon={DollarSign} trend={`${fmtNum(data.totalAvailable)} ${t("availableToAssign")}`} trendUp color={tokens.colors.purple[500]} />
-        <StatCard label={t("creditsAssignedToEmployees")} value={fmtNum(data.totalAssigned)} icon={Users} trend={`${data.employees.length} ${t("employeesLabel")}`} trendUp color={tokens.colors.humand[500]} />
-        <StatCard label={t("creditsRedeemedByEmployees")} value={fmtNum(data.totalRedeemed)} icon={Gift} trend={`${data.transactions.filter((t:any)=>t.type==='debit').length} ${t("redemptionsLabel")}`} trendUp color={tokens.colors.green[600]} />
-        <StatCard label={t("redemptionRate")} value={`${data.totalAssigned > 0 ? Math.round((data.totalRedeemed / data.totalAssigned) * 100) : 0}%`} icon={TrendingUp} trend={`${fmtNum(data.totalWalletBalance)} ${t("inWallets")}`} trendUp color={tokens.colors.teal[500]} />
+        <StatCard label="Créditos acreditados" value={fmtNum(thisMonthCredited)} icon={DollarSign} trend={creditedTrend} trendUp={thisMonthCredited >= prevMonthCredited} color={tokens.colors.purple[500]} />
+        <StatCard label="Créditos asignados a empleados" value={fmtNum(thisMonthAssigned)} icon={Users} trend={assignedTrend} trendUp={thisMonthAssigned >= prevMonthAssigned} color={tokens.colors.humand[500]} />
+        <StatCard label="Créditos canjeados por empleados" value={fmtNum(thisMonthRedeemed)} icon={Gift} trend={redeemedTrend} trendUp={thisMonthRedeemed >= prevMonthRedeemed} color={tokens.colors.green[600]} />
+        <StatCard label="Tasa de canje" value={`${thisMonthRate}%`} icon={TrendingUp} trend={rateTrend} trendUp={thisMonthRate >= prevMonthRate} color={tokens.colors.teal[500]} />
       </div>
 
       {/* Area Chart — Full Width with Date Range */}
@@ -2539,11 +2533,11 @@ function BuyCreditsPage({ data, onRefresh }: { data: any; onRefresh: () => void 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
             <div style={{ fontSize: 13, color: tokens.semantic.textLighter, marginBottom: 4 }}>{t("creditsAvailable")}</div>
-            <div style={{ fontSize: 36, fontWeight: 700, color: tokens.colors.humand[600] }}>{fmtCurrency(data.totalAvailable)}</div>
+            <div style={{ fontSize: 36, fontWeight: 700, color: tokens.colors.humand[600] }}>{fmtCurrency(data.wallets.reduce((s: number, w: any) => s + Number(w.balance), 0))}</div>
           </div>
           <div style={{ textAlign: "right" as const }}>
             <div style={{ fontSize: 13, color: tokens.semantic.textLighter, marginBottom: 4 }}>{t("creditsAssigned")}</div>
-            <div style={{ fontSize: 20, fontWeight: 600 }}>{fmtCurrency(data.totalAssigned)}</div>
+            <div style={{ fontSize: 20, fontWeight: 600 }}>{fmtCurrency(data.totalCredited)}</div>
           </div>
         </div>
       </Card>
