@@ -1125,335 +1125,478 @@ function IndividualLoadPage({ data, onRefresh }: { data: any; onRefresh: () => v
 
 
 /* ════════════════════════════════════════════
-   PAGE: AUTOMATIC RULES
+   PAGE: AUTOMATIC RULES (2 tabs: Asignación + Generación)
    ════════════════════════════════════════════ */
-function RuleTypeIcon({ type, size = 28 }) {
-  const color = tokens.colors.humand[600];
-  const icons = {
-    repeat: <Repeat size={size} color={color} />,
-    cake: <Gift size={size} color={color} />,
-    award: <PartyPopper size={size} color={color} />,
-    userplus: <UserPlus size={size} color={color} />,
-  };
-  return icons[type] || <Zap size={size} color={color} />;
-}
 
-function AutoRulesPage({ data }: { data: any }) {
+function AutoRulesPage({ data, onRefresh }: { data: any; onRefresh: () => void }) {
   const { t } = useLanguage();
-  const { autoRules, ruleTypes } = data;
-  const [showModal, setShowModal] = useState(false);
-  const [tab, setTab] = useState("types");
-  const [selectedType, setSelectedType] = useState<any>(null);
-  const [menuOpen, setMenuOpen] = useState<any>(null);
+  const { autoRules } = data;
 
-  const rulesForType = selectedType
-    ? autoRules.filter((r: any) => {
-        if (selectedType.id === 1) return r.type === "periodic";
-        if (selectedType.id === 2) return r.trigger === "Cumpleaños";
-        if (selectedType.id === 3) return r.trigger === "Aniversario";
-        if (selectedType.id === 4) return r.trigger === "Alta de usuario";
-        return false;
-      })
-    : [];
+  const [tab, setTab] = useState<"assignment" | "generation">("assignment");
+  const [showModal, setShowModal] = useState(false);
+  const [editingRule, setEditingRule] = useState<any>(null);
+  const [saving, setSaving] = useState(false);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  // Assignment form
+  const [formName, setFormName] = useState("");
+  const [formTrigger, setFormTrigger] = useState("");
+  const [formPeriodicity, setFormPeriodicity] = useState("");
+  const [formAmount, setFormAmount] = useState("");
+  const [formTarget, setFormTarget] = useState("all");
+  const [formExpiration, setFormExpiration] = useState("");
+
+  // Generation form
+  const [genFormName, setGenFormName] = useState("");
+  const [genFormEvent, setGenFormEvent] = useState("");
+  const [genFormAmount, setGenFormAmount] = useState("");
+  const [genFormLimit, setGenFormLimit] = useState("");
+  const [genFormMaxAccum, setGenFormMaxAccum] = useState("");
+
+  // Courses for generation tab
+  const [courses, setCourses] = useState<any[]>([]);
+  useEffect(() => {
+    supabase.from("courses").select("*").eq("active", true).then(({ data: d }) => setCourses(d || []));
+  }, []);
+
+  // Derived
+  const assignmentRules = autoRules.filter((r: any) => r.type === "periodic" || r.type === "assignment");
+  const generationRules = autoRules.filter((r: any) => r.type === "generation");
+
+  // Default generation examples (shown if no generation rules exist in DB)
+  const defaultGenExamples = [
+    { id: "_def1", name: "Completar curso de capacitación", trigger: "Curso completado", amount: 5, target: "Sin límite", status: "active", type: "generation", isDefault: true },
+    { id: "_def2", name: "Completar lección de Learning", trigger: "Lección completada", amount: 2, target: "Sin límite", status: "active", type: "generation", isDefault: true },
+    { id: "_def3", name: "Aprobar evaluación de desempeño", trigger: "Evaluación aprobada", amount: 10, target: "Límite: 1 vez/año", status: "active", type: "generation", isDefault: true },
+    { id: "_def4", name: "Referir candidato contratado", trigger: "Referido contratado", amount: 20, target: "Límite: 5 por colaborador", status: "active", type: "generation", isDefault: true },
+  ];
+  const displayGenRules = generationRules.length > 0 ? generationRules : defaultGenExamples;
+
+  const resetForm = () => {
+    setFormName(""); setFormTrigger(""); setFormPeriodicity("");
+    setFormAmount(""); setFormTarget("all"); setFormExpiration("");
+    setGenFormName(""); setGenFormEvent(""); setGenFormAmount("");
+    setGenFormLimit(""); setGenFormMaxAccum("");
+    setEditingRule(null);
+  };
+
+  const triggerLabelMap: Record<string, string> = {
+    periodic: "Periódico", birthday: "Cumpleaños", anniversary: "Aniversario", onboarding: "Alta de usuario",
+  };
+  const triggerReverseMap: Record<string, string> = {
+    "Periódico": "periodic", "Cumpleaños": "birthday", "Aniversario": "anniversary", "Alta de usuario": "onboarding",
+  };
+  const targetLabelMap: Record<string, string> = {
+    all: "Todos los colaboradores", dept: "Departamento", group: "Grupo específico",
+  };
+  const targetReverseMap: Record<string, string> = {
+    "Todos los colaboradores": "all", "Departamento": "dept", "Grupo específico": "group",
+  };
+  const eventLabelMap: Record<string, string> = {
+    course: "Curso completado", lesson: "Lección completada", evaluation: "Evaluación aprobada",
+    referral: "Referido contratado", survey: "Encuesta completada", custom: "Personalizado",
+  };
+  const eventReverseMap: Record<string, string> = {
+    "Curso completado": "course", "Lección completada": "lesson", "Evaluación aprobada": "evaluation",
+    "Referido contratado": "referral", "Encuesta completada": "survey",
+  };
+
+  const openEditModal = (rule: any) => {
+    setEditingRule(rule);
+    if (rule.type === "periodic" || rule.type === "assignment") {
+      setFormName(rule.name);
+      setFormTrigger(triggerReverseMap[rule.trigger] || "periodic");
+      setFormAmount(String(rule.amount));
+      setFormTarget(targetReverseMap[rule.target] || "all");
+      setFormPeriodicity(rule.periodicity || "");
+    } else {
+      setGenFormName(rule.name);
+      setGenFormEvent(eventReverseMap[rule.trigger] || "custom");
+      setGenFormAmount(String(rule.amount));
+      // Parse limit from target string
+      const limitMatch = rule.target?.match(/Límite:\s*(\d+)/);
+      const maxMatch = rule.target?.match(/Max:\s*(\d+)/);
+      setGenFormLimit(limitMatch ? limitMatch[1] : "");
+      setGenFormMaxAccum(maxMatch ? maxMatch[1] : "");
+    }
+    setShowModal(true);
+  };
+
+  // ── CRUD Handlers ──
+  const handleToggleStatus = async (rule: any) => {
+    if (rule.isDefault) { toast.error("Guardá la regla primero para cambiar su estado"); return; }
+    setTogglingId(rule.id);
+    try {
+      const newStatus = rule.status === "active" ? "paused" : "active";
+      await supabase.from("auto_rules").update({ status: newStatus }).eq("id", rule.id);
+      toast.success(`Regla ${newStatus === "active" ? "activada" : "pausada"}`);
+      onRefresh();
+    } catch (e) {
+      console.error(e);
+      toast.error("Error al cambiar estado");
+    }
+    setTogglingId(null);
+  };
+
+  const handleDelete = async (rule: any) => {
+    if (rule.isDefault) { toast.error("Esta es una regla de ejemplo. Creala primero para poder eliminarla."); return; }
+    try {
+      await supabase.from("auto_rules").delete().eq("id", rule.id);
+      toast.success("Regla eliminada");
+      setConfirmDeleteId(null);
+      onRefresh();
+    } catch (e) {
+      console.error(e);
+      toast.error("Error al eliminar regla");
+    }
+  };
+
+  const handleSaveAssignment = async () => {
+    if (!formName || !formTrigger || !formAmount) { toast.error("Completá los campos obligatorios"); return; }
+    setSaving(true);
+    try {
+      const ruleData = {
+        name: formName,
+        type: "periodic",
+        trigger: triggerLabelMap[formTrigger] || formTrigger,
+        amount: Number(formAmount),
+        target: targetLabelMap[formTarget] || formTarget,
+        periodicity: formPeriodicity || null,
+        status: "active",
+      };
+      if (editingRule) {
+        await supabase.from("auto_rules").update(ruleData).eq("id", editingRule.id);
+        toast.success("Regla actualizada");
+      } else {
+        const id = `ar_${Math.random().toString(36).substring(2, 10)}`;
+        await supabase.from("auto_rules").insert({ id, ...ruleData, created_at: new Date().toISOString() });
+        toast.success("Regla de asignación creada");
+      }
+      resetForm(); setShowModal(false); onRefresh();
+    } catch (e) { console.error(e); toast.error("Error al guardar regla"); }
+    setSaving(false);
+  };
+
+  const handleSaveGeneration = async () => {
+    if (!genFormName || !genFormEvent || !genFormAmount) { toast.error("Completá los campos obligatorios"); return; }
+    setSaving(true);
+    try {
+      const limitStr = genFormLimit ? `Límite: ${genFormLimit}` : "Sin límite";
+      const maxStr = genFormMaxAccum ? `, Max: ${genFormMaxAccum}` : "";
+      const ruleData = {
+        name: genFormName,
+        type: "generation",
+        trigger: eventLabelMap[genFormEvent] || genFormEvent,
+        amount: Number(genFormAmount),
+        target: `${limitStr}${maxStr}`,
+        status: "active",
+      };
+      if (editingRule && !editingRule.isDefault) {
+        await supabase.from("auto_rules").update(ruleData).eq("id", editingRule.id);
+        toast.success("Regla actualizada");
+      } else {
+        const id = `ar_${Math.random().toString(36).substring(2, 10)}`;
+        await supabase.from("auto_rules").insert({ id, ...ruleData, created_at: new Date().toISOString() });
+        toast.success("Regla de generación creada");
+      }
+      resetForm(); setShowModal(false); onRefresh();
+    } catch (e) { console.error(e); toast.error("Error al guardar regla"); }
+    setSaving(false);
+  };
+
+  // ── Toggle button component ──
+  const ToggleStatusBtn = ({ rule }: { rule: any }) => (
+    <button onClick={() => handleToggleStatus(rule)} disabled={togglingId === rule.id}
+      style={{
+        display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 12px",
+        borderRadius: 999, cursor: rule.isDefault ? "default" : "pointer", border: "none", fontSize: 12, fontWeight: 600,
+        background: rule.status === "active" ? tokens.colors.green[100] : tokens.colors.yellow[100],
+        color: rule.status === "active" ? tokens.colors.green[700] : tokens.colors.yellow[700],
+        transition: tokens.transition.fast, opacity: togglingId === rule.id ? 0.5 : 1,
+      }}>
+      {rule.status === "active" ? <Check size={12} /> : <X size={12} />}
+      {togglingId === rule.id ? "..." : (rule.status === "active" ? "Activa" : "Pausada")}
+    </button>
+  );
 
   return (
     <div>
-      {/* Tabs row */}
+      {/* Header */}
+      <div style={{ marginBottom: 24 }}>
+        <h1 style={{ ...baseStyles, fontSize: 24, fontWeight: 600, lineHeight: 1.4, margin: 0 }}>Reglas automáticas</h1>
+        <p style={{ ...baseStyles, fontSize: 14, color: tokens.semantic.textLighter, marginTop: 4, lineHeight: 1.4 }}>
+          Configurá la asignación y generación automática de créditos
+        </p>
+      </div>
+
       <Tabs
         tabs={[
-          { key: "types", label: t("ruleTypesTab") },
-          { key: "rules", label: t("rulesTab") },
-          { key: "history", label: t("historyTab") },
+          { key: "assignment", label: "Reglas de asignación" },
+          { key: "generation", label: "Reglas de generación" },
         ]}
         active={tab}
-        onChange={tabKey => { setTab(tabKey); setSelectedType(null); }}
+        onChange={k => setTab(k as any)}
       />
 
-      {/* ── TAB: Tipos de reglas ── */}
-      {tab === "types" && !selectedType && (
+      {/* ══ TAB 1: REGLAS DE ASIGNACIÓN ══ */}
+      {tab === "assignment" && (
         <div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-            <h1 style={{ ...baseStyles, fontSize: 24, fontWeight: 600, lineHeight: 1.4, margin: 0 }}>{t("ruleTypesTab")}</h1>
-            <Button icon={Plus} onClick={() => setShowModal(true)}>{t("newRuleType")}</Button>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
-            {ruleTypes.map(rt => (
-              <div key={rt.id} onClick={() => setSelectedType(rt)} style={{
-                background: "#fff", borderRadius: tokens.radius.l,
-                border: `1px solid ${tokens.semantic.border}`,
-                padding: "20px 20px 16px", cursor: "pointer",
-                transition: "box-shadow 0.15s ease, border-color 0.15s ease",
-                position: "relative",
-              }}
-              onMouseEnter={e => { e.currentTarget.style.boxShadow = tokens.shadow.dp4; e.currentTarget.style.border = `1px solid ${tokens.colors.humand[300]}`; }}
-              onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.border = `1px solid ${tokens.semantic.border}`; }}
-              >
-                {/* Header: icon + menu */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
-                  <div style={{
-                    width: 44, height: 44, borderRadius: tokens.radius.m,
-                    background: tokens.colors.humand[50],
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}>
-                    <RuleTypeIcon type={rt.icon} size={24} />
-                  </div>
-                  <button
-                    onClick={e => { e.stopPropagation(); setMenuOpen(menuOpen === rt.id ? null : rt.id); }}
-                    style={{
-                      background: "none", border: "none", cursor: "pointer",
-                      color: tokens.semantic.textDisabled, padding: 4, borderRadius: tokens.radius.s,
-                    }}
-                  >
-                    <MoreVertical size={18} />
-                  </button>
-
-                  {/* Dropdown menu */}
-                  {menuOpen === rt.id && (
-                    <div style={{
-                      position: "absolute", top: 52, right: 16, background: "#fff",
-                      borderRadius: tokens.radius.m, boxShadow: tokens.shadow.dp8,
-                      border: `1px solid ${tokens.semantic.borderLight}`,
-                      zIndex: 20, minWidth: 160, overflow: "hidden",
-                    }}>
-                      {[
-                        { label: t("editAction"), icon: Edit3 },
-                        { label: t("duplicateAction"), icon: Layers },
-                        { label: t("pauseAll"), icon: X },
-                        { label: t("deleteAction"), icon: Trash2, danger: true },
-                      ].map((action, i) => (
-                        <button key={i} onClick={e => { e.stopPropagation(); setMenuOpen(null); }} style={{
-                          width: "100%", display: "flex", alignItems: "center", gap: 10,
-                          padding: "10px 14px", background: "none", border: "none",
-                          cursor: "pointer", fontSize: 13, fontFamily: "Roboto",
-                          color: action.danger ? tokens.colors.red[600] : tokens.semantic.textDefault,
-                          letterSpacing: "0.2px",
-                          borderBottom: i < 3 ? `1px solid ${tokens.semantic.borderLight}` : "none",
-                        }}>
-                          <action.icon size={15} />
-                          {action.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Title */}
-                <div style={{ fontWeight: 600, fontSize: 15, letterSpacing: "0.2px", lineHeight: 1.4, marginBottom: 6, color: tokens.semantic.textDefault }}>
-                  {rt.name}
-                </div>
-
-                {/* Subtitle */}
-                <div style={{ fontSize: 13, color: tokens.semantic.textLighter, letterSpacing: "0.2px", lineHeight: 1.4 }}>
-                  {rt.rulesCount} {rt.rulesCount === 1 ? t("rule_s") : t("rule_pl")}, {rt.usersCount} {t("persons")}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ── TAB: Tipos de reglas → Detalle de un tipo ── */}
-      {tab === "types" && selectedType && (
-        <div>
-          <button onClick={() => setSelectedType(null)} style={{
-            ...baseStyles, display: "flex", alignItems: "center", gap: 6,
-            background: "none", border: "none", cursor: "pointer",
-            color: tokens.colors.humand[500], fontSize: 13, fontWeight: 600,
-            padding: 0, marginBottom: 20, letterSpacing: "0.2px",
-          }}>
-            <ChevronLeft size={16} /> {t("backToRuleTypes")}
-          </button>
-
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-              <div style={{
-                width: 48, height: 48, borderRadius: tokens.radius.m,
-                background: tokens.colors.humand[50],
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <RuleTypeIcon type={selectedType.icon} size={26} />
-              </div>
-              <div>
-                <h1 style={{ ...baseStyles, fontSize: 22, fontWeight: 600, lineHeight: 1.4, margin: 0 }}>{selectedType.name}</h1>
-                <p style={{ ...baseStyles, fontSize: 13, color: tokens.semantic.textLighter, marginTop: 2, lineHeight: 1.4 }}>
-                  {selectedType.description}
-                </p>
-              </div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+            <div>
+              <h2 style={{ ...baseStyles, fontSize: 18, fontWeight: 600, margin: 0 }}>Reglas de asignación</h2>
+              <p style={{ ...baseStyles, fontSize: 13, color: tokens.semantic.textLighter, marginTop: 2 }}>
+                Distribuir créditos a colaboradores de forma automática
+              </p>
             </div>
-            <Button icon={Plus} onClick={() => setShowModal(true)}>{t("newRule")}</Button>
+            <Button icon={Plus} onClick={() => { resetForm(); setShowModal(true); }}>Nueva regla</Button>
           </div>
 
           <Card noPadding>
-            <div style={{ padding: "16px 24px" }}>
-              {rulesForType.length === 0 ? (
-                <div style={{ textAlign: "center", padding: 40, color: tokens.semantic.textLighter }}>
-                  <Zap size={32} style={{ marginBottom: 8, color: tokens.semantic.textDisabled }} />
-                  <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, letterSpacing: "0.2px" }}>{t("noRulesConfigured")}</div>
-                  <div style={{ fontSize: 13, letterSpacing: "0.2px" }}>{t("createFirstRule")}</div>
-                </div>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  {rulesForType.map(rule => (
-                    <div key={rule.id} style={{
-                      display: "flex", alignItems: "center", gap: 16, padding: 16,
-                      border: `1px solid ${tokens.semantic.borderLight}`, borderRadius: tokens.radius.m,
-                      background: rule.status === "paused" ? tokens.colors.neutral[50] : "#fff",
+            <Table
+              columns={[
+                { header: "Regla", key: "name", render: (r: any) => (
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{
+                      width: 36, height: 36, borderRadius: tokens.radius.m, flexShrink: 0,
+                      background: tokens.colors.humand[50],
+                      display: "flex", alignItems: "center", justifyContent: "center",
                     }}>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <span style={{ fontWeight: 600, fontSize: 14, letterSpacing: "0.2px" }}>{rule.name}</span>
-                          <Badge variant={rule.status === "active" ? "success" : "warning"}>
-                            {rule.status === "active" ? t("ruleStatusActive") : t("ruleStatusPaused")}
-                          </Badge>
-                        </div>
-                        <div style={{ fontSize: 12, color: tokens.semantic.textLighter, marginTop: 4, letterSpacing: "0.2px", lineHeight: 1.4 }}>
-                          {t("trigger")}: {rule.trigger} · {rule.amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} {t("creditsLabel")} · {rule.target}
-                        </div>
-                        <div style={{ fontSize: 11, color: tokens.semantic.textDisabled, marginTop: 2, letterSpacing: "0.2px" }}>
-                          {t("lastRun")}: {rule.lastRun}
-                        </div>
-                      </div>
-                      <div style={{ display: "flex", gap: 8 }}>
-                        <Button variant="ghost" size="sm" icon={Edit3}>{t("editAction")}</Button>
-                        <Button variant="ghost" size="sm" icon={rule.status === "active" ? X : Check}>
-                          {rule.status === "active" ? t("pauseRule") : t("activateRule")}
-                        </Button>
-                      </div>
+                      <Repeat size={18} color={tokens.colors.humand[600]} />
                     </div>
-                  ))}
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 13, letterSpacing: "0.2px" }}>{r.name}</div>
+                      <div style={{ fontSize: 12, color: tokens.semantic.textLighter }}>{r.trigger}</div>
+                    </div>
+                  </div>
+                )},
+                { header: "Créditos", key: "amount", render: (r: any) => <span style={{ fontWeight: 600 }}>{fmtNum(r.amount)}</span> },
+                { header: "Aplica a", key: "target" },
+                { header: "Periodicidad", key: "periodicity", render: (r: any) => r.periodicity || "—" },
+                { header: "Última ejecución", key: "lastRun", render: (r: any) => r.lastRun || "—" },
+                { header: "Estado", key: "status", render: (r: any) => <ToggleStatusBtn rule={r} /> },
+                { header: "Acciones", key: "actions", render: (r: any) => (
+                  <div style={{ display: "flex", gap: 4 }}>
+                    <Button variant="ghost" size="sm" icon={Edit3} onClick={() => openEditModal(r)}>Editar</Button>
+                    {confirmDeleteId === r.id ? (
+                      <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                        <Button variant="danger" size="sm" onClick={() => handleDelete(r)}>Confirmar</Button>
+                        <Button variant="ghost" size="sm" onClick={() => setConfirmDeleteId(null)}>No</Button>
+                      </div>
+                    ) : (
+                      <Button variant="ghost" size="sm" icon={Trash2} onClick={() => setConfirmDeleteId(r.id)} />
+                    )}
+                  </div>
+                )},
+              ]}
+              data={assignmentRules}
+            />
+          </Card>
+
+          {assignmentRules.length === 0 && (
+            <div style={{ textAlign: "center", padding: 48, color: tokens.semantic.textLighter }}>
+              <Zap size={32} style={{ marginBottom: 8, color: tokens.semantic.textDisabled }} />
+              <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>Sin reglas de asignación</div>
+              <div style={{ fontSize: 13 }}>Creá una nueva regla para distribuir créditos automáticamente</div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ══ TAB 2: REGLAS DE GENERACIÓN ══ */}
+      {tab === "generation" && (
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+            <div>
+              <h2 style={{ ...baseStyles, fontSize: 18, fontWeight: 600, margin: 0 }}>Reglas de generación</h2>
+              <p style={{ ...baseStyles, fontSize: 13, color: tokens.semantic.textLighter, marginTop: 2 }}>
+                Otorgan créditos cuando se completan logros
+              </p>
+            </div>
+            <Button icon={Plus} onClick={() => { resetForm(); setShowModal(true); }}>Nueva regla</Button>
+          </div>
+
+          {/* Info banner: Learning connection */}
+          <div style={{
+            padding: 16, background: tokens.colors.info[50], borderRadius: tokens.radius.m,
+            marginBottom: 24, display: "flex", gap: 12, alignItems: "flex-start",
+            border: `1px solid ${tokens.colors.info[200]}`,
+          }}>
+            <AlertCircle size={20} color={tokens.colors.info[600]} style={{ flexShrink: 0, marginTop: 2 }} />
+            <div>
+              <div style={{ fontWeight: 600, fontSize: 14, color: tokens.semantic.textDefault, marginBottom: 4 }}>
+                Conectado con el módulo de Learning
+              </div>
+              <div style={{ fontSize: 13, color: tokens.semantic.textLighter, lineHeight: 1.5 }}>
+                Cuando seleccionás <strong>Completar curso</strong> o <strong>Completar lección</strong>, los créditos se otorgan automáticamente
+                cuando el colaborador finaliza el contenido en Learning. Las reglas de generación están diseñadas para incentivar
+                la formación continua y el logro de objetivos.
+              </div>
+            </div>
+          </div>
+
+          {/* Generation rules table */}
+          <Card noPadding>
+            <Table
+              columns={[
+                { header: "Regla", key: "name", render: (r: any) => (
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{
+                      width: 36, height: 36, borderRadius: tokens.radius.m, flexShrink: 0,
+                      background: tokens.colors.purple[50],
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>
+                      <Sparkles size={18} color={tokens.colors.purple[600]} />
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 13, letterSpacing: "0.2px" }}>{r.name}</div>
+                      {r.isDefault && <div style={{ fontSize: 11, color: tokens.colors.purple[500] }}>Ejemplo pre-cargado</div>}
+                    </div>
+                  </div>
+                )},
+                { header: "Evento", key: "trigger" },
+                { header: "Créditos/logro", key: "amount", render: (r: any) => <span style={{ fontWeight: 600 }}>{fmtNum(r.amount)}</span> },
+                { header: "Límite", key: "target" },
+                { header: "Estado", key: "status", render: (r: any) => <ToggleStatusBtn rule={r} /> },
+                { header: "Acciones", key: "actions", render: (r: any) => (
+                  <div style={{ display: "flex", gap: 4 }}>
+                    <Button variant="ghost" size="sm" icon={Edit3} onClick={() => openEditModal(r)}>Editar</Button>
+                    {!r.isDefault && (
+                      confirmDeleteId === r.id ? (
+                        <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                          <Button variant="danger" size="sm" onClick={() => handleDelete(r)}>Confirmar</Button>
+                          <Button variant="ghost" size="sm" onClick={() => setConfirmDeleteId(null)}>No</Button>
+                        </div>
+                      ) : (
+                        <Button variant="ghost" size="sm" icon={Trash2} onClick={() => setConfirmDeleteId(r.id)} />
+                      )
+                    )}
+                  </div>
+                )},
+              ]}
+              data={displayGenRules}
+            />
+          </Card>
+
+          {/* Active courses summary */}
+          {courses.length > 0 && (
+            <Card style={{ marginTop: 24 }}>
+              <h3 style={{ ...baseStyles, fontSize: 16, fontWeight: 600, margin: "0 0 16px 0" }}>Cursos activos con créditos</h3>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+                {courses.map((c: any) => (
+                  <div key={c.id} style={{
+                    padding: 14, border: `1px solid ${tokens.semantic.borderLight}`,
+                    borderRadius: tokens.radius.m, background: "#fff",
+                  }}>
+                    <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{c.title}</div>
+                    <div style={{ fontSize: 12, color: tokens.semantic.textLighter }}>
+                      <Award size={12} style={{ verticalAlign: "middle", marginRight: 4 }} />
+                      {c.credits_reward} créditos al completar
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+        </div>
+      )}
+
+      {/* ══ MODAL: Create / Edit Rule ══ */}
+      {showModal && (
+        <Modal
+          title={editingRule ? "Editar regla" : (tab === "assignment" ? "Nueva regla de asignación" : "Nueva regla de generación")}
+          onClose={() => { setShowModal(false); resetForm(); }}
+          wide
+        >
+          {tab === "assignment" ? (
+            <>
+              <FormField label="Nombre de la regla">
+                <Input placeholder="Ej: Asignación mensual" value={formName} onChange={(e: any) => setFormName(e.target.value)} />
+              </FormField>
+              <FormField label="Tipo de trigger">
+                <Select value={formTrigger} onChange={(e: any) => setFormTrigger(e.target.value)} options={[
+                  { value: "", label: "Seleccionar tipo..." },
+                  { value: "periodic", label: "Periódico (diario, semanal, mensual, etc.)" },
+                  { value: "birthday", label: "Evento: Cumpleaños" },
+                  { value: "anniversary", label: "Evento: Aniversario laboral" },
+                  { value: "onboarding", label: "Evento: Alta de usuario" },
+                ]} />
+              </FormField>
+              {formTrigger === "periodic" && (
+                <FormField label="Periodicidad">
+                  <Select value={formPeriodicity} onChange={(e: any) => setFormPeriodicity(e.target.value)} options={[
+                    { value: "", label: "Seleccionar..." },
+                    { value: "daily", label: "Diario" },
+                    { value: "weekly", label: "Semanal" },
+                    { value: "monthly", label: "Mensual" },
+                    { value: "quarterly", label: "Trimestral" },
+                    { value: "yearly", label: "Anual" },
+                  ]} />
+                </FormField>
+              )}
+              <FormField label="Créditos a asignar">
+                <Input type="number" placeholder="1000" value={formAmount} onChange={(e: any) => setFormAmount(e.target.value)} />
+              </FormField>
+              <FormField label="Aplicar a">
+                <Select value={formTarget} onChange={(e: any) => setFormTarget(e.target.value)} options={[
+                  { value: "all", label: "Todos los colaboradores" },
+                  { value: "dept", label: "Departamento" },
+                  { value: "group", label: "Grupo específico" },
+                ]} />
+              </FormField>
+              <FormField label="Fecha de expiración (opcional)">
+                <Input type="date" value={formExpiration} onChange={(e: any) => setFormExpiration(e.target.value)} />
+              </FormField>
+              <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
+                <Button variant="secondary" onClick={() => { setShowModal(false); resetForm(); }}>Cancelar</Button>
+                <Button icon={Zap} onClick={handleSaveAssignment}>
+                  {saving ? "Guardando..." : (editingRule ? "Guardar cambios" : "Crear regla")}
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <FormField label="Nombre de la regla">
+                <Input placeholder="Ej: Completar curso de capacitación" value={genFormName} onChange={(e: any) => setGenFormName(e.target.value)} />
+              </FormField>
+              <FormField label="Evento que genera créditos">
+                <Select value={genFormEvent} onChange={(e: any) => setGenFormEvent(e.target.value)} options={[
+                  { value: "", label: "Seleccionar evento..." },
+                  { value: "course", label: "Completar curso" },
+                  { value: "lesson", label: "Completar lección" },
+                  { value: "evaluation", label: "Aprobar evaluación de desempeño" },
+                  { value: "referral", label: "Referir candidato contratado" },
+                  { value: "survey", label: "Completar encuesta" },
+                  { value: "custom", label: "Personalizado" },
+                ]} />
+              </FormField>
+              {(genFormEvent === "course" || genFormEvent === "lesson") && (
+                <div style={{
+                  padding: 12, background: tokens.colors.info[50], borderRadius: tokens.radius.s,
+                  fontSize: 12, color: tokens.semantic.textLighter, lineHeight: 1.5, marginBottom: 8,
+                }}>
+                  💡 Los créditos se otorgan automáticamente cuando el colaborador finaliza el contenido en el módulo de Learning.
                 </div>
               )}
-            </div>
-          </Card>
-        </div>
-      )}
-
-      {/* ── TAB: Reglas (flat list) ── */}
-      {tab === "rules" && (
-        <div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-            <h1 style={{ ...baseStyles, fontSize: 24, fontWeight: 600, lineHeight: 1.4, margin: 0 }}>{t("rulesTab")}</h1>
-            <Button icon={Plus} onClick={() => setShowModal(true)}>{t("newRule")}</Button>
-          </div>
-          <Card noPadding>
-            <div style={{ padding: "16px 24px" }}>
-              <Table
-                columns={[
-                  { header: t("autoRules"), key: "name", render: r => (
-                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                      <div style={{
-                        width: 36, height: 36, borderRadius: tokens.radius.m, flexShrink: 0,
-                        background: r.type === "periodic" ? tokens.colors.humand[50] : tokens.colors.purple[50],
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                      }}>
-                        {r.type === "periodic" ? <Repeat size={18} color={tokens.colors.humand[600]} /> : <Sparkles size={18} color={tokens.colors.purple[600]} />}
-                      </div>
-                      <div>
-                        <div style={{ fontWeight: 600, fontSize: 13, letterSpacing: "0.2px" }}>{r.name}</div>
-                        <div style={{ fontSize: 12, color: tokens.semantic.textLighter, letterSpacing: "0.2px" }}>{r.target}</div>
-                      </div>
-                    </div>
-                  )},
-                  { header: t("trigger"), key: "trigger" },
-                  { header: t("credits"), key: "amount", render: r => <span style={{ fontWeight: 600 }}>{r.amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</span> },
-                  { header: t("lastRun"), key: "lastRun" },
-                  { header: t("status"), key: "status", render: r => (
-                    <Badge variant={r.status === "active" ? "success" : "warning"}>
-                      {r.status === "active" ? t("ruleStatusActive") : t("ruleStatusPaused")}
-                    </Badge>
-                  )},
-                  { header: "", key: "actions", render: r => (
-                    <div style={{ display: "flex", gap: 4 }}>
-                      <Button variant="ghost" size="sm" icon={Edit3} />
-                      <Button variant="ghost" size="sm" icon={Trash2} />
-                    </div>
-                  )},
-                ]}
-                data={autoRules}
-              />
-            </div>
-          </Card>
-        </div>
-      )}
-
-      {/* ── TAB: Historial ── */}
-      {tab === "history" && (
-        <div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-            <h1 style={{ ...baseStyles, fontSize: 24, fontWeight: 600, lineHeight: 1.4, margin: 0 }}>{t("historyTitle")}</h1>
-            <Button variant="secondary" icon={Download} size="md">{t("export")}</Button>
-          </div>
-          <Card noPadding>
-            <div style={{ padding: "16px 24px" }}>
-              <Table
-                columns={[
-                  { header: t("date"), key: "date", render: () => {
-                    const dates = ["18/03/2026", "15/03/2026", "10/03/2026", "01/03/2026", "15/02/2026", "01/02/2026"];
-                    return dates[Math.floor(Math.random() * dates.length)];
-                  }},
-                  { header: t("autoRules"), key: "name" },
-                  { header: t("trigger"), key: "trigger" },
-                  { header: t("users"), key: "target", render: r => {
-                    const counts = [85, 12, 1, 85, 3];
-                    return counts[Math.floor(Math.random() * counts.length)];
-                  }},
-                  { header: `${t("credits")} ${t("total")}`, key: "amount", render: r => <span style={{ fontWeight: 600 }}>{(r.amount * 85).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</span> },
-                  { header: t("status"), key: "status", render: () => (
-                    <Badge variant="success">{t("executed")}</Badge>
-                  )},
-                ]}
-                data={autoRules.filter(r => r.status === "active")}
-              />
-            </div>
-          </Card>
-        </div>
-      )}
-
-      {/* ── Modal: Nueva regla ── */}
-      {showModal && (
-        <Modal title={t("newAutoRule")} onClose={() => setShowModal(false)} wide>
-          <FormField label={t("ruleName")}>
-            <Input placeholder="Ej: Bonus de cumpleaños" />
-          </FormField>
-          <FormField label={t("triggerType")}>
-            <Select options={[
-              { value: "", label: "Seleccionar tipo..." },
-              { value: "periodic", label: "Periódico (diario, semanal, mensual, etc.)" },
-              { value: "birthday", label: "Evento: Cumpleaños" },
-              { value: "anniversary", label: "Evento: Aniversario laboral" },
-              { value: "onboarding", label: "Evento: Alta de usuario" },
-              { value: "custom", label: "Evento personalizado" },
-            ]} />
-          </FormField>
-          <FormField label={t("periodicityLabel")}>
-            <Select options={[
-              { value: "", label: "Seleccionar..." },
-              { value: "daily", label: "Diario" },
-              { value: "weekly", label: "Semanal" },
-              { value: "monthly", label: "Mensual" },
-              { value: "quarterly", label: "Trimestral" },
-              { value: "yearly", label: "Anual" },
-            ]} />
-          </FormField>
-          <FormField label={t("creditAmount")}>
-            <Input type="number" placeholder="1000" />
-          </FormField>
-          <FormField label={t("applyTo")}>
-            <Select options={[
-              { value: "all", label: "Todos los colaboradores" },
-              { value: "group", label: "Grupo específico" },
-              { value: "dept", label: "Departamento" },
-              { value: "segment", label: "Segmento" },
-            ]} />
-          </FormField>
-          <FormField label={t("expirationDate")}>
-            <Input type="date" />
-          </FormField>
-          <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
-            <Button variant="secondary" onClick={() => setShowModal(false)}>{t("cancel")}</Button>
-            <Button icon={Zap} onClick={() => { toast.success("Regla automática creada"); setShowModal(false); }}>{t("createRule")}</Button>
-          </div>
+              <FormField label="Créditos por logro">
+                <Input type="number" placeholder="5" value={genFormAmount} onChange={(e: any) => setGenFormAmount(e.target.value)} />
+              </FormField>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                <FormField label="Límite por colaborador (opcional)">
+                  <Input type="number" placeholder="Ej: 3 veces" value={genFormLimit} onChange={(e: any) => setGenFormLimit(e.target.value)} />
+                </FormField>
+                <FormField label="Máximo acumulable (opcional)">
+                  <Input type="number" placeholder="Ej: 50 créditos" value={genFormMaxAccum} onChange={(e: any) => setGenFormMaxAccum(e.target.value)} />
+                </FormField>
+              </div>
+              <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
+                <Button variant="secondary" onClick={() => { setShowModal(false); resetForm(); }}>Cancelar</Button>
+                <Button icon={Sparkles} onClick={handleSaveGeneration}>
+                  {saving ? "Guardando..." : (editingRule ? "Guardar cambios" : "Crear regla")}
+                </Button>
+              </div>
+            </>
+          )}
         </Modal>
       )}
     </div>
@@ -2333,12 +2476,52 @@ function AnalyticsPage({ data }: { data: any }) {
 /* ════════════════════════════════════════════
    PAGE: BUY CREDITS
    ════════════════════════════════════════════ */
-function BuyCreditsPage({ data }: { data: any }) {
+function BuyCreditsPage({ data, onRefresh }: { data: any; onRefresh: () => void }) {
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
+  const [purchasing, setPurchasing] = useState(false);
   const pricePerCredit = 0.10;
   const total = amount ? Number(amount) * pricePerCredit : 0;
   const quickAmounts = [100, 500, 1000, 5000];
+
+  const handlePurchase = async () => {
+    if (!amount || Number(amount) <= 0) { toast.error("Ingresá una cantidad"); return; }
+    setPurchasing(true);
+    try {
+      const { data: allWallets } = await supabase.from("wallets").select("*");
+      if (!allWallets || allWallets.length === 0) throw new Error("No wallets found");
+
+      const totalCredits = Number(amount);
+      const perWallet = Math.round((totalCredits / allWallets.length) * 100) / 100;
+      const desc = note ? `Compra de créditos — ${note}` : "Compra de créditos";
+
+      for (const wallet of allWallets) {
+        const newBalance = Math.round((Number(wallet.balance) + perWallet) * 100) / 100;
+        await supabase.from("wallets").update({ balance: newBalance, updated_at: new Date().toISOString() }).eq("id", wallet.id);
+        const txnId = `tx_${Math.random().toString(36).substring(2, 10)}`;
+        await supabase.from("transactions").insert({
+          id: txnId, wallet_id: wallet.id, type: "credit", amount: perWallet, description: desc,
+        });
+      }
+
+      // Audit trail
+      await supabase.from("bulk_history").insert({
+        id: `bh_${Math.random().toString(36).substring(2, 10)}`,
+        date: new Date().toISOString(),
+        type: "purchase", users_count: allWallets.length,
+        credits: perWallet, total: totalCredits,
+        created_by: "Admin", status: "completed",
+      });
+
+      toast.success(`${fmtNum(totalCredits)} créditos sumados exitosamente`);
+      setAmount(""); setNote("");
+      onRefresh();
+    } catch (e) {
+      console.error(e);
+      toast.error("Error al sumar créditos");
+    }
+    setPurchasing(false);
+  };
 
   return (
     <div>
@@ -2416,8 +2599,8 @@ function BuyCreditsPage({ data }: { data: any }) {
 
           <Button variant="gradient" icon={ShoppingCart} size="lg"
             style={{ width: "100%", justifyContent: "center", marginTop: 20 }}
-            onClick={() => { if (!amount || Number(amount) <= 0) { toast.error("Ingresá una cantidad"); return; } toast.success(`${fmtNum(Number(amount))} créditos agregados a tu cuenta`); setAmount(""); setNote(""); }}>
-            Sumar créditos
+            onClick={handlePurchase}>
+            {purchasing ? "Procesando..." : "Sumar créditos"}
           </Button>
         </Card>
 
@@ -2463,6 +2646,7 @@ export default function App() {
     { key: "individual", label: t("employees") },
     { key: "benefits", label: t("benefits") },
     { key: "auto", label: t("autoLoads") },
+    { key: "buy", label: "Comprar créditos" },
   ], [language]);
 
   const otherNav = useMemo(() => [
@@ -2513,7 +2697,7 @@ export default function App() {
       case "individual": return <IndividualLoadPage data={data} onRefresh={data.refresh} />;
       case "auto": return <AutoRulesPage data={data} onRefresh={data.refresh} />;
       case "benefits": return <BenefitsPage data={data} />;
-      case "buy": return <BuyCreditsPage data={data} />;
+      case "buy": return <BuyCreditsPage data={data} onRefresh={data.refresh} />;
       default: return <DashboardPage data={data} />;
     }
   };
