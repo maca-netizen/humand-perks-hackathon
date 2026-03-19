@@ -1114,22 +1114,45 @@ function IndividualLoadPage({ data, onRefresh }: { data: any; onRefresh: () => v
       {/* Bulk load modal */}
       {showBulkModal && (
         <Modal title={t("bulkCreditLoad")} onClose={() => setShowBulkModal(false)} wide>
-          <EmptyDrop label={t("uploadCSV")} sublabel={t("dragDropCSV")} />
-          <div style={{ marginTop: 16, padding: 12, background: tokens.colors.info[50], borderRadius: tokens.radius.s, fontSize: 12, color: tokens.colors.info[700], letterSpacing: "0.2px", lineHeight: 1.4 }}>
+          <div style={{ marginBottom: 20 }}>
+            <Button variant="secondary" icon={Download} size="sm" onClick={() => {
+              const csv = "email,creditos\nmaria@novatech.com,20\njuan@novatech.com,20\nana@novatech.com,15\n";
+              const blob = new Blob([csv], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a"); a.href = url; a.download = "plantilla_carga_creditos.csv"; a.click();
+              URL.revokeObjectURL(url);
+              toast.success(t("csvTemplateDownloaded"));
+            }}>{t("downloadTemplate")}</Button>
+          </div>
+          <div style={{ marginBottom: 16 }}>
+            <label style={{
+              display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center",
+              padding: 32, borderRadius: tokens.radius.m, cursor: "pointer",
+              borderTop: `2px dashed ${tokens.semantic.border}`, borderRight: `2px dashed ${tokens.semantic.border}`,
+              borderBottom: `2px dashed ${tokens.semantic.border}`, borderLeft: `2px dashed ${tokens.semantic.border}`,
+              background: tokens.colors.neutral[50], transition: tokens.transition.fast,
+            }}>
+              <Upload size={28} color={tokens.colors.humand[400]} style={{ marginBottom: 8 }} />
+              <span style={{ fontSize: 14, fontWeight: 600, color: tokens.semantic.textDefault }}>{t("uploadCSV")}</span>
+              <span style={{ fontSize: 12, color: tokens.semantic.textLighter, marginTop: 4 }}>{t("dragDropCSV")}</span>
+              <input type="file" accept=".csv" style={{ display: "none" }} onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) toast.success(`${t("fileSelected")}: ${file.name}`);
+              }} />
+            </label>
+          </div>
+          <div style={{ padding: 12, background: tokens.colors.info[50], borderRadius: tokens.radius.s, fontSize: 12, color: tokens.colors.info[600], lineHeight: 1.5, marginBottom: 16 }}>
             <strong>{t("csvFormatLabel")}:</strong> {t("csvFormatDesc")}
           </div>
           <FormField label={t("creditsPerUserField")}>
-            <Input type="number" placeholder="1500" />
+            <Input type="number" placeholder="20" />
           </FormField>
           <FormField label={t("loadReason")}>
-            <Input placeholder="Ej: Carga mensual marzo 2026" />
-          </FormField>
-          <FormField label={t("expirationDate")}>
-            <Input type="date" />
+            <Input placeholder={t("loadReasonPlaceholder")} />
           </FormField>
           <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
             <Button variant="secondary" onClick={() => setShowBulkModal(false)}>{t("cancel")}</Button>
-            <Button icon={Upload}>{t("processLoad")}</Button>
+            <Button icon={Upload} onClick={() => { toast.success(t("bulkLoadSuccess")); setShowBulkModal(false); }}>{t("processLoad")}</Button>
           </div>
         </Modal>
       )}
@@ -1623,24 +1646,24 @@ function AutoRulesPage({ data, onRefresh }: { data: any; onRefresh: () => void }
    ════════════════════════════════════════════ */
 /* Predefined benefit catalog that admins can publish */
 const BENEFIT_CATALOG = [
-  { name: "Gimnasio SmartFit", category: "salud", provider: "SmartFit", cost: 8, description: "Acceso mensual a cualquier sede SmartFit", image: "🏋️" },
-  { name: "Sesión de nutrición", category: "salud", provider: "NutriPlan", cost: 5, description: "Consulta personalizada con nutricionista", image: "🥗" },
-  { name: "Chequeo médico anual", category: "salud", provider: "MedCheck", cost: 12, description: "Chequeo médico preventivo completo", image: "🩺" },
-  { name: "Clase de yoga", category: "bienestar", provider: "ZenFlow", cost: 3, description: "Clase grupal de yoga y meditación", image: "🧘" },
-  { name: "Día de spa", category: "bienestar", provider: "RelaxSpa", cost: 10, description: "Jornada de relajación y masajes", image: "💆" },
-  { name: "Sesión de terapia", category: "bienestar", provider: "MindWell", cost: 6, description: "Sesión individual con psicólogo", image: "🧠" },
-  { name: "Almuerzo gourmet", category: "gastronomía", provider: "FoodBox", cost: 4, description: "Almuerzo saludable delivery en la oficina", image: "🍕" },
-  { name: "Coffee break premium", category: "gastronomía", provider: "CaféSelect", cost: 2, description: "Café de especialidad y snacks", image: "☕" },
-  { name: "Cena para dos", category: "gastronomía", provider: "RestóClub", cost: 15, description: "Cena en restaurantes seleccionados", image: "🍽️" },
-  { name: "Curso de inglés", category: "educación", provider: "LangPro", cost: 7, description: "Mes de clases de inglés online", image: "📚" },
-  { name: "Curso Udemy", category: "educación", provider: "Udemy", cost: 5, description: "Acceso a un curso en Udemy Business", image: "🎓" },
-  { name: "Certificación profesional", category: "educación", provider: "Coursera", cost: 20, description: "Certificación en Coursera o similar", image: "📜" },
-  { name: "Entrada de cine", category: "entretenimiento", provider: "Cinemark", cost: 3, description: "Entrada para cualquier función", image: "🎬" },
-  { name: "Streaming mensual", category: "entretenimiento", provider: "Multi", cost: 4, description: "Netflix, Spotify o Disney+ por un mes", image: "📺" },
-  { name: "Escape room", category: "entretenimiento", provider: "EscapeAR", cost: 6, description: "Experiencia de escape room para equipo", image: "🔐" },
-  { name: "Gift card shopping", category: "shopping", provider: "MercadoLibre", cost: 10, description: "Gift card canjeable en MercadoLibre", image: "🛍️" },
-  { name: "Día libre", category: "bienestar", provider: "Interno", cost: 15, description: "Un día libre adicional para uso personal", image: "🏖️" },
-  { name: "Home office kit", category: "bienestar", provider: "TechStore", cost: 12, description: "Kit de accesorios para home office", image: "💻" },
+  { name: "Gimnasio SmartFit", category: "salud", provider: "SmartFit", cost: 8, description: "Acceso mensual a cualquier sede SmartFit", image: "🏋️", image_url: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&h=200&fit=crop" },
+  { name: "Sesión de nutrición", category: "salud", provider: "NutriPlan", cost: 5, description: "Consulta personalizada con nutricionista", image: "🥗", image_url: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400&h=200&fit=crop" },
+  { name: "Chequeo médico anual", category: "salud", provider: "MedCheck", cost: 12, description: "Chequeo médico preventivo completo", image: "🩺", image_url: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&h=200&fit=crop" },
+  { name: "Clase de yoga", category: "bienestar", provider: "ZenFlow", cost: 3, description: "Clase grupal de yoga y meditación", image: "🧘", image_url: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=200&fit=crop" },
+  { name: "Día de spa", category: "bienestar", provider: "RelaxSpa", cost: 10, description: "Jornada de relajación y masajes", image: "💆", image_url: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=400&h=200&fit=crop" },
+  { name: "Sesión de terapia", category: "bienestar", provider: "MindWell", cost: 6, description: "Sesión individual con psicólogo", image: "🧠", image_url: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=400&h=200&fit=crop" },
+  { name: "Almuerzo gourmet", category: "gastronomía", provider: "FoodBox", cost: 4, description: "Almuerzo saludable delivery en la oficina", image: "🍕", image_url: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&h=200&fit=crop" },
+  { name: "Coffee break premium", category: "gastronomía", provider: "CaféSelect", cost: 2, description: "Café de especialidad y snacks", image: "☕", image_url: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&h=200&fit=crop" },
+  { name: "Cena para dos", category: "gastronomía", provider: "RestóClub", cost: 15, description: "Cena en restaurantes seleccionados", image: "🍽️", image_url: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&h=200&fit=crop" },
+  { name: "Curso de inglés", category: "educación", provider: "LangPro", cost: 7, description: "Mes de clases de inglés online", image: "📚", image_url: "https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=400&h=200&fit=crop" },
+  { name: "Curso Udemy", category: "educación", provider: "Udemy", cost: 5, description: "Acceso a un curso en Udemy Business", image: "🎓", image_url: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=200&fit=crop" },
+  { name: "Certificación profesional", category: "educación", provider: "Coursera", cost: 20, description: "Certificación en Coursera o similar", image: "📜", image_url: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&h=200&fit=crop" },
+  { name: "Entrada de cine", category: "entretenimiento", provider: "Cinemark", cost: 3, description: "Entrada para cualquier función", image: "🎬", image_url: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=400&h=200&fit=crop" },
+  { name: "Streaming mensual", category: "entretenimiento", provider: "Multi", cost: 4, description: "Netflix, Spotify o Disney+ por un mes", image: "📺", image_url: "https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?w=400&h=200&fit=crop" },
+  { name: "Escape room", category: "entretenimiento", provider: "EscapeAR", cost: 6, description: "Experiencia de escape room para equipo", image: "🔐", image_url: "https://images.unsplash.com/photo-1590674899484-d5640e854abe?w=400&h=200&fit=crop" },
+  { name: "Gift card shopping", category: "shopping", provider: "MercadoLibre", cost: 10, description: "Gift card canjeable en MercadoLibre", image: "🛍️", image_url: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&h=200&fit=crop" },
+  { name: "Día libre", category: "bienestar", provider: "Interno", cost: 15, description: "Un día libre adicional para uso personal", image: "🏖️", image_url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=200&fit=crop" },
+  { name: "Home office kit", category: "bienestar", provider: "TechStore", cost: 12, description: "Kit de accesorios para home office", image: "💻", image_url: "https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=400&h=200&fit=crop" },
 ];
 
 const BENEFIT_CATEGORIES = [
@@ -1729,7 +1752,7 @@ function BenefitsPage({ data }: { data: any }) {
         merchant: item.provider,
         cost: item.cost,
         description: item.description,
-        image_url: null,
+        image_url: item.image_url || null,
         active: true,
       });
       if (error) { console.error("Insert error:", error); toast.error("Error al publicar: " + error.message); return; }
