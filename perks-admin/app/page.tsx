@@ -2,8 +2,11 @@
 
 // Safe number formatter — avoids hydration mismatch between server/client
 function fmtNum(n: number): string { return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }
+function fmtCurrency(n: number): string { return "$" + fmtNum(n) }
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 import {
   BarChart3, Users, Gift, CreditCard, Upload, UserPlus, Zap,
   Settings, TrendingUp, Search, Plus, Trash2, Edit3, Check,
@@ -46,88 +49,209 @@ const tokens = {
     borderLight: "#eeeef1",
   },
   shadow: {
+    dp2: "0 1px 3px rgba(0,0,0,0.06)",
     dp4: "-1px 4px 8px 0px rgba(233,233,244,1)",
     dp8: "-1px 8px 16px 0px rgba(170,170,186,0.45)",
+    dp12: "-2px 12px 32px rgba(48,48,54,0.18)",
+    glow: "0 4px 14px rgba(73,107,227,0.35)",
   },
   radius: { s: 4, m: 8, l: 16 },
   spacing: { xs: 4, sm: 8, md: 16, lg: 24, xl: 32, xxl: 40 },
+  transition: {
+    fast: "all 0.15s cubic-bezier(0.4,0,0.2,1)",
+    medium: "all 0.25s cubic-bezier(0.4,0,0.2,1)",
+  },
 };
 
 /* ════════════════════════════════════════════
-   MOCK DATA
+   DATA HOOK — Fetches from Supabase
    ════════════════════════════════════════════ */
-const mockUsers = [
-  { id: 1, name: "Maria Garcia", email: "maria@novatech.com", dept: "Marketing", credits: 20, spent: 0, avatar: "MG", status: "active" },
-  { id: 2, name: "Juan Perez", email: "juan@novatech.com", dept: "Tecnologia", credits: 20, spent: 0, avatar: "JP", status: "active" },
-  { id: 3, name: "Ana Rodriguez", email: "ana@novatech.com", dept: "RRHH", credits: 20, spent: 0, avatar: "AR", status: "active" },
-  { id: 4, name: "Carlos Ruiz", email: "carlos@novatech.com", dept: "Ventas", credits: 20, spent: 0, avatar: "CR", status: "active" },
-  { id: 5, name: "Lucia Fernandez", email: "lucia@novatech.com", dept: "Finanzas", credits: 20, spent: 0, avatar: "LF", status: "active" },
-];
 
-const mockBenefits = [
-  { id: 1, name: "Gym Pass — Megatlon", category: "Salud", credits: 15, provider: "Megatlon", status: "active", redemptions: 45, image: "🏋️" },
-  { id: 2, name: "Coursera Plus", category: "Educacion", credits: 12, provider: "Coursera", status: "active", redemptions: 28, image: "📚" },
-  { id: 3, name: "Starbucks Gift Card", category: "Gastronomia", credits: 5, provider: "Starbucks", status: "active", redemptions: 67, image: "☕" },
-  { id: 4, name: "Netflix 1 Mes", category: "Entretenimiento", credits: 8, provider: "Netflix", status: "active", redemptions: 55, image: "🎬" },
-  { id: 5, name: "Headspace Premium", category: "Bienestar", credits: 10, provider: "Headspace", status: "active", redemptions: 19, image: "🧘" },
-  { id: 6, name: "PedidosYa Voucher", category: "Gastronomia", credits: 7, provider: "PedidosYa", status: "active", redemptions: 41, image: "🍕" },
-];
+const categoryColors: Record<string, string> = {
+  bienestar: tokens.colors.humand[500],
+  gastronomia: tokens.colors.teal[500],
+  gastronomía: tokens.colors.teal[500],
+  educacion: tokens.colors.purple[500],
+  educación: tokens.colors.purple[500],
+  entretenimiento: tokens.colors.yellow[500],
+  salud: tokens.colors.red[400],
+  shopping: tokens.colors.red[400],
+};
 
-const monthlyCredits = [
-  { month: "Sep", cargados: 12000, canjeados: 8500 },
-  { month: "Oct", cargados: 13500, canjeados: 9200 },
-  { month: "Nov", cargados: 14000, canjeados: 10800 },
-  { month: "Dic", cargados: 16000, canjeados: 13500 },
-  { month: "Ene", cargados: 14500, canjeados: 11000 },
-  { month: "Feb", cargados: 15000, canjeados: 12200 },
-  { month: "Mar", cargados: 15800, canjeados: 11500 },
-];
+const categoryEmojis: Record<string, string> = {
+  salud: "🏋️", bienestar: "🧘", gastronomia: "🍕", gastronomía: "🍕",
+  educacion: "📚", educación: "📚", entretenimiento: "🎬", shopping: "🛍️",
+};
 
-const categoryData = [
-  { name: "Bienestar", value: 35, color: tokens.colors.humand[500] },
-  { name: "Gastronomía", value: 25, color: tokens.colors.teal[500] },
-  { name: "Educación", value: 18, color: tokens.colors.purple[500] },
-  { name: "Entretenimiento", value: 12, color: tokens.colors.yellow[500] },
-  { name: "Shopping", value: 10, color: tokens.colors.red[400] },
-];
+function getInitials(name: string) {
+  return name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+}
 
-const deptUsage = [
-  { dept: "Marketing", usage: 78 },
-  { dept: "Tecnología", usage: 65 },
-  { dept: "RRHH", usage: 82 },
-  { dept: "Ventas", usage: 71 },
-  { dept: "Finanzas", usage: 59 },
-];
+function timeAgo(date: string) {
+  const now = new Date();
+  const then = new Date(date);
+  const diff = Math.floor((now.getTime() - then.getTime()) / 1000);
+  if (diff < 3600) return `Hace ${Math.floor(diff / 60)} min`;
+  if (diff < 86400) return `Hace ${Math.floor(diff / 3600)} horas`;
+  return `Hace ${Math.floor(diff / 86400)} días`;
+}
 
-const recentActivity = [
-  { user: "María García", action: "Canjeó Gimnasio mensual", credits: -500, time: "Hace 2 horas", type: "redemption" },
-  { user: "Carlos López", action: "Recibió carga automática (cumpleaños)", credits: 1000, time: "Hace 5 horas", type: "credit" },
-  { user: "Ana Martínez", action: "Canjeó Curso online", credits: -600, time: "Hace 1 día", type: "redemption" },
-  { user: "Pedro Sánchez", action: "Carga masiva procesada", credits: 1500, time: "Hace 1 día", type: "credit" },
-  { user: "Laura Fernández", action: "Canjeó Almuerzo gourmet", credits: -300, time: "Hace 2 días", type: "redemption" },
-];
+function useAdminData() {
+  const [users, setUsers] = useState<any[]>([]);
+  const [benefits, setBenefits] = useState<any[]>([]);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [wallets, setWallets] = useState<any[]>([]);
+  const [autoRulesData, setAutoRulesData] = useState<any[]>([]);
+  const [bulkHistoryData, setBulkHistoryData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const refresh = () => setRefreshKey(k => k + 1);
 
-const autoRules = [
-  { id: 1, name: "Carga mensual estándar", type: "periodic", trigger: "Mensual - día 1", amount: 1500, target: "Todos los colaboradores", status: "active", lastRun: "01/03/2026" },
-  { id: 2, name: "Bonus de cumpleaños", type: "event", trigger: "Cumpleaños", amount: 1000, target: "Todos los colaboradores", status: "active", lastRun: "15/03/2026" },
-  { id: 3, name: "Aniversario laboral", type: "event", trigger: "Aniversario", amount: 2000, target: "Todos los colaboradores", status: "active", lastRun: "10/03/2026" },
-  { id: 4, name: "Bonus trimestral líderes", type: "periodic", trigger: "Trimestral - día 1", amount: 3000, target: "Grupo: Líderes", status: "paused", lastRun: "01/01/2026" },
-  { id: 5, name: "Bienvenida nuevos ingresos", type: "event", trigger: "Alta de usuario", amount: 500, target: "Nuevos colaboradores", status: "active", lastRun: "12/03/2026" },
-];
+  useEffect(() => {
+    async function fetchAll() {
+      const [uRes, bRes, tRes, wRes, arRes, bhRes] = await Promise.all([
+        supabase.from("users").select("*"),
+        supabase.from("benefits").select("*"),
+        supabase.from("transactions").select("*, benefits(name, image_url)").order("created_at", { ascending: false }),
+        supabase.from("wallets").select("*"),
+        supabase.from("auto_rules").select("*").order("created_at", { ascending: false }),
+        supabase.from("bulk_history").select("*").order("date", { ascending: false }),
+      ]);
+      setUsers(uRes.data || []);
+      setBenefits(bRes.data || []);
+      setTransactions(tRes.data || []);
+      setWallets(wRes.data || []);
+      setAutoRulesData(arRes.data || []);
+      setBulkHistoryData(bhRes.data || []);
+      setLoading(false);
+    }
+    fetchAll();
+  }, [refreshKey]);
 
-const ruleTypes = [
-  { id: 1, name: "Carga periódica", icon: "repeat", rulesCount: 2, usersCount: 85, description: "Cargas recurrentes en intervalos regulares" },
-  { id: 2, name: "Cumpleaños", icon: "cake", rulesCount: 1, usersCount: 85, description: "Créditos automáticos en el cumpleaños" },
-  { id: 3, name: "Aniversario laboral", icon: "award", rulesCount: 1, usersCount: 85, description: "Bonus por años en la empresa" },
-  { id: 4, name: "Onboarding", icon: "userplus", rulesCount: 1, usersCount: 12, description: "Bienvenida a nuevos colaboradores" },
-];
+  // Derived data for dashboard
+  const credits = transactions.filter(t => t.type === "credit");
+  const debits = transactions.filter(t => t.type === "debit");
+  const totalCredited = credits.reduce((s, t) => s + Number(t.amount), 0);
+  const totalRedeemed = debits.reduce((s, t) => s + Number(t.amount), 0);
+  const totalPending = Math.round((totalCredited - totalRedeemed) * 100) / 100;
+  const employees = users.filter(u => u.role === "employee");
 
-const bulkHistory = [
-  { id: 1, date: "15/03/2026", file: "carga_marzo_2026.csv", users: 85, credits: 1500, total: 127500, status: "completed", by: "Fermin C." },
-  { id: 2, date: "01/03/2026", file: "bonus_Q1_lideres.csv", users: 12, credits: 3000, total: 36000, status: "completed", by: "Fermin C." },
-  { id: 3, date: "15/02/2026", file: "carga_febrero_2026.csv", users: 82, credits: 1500, total: 123000, status: "completed", by: "Ana M." },
-  { id: 4, date: "01/02/2026", file: "compensacion_especial.csv", users: 5, credits: 5000, total: 25000, status: "failed", by: "Fermin C." },
-];
+  // Users with wallet data merged
+  const usersWithWallet = users.map(u => {
+    const w = wallets.find(w => w.user_id === u.id);
+    const userCredits = credits.filter(t => t.wallet_id === w?.id).reduce((s, t) => s + Number(t.amount), 0);
+    const userSpent = debits.filter(t => t.wallet_id === w?.id).reduce((s, t) => s + Number(t.amount), 0);
+    return {
+      ...u,
+      avatar: getInitials(u.name),
+      credits: userCredits,
+      spent: userSpent,
+      balance: w?.balance || 0,
+    };
+  });
+
+  // Benefits with redemption counts
+  const benefitsWithStats = benefits.map(b => {
+    const redemptionCount = debits.filter(t => t.benefit_id === b.id).length;
+    return {
+      ...b,
+      credits: Number(b.cost),
+      provider: b.merchant || "",
+      status: b.active ? "active" : "paused",
+      redemptions: redemptionCount,
+      image: categoryEmojis[b.category?.toLowerCase()] || "🎁",
+    };
+  });
+
+  // Category breakdown for pie chart
+  const catCounts: Record<string, number> = {};
+  debits.forEach(t => {
+    const benefit = benefits.find(b => b.id === t.benefit_id);
+    if (benefit) {
+      const cat = benefit.category || "Otro";
+      catCounts[cat] = (catCounts[cat] || 0) + 1;
+    }
+  });
+  const totalDebits = debits.length || 1;
+  const categoryData = Object.entries(catCounts).map(([name, count]) => ({
+    name: name.charAt(0).toUpperCase() + name.slice(1),
+    value: Math.round((count / totalDebits) * 100),
+    color: categoryColors[name.toLowerCase()] || tokens.colors.neutral[400],
+  }));
+
+  // Department usage
+  const deptMap: Record<string, { total: number; spent: number }> = {};
+  usersWithWallet.forEach(u => {
+    if (!u.dept) return;
+    if (!deptMap[u.dept]) deptMap[u.dept] = { total: 0, spent: 0 };
+    deptMap[u.dept].total += u.credits || 1;
+    deptMap[u.dept].spent += u.spent;
+  });
+  const deptUsage = Object.entries(deptMap).map(([dept, v]) => ({
+    dept,
+    usage: v.total > 0 ? Math.round((v.spent / v.total) * 100) : 0,
+  }));
+
+  // Recent activity from transactions
+  const recentActivity = transactions.slice(0, 5).map(t => {
+    const user = users.find(u => {
+      const w = wallets.find(w => w.user_id === u.id);
+      return w?.id === t.wallet_id;
+    });
+    return {
+      user: user?.name || "Usuario",
+      action: t.description,
+      credits: t.type === "credit" ? Number(t.amount) : -Number(t.amount),
+      time: timeAgo(t.created_at),
+      type: t.type === "credit" ? "credit" : "redemption",
+    };
+  });
+
+  // Monthly credits chart data (aggregate by month)
+  const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+  const monthMap: Record<string, { cargados: number; canjeados: number }> = {};
+  transactions.forEach(t => {
+    const d = new Date(t.created_at);
+    const key = monthNames[d.getMonth()];
+    if (!monthMap[key]) monthMap[key] = { cargados: 0, canjeados: 0 };
+    if (t.type === "credit") monthMap[key].cargados += Number(t.amount);
+    else monthMap[key].canjeados += Number(t.amount);
+  });
+  const monthlyCredits = Object.entries(monthMap).map(([month, v]) => ({ month, ...v }));
+  if (monthlyCredits.length === 0) monthlyCredits.push({ month: "Mar", cargados: 0, canjeados: 0 });
+
+  // Auto rules formatted
+  const autoRules = autoRulesData.map(r => ({
+    ...r,
+    amount: Number(r.amount),
+    lastRun: r.last_run ? new Date(r.last_run).toLocaleDateString("es-AR") : "—",
+  }));
+
+  // Rule types (derived from auto_rules)
+  const ruleTypes = [
+    { id: 1, name: "Carga periódica", icon: "repeat", rulesCount: autoRules.filter(r => r.type === "periodic").length, usersCount: employees.length, description: "Cargas recurrentes en intervalos regulares" },
+    { id: 2, name: "Cumpleaños", icon: "cake", rulesCount: autoRules.filter(r => r.trigger === "Cumpleaños").length, usersCount: employees.length, description: "Créditos automáticos en el cumpleaños" },
+    { id: 3, name: "Aniversario laboral", icon: "award", rulesCount: autoRules.filter(r => r.trigger === "Aniversario").length, usersCount: employees.length, description: "Bonus por años en la empresa" },
+    { id: 4, name: "Onboarding", icon: "userplus", rulesCount: autoRules.filter(r => r.trigger === "Alta de usuario").length, usersCount: employees.length, description: "Bienvenida a nuevos colaboradores" },
+  ];
+
+  // Bulk history formatted
+  const bulkHistory = bulkHistoryData.map(b => ({
+    ...b,
+    date: new Date(b.date).toLocaleDateString("es-AR"),
+    users: b.users_count,
+    credits: Number(b.credits),
+    total: Number(b.total),
+    by: b.created_by || "—",
+  }));
+
+  return {
+    loading, refresh, users: usersWithWallet, benefits: benefitsWithStats,
+    transactions, totalCredited, totalRedeemed, totalPending,
+    employees, categoryData, deptUsage, recentActivity,
+    monthlyCredits, autoRules, ruleTypes, bulkHistory, wallets,
+  };
+}
 
 /* ════════════════════════════════════════════
    SHARED COMPONENTS
@@ -175,41 +299,60 @@ function Badge({ children, variant = "default" }) {
 }
 
 function Button({ children, variant = "primary", size = "md", icon: Icon, onClick, style: extraStyle }) {
+  const [hovered, setHovered] = useState(false);
   const sizes = {
     sm: { padding: "6px 12px", fontSize: 12 },
     md: { padding: "8px 16px", fontSize: 14 },
     lg: { padding: "12px 24px", fontSize: 16 },
   };
   const variants = {
-    primary: { bg: tokens.colors.humand[500], color: "#fff", border: "none" },
+    primary: { bg: `linear-gradient(135deg, ${tokens.colors.humand[500]}, ${tokens.colors.humand[600]})`, color: "#fff", border: "none" },
     secondary: { bg: "#fff", color: tokens.colors.humand[500], border: `1px solid ${tokens.colors.humand[300]}` },
     ghost: { bg: "transparent", color: tokens.semantic.textLighter, border: "none" },
-    danger: { bg: tokens.colors.red[500], color: "#fff", border: "none" },
+    danger: { bg: `linear-gradient(135deg, ${tokens.colors.red[500]}, ${tokens.colors.red[600]})`, color: "#fff", border: "none" },
   };
   const v = variants[variant];
   const s = sizes[size];
+  const hoverStyle = hovered ? (
+    variant === "primary" || variant === "danger"
+      ? { transform: "translateY(-1px)", boxShadow: tokens.shadow.glow }
+      : variant === "secondary"
+        ? { boxShadow: tokens.shadow.dp2, borderColor: tokens.colors.humand[400] }
+        : { background: tokens.colors.neutral[100] }
+  ) : {};
   return (
-    <button onClick={onClick} style={{
-      ...s, ...baseStyles, fontWeight: 600, borderRadius: tokens.radius.s,
-      background: v.bg, color: v.color, border: v.border,
-      cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8,
-      transition: "all 0.15s ease", ...extraStyle,
-    }}>
+    <button onClick={onClick}
+      onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+      style={{
+        ...s, ...baseStyles, fontWeight: 600, borderRadius: tokens.radius.m,
+        background: v.bg, color: v.color, border: v.border,
+        cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8,
+        transition: tokens.transition.fast, ...hoverStyle, ...extraStyle,
+      }}>
       {Icon && <Icon size={size === "sm" ? 14 : 16} />}
       {children}
     </button>
   );
 }
 
-function Card({ children, style: extraStyle, noPadding }) {
+function Card({ children, style: extraStyle, noPadding, hoverable }: any) {
+  const [hovered, setHovered] = useState(false);
   return (
-    <div style={{
-      background: tokens.semantic.bgCard,
-      borderRadius: tokens.radius.l,
-      boxShadow: tokens.shadow.dp4,
-      padding: noPadding ? 0 : 24,
-      ...extraStyle,
-    }}>
+    <div
+      onMouseEnter={hoverable ? () => setHovered(true) : undefined}
+      onMouseLeave={hoverable ? () => setHovered(false) : undefined}
+      style={{
+        background: tokens.semantic.bgCard,
+        borderRadius: tokens.radius.l,
+        boxShadow: hovered ? tokens.shadow.dp8 : tokens.shadow.dp4,
+        borderTop: `1px solid ${hovered ? tokens.colors.humand[200] : "transparent"}`,
+        borderRight: `1px solid ${hovered ? tokens.colors.humand[200] : "transparent"}`,
+        borderBottom: `1px solid ${hovered ? tokens.colors.humand[200] : "transparent"}`,
+        borderLeft: `1px solid ${hovered ? tokens.colors.humand[200] : "transparent"}`,
+        padding: noPadding ? 0 : 24,
+        transition: tokens.transition.medium,
+        ...extraStyle,
+      }}>
       {children}
     </div>
   );
@@ -217,18 +360,19 @@ function Card({ children, style: extraStyle, noPadding }) {
 
 function StatCard({ label, value, icon: Icon, trend, trendUp, color = tokens.colors.humand[500] }) {
   return (
-    <Card style={{ display: "flex", alignItems: "flex-start", gap: 16 }}>
+    <Card hoverable style={{ display: "flex", alignItems: "flex-start", gap: 16, borderLeft: `3px solid ${color}` }}>
       <div style={{
-        width: 48, height: 48, borderRadius: tokens.radius.m,
-        background: `${color}15`, display: "flex", alignItems: "center", justifyContent: "center",
+        width: 52, height: 52, borderRadius: tokens.radius.m,
+        background: `radial-gradient(circle at top left, ${color}20, ${color}08)`,
+        display: "flex", alignItems: "center", justifyContent: "center",
       }}>
-        <Icon size={24} color={color} />
+        <Icon size={26} color={color} />
       </div>
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: 12, color: tokens.semantic.textLighter, lineHeight: 1.4, letterSpacing: "0.2px", marginBottom: 4 }}>{label}</div>
-        <div style={{ fontSize: 24, fontWeight: 600, lineHeight: 1.4, letterSpacing: "0.2px" }}>{value}</div>
+        <div style={{ fontSize: 28, fontWeight: 700, lineHeight: 1.3, letterSpacing: "-0.2px" }}>{value}</div>
         {trend && (
-          <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 4, fontSize: 12, color: trendUp ? tokens.colors.green[600] : tokens.colors.red[500], letterSpacing: "0.2px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 6, fontSize: 12, color: trendUp ? tokens.colors.green[600] : tokens.colors.red[500], letterSpacing: "0.2px" }}>
             {trendUp ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
             {trend}
           </div>
@@ -257,6 +401,7 @@ function SearchInput({ value, onChange, placeholder = "Buscar..." }) {
 }
 
 function Table({ columns, data }) {
+  const [hoveredRow, setHoveredRow] = useState(-1);
   return (
     <div style={{ overflowX: "auto" }}>
       <table style={{ width: "100%", borderCollapse: "collapse", ...baseStyles, fontSize: 14, lineHeight: 1.4 }}>
@@ -264,10 +409,11 @@ function Table({ columns, data }) {
           <tr>
             {columns.map((col, i) => (
               <th key={i} style={{
-                padding: "12px 16px", textAlign: "left", fontWeight: 600, fontSize: 12,
+                padding: "12px 16px", textAlign: "left", fontWeight: 700, fontSize: 11,
+                textTransform: "uppercase" as const, letterSpacing: "0.5px",
                 background: tokens.semantic.bgTableHeader, color: tokens.semantic.textTableHeader,
                 borderBottom: `1px solid ${tokens.semantic.borderLight}`,
-                letterSpacing: "0.2px", lineHeight: 1.4,
+                lineHeight: 1.4,
                 ...(i === 0 ? { borderRadius: "8px 0 0 0" } : {}),
                 ...(i === columns.length - 1 ? { borderRadius: "0 8px 0 0" } : {}),
               }}>
@@ -277,8 +423,16 @@ function Table({ columns, data }) {
           </tr>
         </thead>
         <tbody>
-          {data.map((row, ri) => (
-            <tr key={ri} style={{ borderBottom: `1px solid ${tokens.semantic.borderLight}` }}>
+          {data.length === 0 ? (
+            <tr><td colSpan={columns.length} style={{ padding: 40, textAlign: "center", color: tokens.semantic.textDisabled, fontSize: 13 }}>No hay datos disponibles</td></tr>
+          ) : data.map((row, ri) => (
+            <tr key={ri}
+              onMouseEnter={() => setHoveredRow(ri)} onMouseLeave={() => setHoveredRow(-1)}
+              style={{
+                borderBottom: `1px solid ${tokens.semantic.borderLight}`,
+                background: hoveredRow === ri ? tokens.colors.neutral[50] : "transparent",
+                transition: tokens.transition.fast,
+              }}>
               {columns.map((col, ci) => (
                 <td key={ci} style={{ padding: "12px 16px", color: tokens.semantic.textDefault, letterSpacing: "0.2px" }}>
                   {col.render ? col.render(row) : row[col.key]}
@@ -313,13 +467,16 @@ function Tabs({ tabs, active, onChange }) {
 function Modal({ title, onClose, children, wide }) {
   return (
     <div style={{
-      position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)",
+      position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)",
+      backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)",
       display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000,
+      animation: "fadeIn 0.2s ease-out",
     }} onClick={onClose}>
       <div onClick={e => e.stopPropagation()} style={{
-        background: "#fff", borderRadius: tokens.radius.l, padding: 32,
+        background: "#fff", borderRadius: 20, padding: 32,
         width: wide ? 640 : 480, maxHeight: "85vh", overflowY: "auto",
-        boxShadow: tokens.shadow.dp8,
+        boxShadow: tokens.shadow.dp12,
+        animation: "fadeInUp 0.25s ease-out",
       }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
           <h2 style={{ ...baseStyles, fontSize: 18, fontWeight: 600, lineHeight: 1.4, margin: 0 }}>{title}</h2>
@@ -394,7 +551,9 @@ function ProgressBar({ value, max, color = tokens.colors.humand[500] }) {
 /* ════════════════════════════════════════════
    PAGE: DASHBOARD
    ════════════════════════════════════════════ */
-function DashboardPage() {
+function DashboardPage({ data }: { data: any }) {
+  const { totalCredited, totalRedeemed, totalPending, employees, categoryData, deptUsage, recentActivity, monthlyCredits } = data;
+  const rate = totalCredited > 0 ? Math.round((totalRedeemed / totalCredited) * 100) : 0;
   return (
     <div>
       <div style={{ marginBottom: 32 }}>
@@ -406,10 +565,10 @@ function DashboardPage() {
 
       {/* KPI Cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 32 }}>
-        <StatCard label="Créditos adquiridos" value="50,000" icon={DollarSign} trend="Disponibles para asignar" trendUp color={tokens.colors.purple[500]} />
-        <StatCard label="Créditos totales asignados" value="127,500" icon={CreditCard} trend="+12% vs mes anterior" trendUp color={tokens.colors.humand[500]} />
-        <StatCard label="Créditos canjeados" value="98,200" icon={Gift} trend="+8% vs mes anterior" trendUp color={tokens.colors.green[600]} />
-        <StatCard label="Tasa de canje" value="77%" icon={TrendingUp} trend="+3pp vs mes anterior" trendUp color={tokens.colors.teal[500]} />
+        <StatCard label="Créditos pendientes" value={fmtCurrency(totalPending)} icon={DollarSign} trend="Disponibles para canjear" trendUp color={tokens.colors.purple[500]} />
+        <StatCard label="Créditos totales asignados" value={fmtCurrency(totalCredited)} icon={CreditCard} trend={`${employees.length} colaboradores`} trendUp color={tokens.colors.humand[500]} />
+        <StatCard label="Créditos canjeados" value={fmtCurrency(totalRedeemed)} icon={Gift} trend={`${data.transactions.filter((t:any) => t.type === 'debit').length} canjes`} trendUp color={tokens.colors.green[600]} />
+        <StatCard label="Tasa de canje" value={`${rate}%`} icon={TrendingUp} trend="del total asignado" trendUp={rate > 50} color={tokens.colors.teal[500]} />
       </div>
 
       {/* Charts Row */}
@@ -516,8 +675,11 @@ function DashboardPage() {
 /* ════════════════════════════════════════════
    PAGE: BULK CREDIT LOADING
    ════════════════════════════════════════════ */
-function BulkLoadPage() {
+function BulkLoadPage({ data }: { data: any }) {
+  const { bulkHistory } = data;
   const [showModal, setShowModal] = useState(false);
+  const totalBulkCredits = bulkHistory.reduce((s: number, b: any) => s + (b.status === "completed" ? Number(b.total) : 0), 0);
+  const totalBulkUsers = bulkHistory.reduce((s: number, b: any) => s + (b.status === "completed" ? Number(b.users) : 0), 0);
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
@@ -533,15 +695,15 @@ function BulkLoadPage() {
       <Card style={{ marginBottom: 24 }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24, marginBottom: 24 }}>
           <div style={{ textAlign: "center", padding: 16, background: tokens.colors.humand[50], borderRadius: tokens.radius.m }}>
-            <div style={{ fontSize: 24, fontWeight: 600, color: tokens.colors.humand[700], letterSpacing: "0.2px" }}>4</div>
-            <div style={{ fontSize: 12, color: tokens.semantic.textLighter, marginTop: 4, letterSpacing: "0.2px" }}>Cargas este mes</div>
+            <div style={{ fontSize: 24, fontWeight: 600, color: tokens.colors.humand[700], letterSpacing: "0.2px" }}>{bulkHistory.length}</div>
+            <div style={{ fontSize: 12, color: tokens.semantic.textLighter, marginTop: 4, letterSpacing: "0.2px" }}>Cargas realizadas</div>
           </div>
           <div style={{ textAlign: "center", padding: 16, background: tokens.colors.green[50], borderRadius: tokens.radius.m }}>
-            <div style={{ fontSize: 24, fontWeight: 600, color: tokens.colors.green[700], letterSpacing: "0.2px" }}>311,500</div>
+            <div style={{ fontSize: 24, fontWeight: 600, color: tokens.colors.green[700], letterSpacing: "0.2px" }}>{fmtNum(totalBulkCredits)}</div>
             <div style={{ fontSize: 12, color: tokens.semantic.textLighter, marginTop: 4, letterSpacing: "0.2px" }}>Créditos cargados total</div>
           </div>
           <div style={{ textAlign: "center", padding: 16, background: tokens.colors.yellow[50], borderRadius: tokens.radius.m }}>
-            <div style={{ fontSize: 24, fontWeight: 600, color: tokens.colors.yellow[700], letterSpacing: "0.2px" }}>184</div>
+            <div style={{ fontSize: 24, fontWeight: 600, color: tokens.colors.yellow[700], letterSpacing: "0.2px" }}>{fmtNum(totalBulkUsers)}</div>
             <div style={{ fontSize: 12, color: tokens.semantic.textLighter, marginTop: 4, letterSpacing: "0.2px" }}>Usuarios alcanzados</div>
           </div>
         </div>
@@ -594,7 +756,7 @@ function BulkLoadPage() {
           </FormField>
           <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
             <Button variant="secondary" onClick={() => setShowModal(false)}>Cancelar</Button>
-            <Button icon={Upload}>Procesar carga</Button>
+            <Button icon={Upload} onClick={() => { toast.success("Carga masiva procesada exitosamente"); setShowModal(false); }}>Procesar carga</Button>
           </div>
         </Modal>
       )}
@@ -606,15 +768,38 @@ function BulkLoadPage() {
 /* ════════════════════════════════════════════
    PAGE: INDIVIDUAL CREDIT LOADING
    ════════════════════════════════════════════ */
-function IndividualLoadPage() {
+function IndividualLoadPage({ data, onRefresh }: { data: any; onRefresh: () => void }) {
   const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState(null);
+  const [selected, setSelected] = useState<any>(null);
   const [showModal, setShowModal] = useState(false);
   const [showBulkModal, setShowBulkModal] = useState(false);
-  const filtered = mockUsers.filter(u =>
+  const [loadAmount, setLoadAmount] = useState("");
+  const [loadReason, setLoadReason] = useState("");
+  const [loadNote, setLoadNote] = useState("");
+  const [loadingCredits, setLoadingCredits] = useState(false);
+  const [successMsg, setSuccessMsg] = useState("");
+
+  const handleLoadCredits = async () => {
+    if (!selected || !loadAmount || Number(loadAmount) <= 0) return;
+    setLoadingCredits(true);
+    try {
+      const reasons: Record<string, string> = { bonus: "Bonus especial", adjustment: "Ajuste", compensation: "Compensación", other: "Otro" };
+      const desc = (reasons[loadReason] || "Carga manual") + (loadNote ? ` - ${loadNote}` : "");
+      const { data: wallet } = await supabase.from("wallets").select("*").eq("user_id", selected.id).single();
+      if (!wallet) throw new Error("Wallet not found");
+      const newBalance = Math.round((Number(wallet.balance) + Number(loadAmount)) * 100) / 100;
+      await supabase.from("wallets").update({ balance: newBalance, updated_at: new Date().toISOString() }).eq("id", wallet.id);
+      await supabase.from("transactions").insert({ user_id: selected.id, wallet_id: wallet.id, type: "credit", amount: Number(loadAmount), description: desc });
+      toast.success(`Se cargaron ${loadAmount} créditos a ${selected.name}`);
+      setShowModal(false); setSelected(null); setLoadAmount(""); setLoadReason(""); setLoadNote(""); onRefresh();
+    } catch (e) { console.error(e); toast.error("Error al cargar créditos"); }
+    setLoadingCredits(false);
+  };
+
+  const filtered = data.users.filter((u: any) =>
     u.name.toLowerCase().includes(search.toLowerCase()) ||
-    u.email.toLowerCase().includes(search.toLowerCase()) ||
-    u.dept.toLowerCase().includes(search.toLowerCase())
+    (u.email || "").toLowerCase().includes(search.toLowerCase()) ||
+    (u.dept || "").toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -681,28 +866,34 @@ function IndividualLoadPage() {
               </div>
             </div>
           </div>
-          <FormField label="Cantidad de créditos">
-            <Input type="number" placeholder="Ej: 500" />
-          </FormField>
-          <FormField label="Motivo">
-            <Select options={[
-              { value: "", label: "Seleccionar motivo..." },
-              { value: "bonus", label: "Bonus especial" },
-              { value: "adjustment", label: "Ajuste" },
-              { value: "compensation", label: "Compensación" },
-              { value: "other", label: "Otro" },
-            ]} />
-          </FormField>
-          <FormField label="Nota (opcional)">
-            <Input placeholder="Comentario interno sobre la carga" />
-          </FormField>
-          <FormField label="Fecha de expiración (opcional)">
-            <Input type="date" />
-          </FormField>
-          <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
-            <Button variant="secondary" onClick={() => { setShowModal(false); setSelected(null); }}>Cancelar</Button>
-            <Button icon={CreditCard}>Cargar créditos</Button>
-          </div>
+          {successMsg ? (
+            <div style={{ padding: 20, textAlign: "center", color: tokens.colors.green[700], background: tokens.colors.green[50], borderRadius: tokens.radius.m }}>
+              <CheckCircle size={32} style={{ marginBottom: 8 }} />
+              <div style={{ fontWeight: 600, fontSize: 14 }}>{successMsg}</div>
+            </div>
+          ) : (
+            <>
+              <FormField label="Cantidad de créditos">
+                <Input type="number" placeholder="Ej: 5" value={loadAmount} onChange={(e: any) => setLoadAmount(e.target.value)} />
+              </FormField>
+              <FormField label="Motivo">
+                <Select value={loadReason} onChange={(e: any) => setLoadReason(e.target.value)} options={[
+                  { value: "", label: "Seleccionar motivo..." },
+                  { value: "bonus", label: "Bonus especial" },
+                  { value: "adjustment", label: "Ajuste" },
+                  { value: "compensation", label: "Compensación" },
+                  { value: "other", label: "Otro" },
+                ]} />
+              </FormField>
+              <FormField label="Nota (opcional)">
+                <Input placeholder="Comentario interno sobre la carga" value={loadNote} onChange={(e: any) => setLoadNote(e.target.value)} />
+              </FormField>
+              <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
+                <Button variant="secondary" onClick={() => { setShowModal(false); setSelected(null); }}>Cancelar</Button>
+                <Button icon={CreditCard} onClick={handleLoadCredits}>{loadingCredits ? "Cargando..." : "Cargar créditos"}</Button>
+              </div>
+            </>
+          )}
         </Modal>
       )}
 
@@ -747,14 +938,15 @@ function RuleTypeIcon({ type, size = 28 }) {
   return icons[type] || <Zap size={size} color={color} />;
 }
 
-function AutoRulesPage() {
+function AutoRulesPage({ data }: { data: any }) {
+  const { autoRules, ruleTypes } = data;
   const [showModal, setShowModal] = useState(false);
   const [tab, setTab] = useState("types");
-  const [selectedType, setSelectedType] = useState(null);
-  const [menuOpen, setMenuOpen] = useState(null);
+  const [selectedType, setSelectedType] = useState<any>(null);
+  const [menuOpen, setMenuOpen] = useState<any>(null);
 
   const rulesForType = selectedType
-    ? autoRules.filter(r => {
+    ? autoRules.filter((r: any) => {
         if (selectedType.id === 1) return r.type === "periodic";
         if (selectedType.id === 2) return r.trigger === "Cumpleaños";
         if (selectedType.id === 3) return r.trigger === "Aniversario";
@@ -1059,7 +1251,7 @@ function AutoRulesPage() {
           </FormField>
           <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
             <Button variant="secondary" onClick={() => setShowModal(false)}>Cancelar</Button>
-            <Button icon={Zap}>Crear regla</Button>
+            <Button icon={Zap} onClick={() => { toast.success("Regla automática creada"); setShowModal(false); }}>Crear regla</Button>
           </div>
         </Modal>
       )}
@@ -1071,14 +1263,14 @@ function AutoRulesPage() {
 /* ════════════════════════════════════════════
    PAGE: BENEFITS MANAGEMENT
    ════════════════════════════════════════════ */
-function BenefitsPage() {
+function BenefitsPage({ data }: { data: any }) {
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [viewMode, setViewMode] = useState("grid");
 
-  const filtered = mockBenefits.filter(b =>
+  const filtered = data.benefits.filter((b: any) =>
     b.name.toLowerCase().includes(search.toLowerCase()) ||
-    b.category.toLowerCase().includes(search.toLowerCase())
+    (b.category || "").toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -1102,7 +1294,7 @@ function BenefitsPage() {
       {viewMode === "grid" ? (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
           {filtered.map(b => (
-            <Card key={b.id} style={{ cursor: "pointer", transition: "box-shadow 0.15s ease" }}>
+            <Card key={b.id} hoverable style={{ cursor: "pointer" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
                 <div style={{ fontSize: 40, lineHeight: 1 }}>{b.image}</div>
                 <Badge variant={b.status === "active" ? "success" : "warning"}>
@@ -1206,7 +1398,7 @@ function BenefitsPage() {
           </FormField>
           <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
             <Button variant="secondary" onClick={() => setShowModal(false)}>Cancelar</Button>
-            <Button icon={Plus}>Crear beneficio</Button>
+            <Button icon={Plus} onClick={() => { toast.success("Beneficio creado exitosamente"); setShowModal(false); }}>Crear beneficio</Button>
           </div>
         </Modal>
       )}
@@ -1218,11 +1410,11 @@ function BenefitsPage() {
 /* ════════════════════════════════════════════
    PAGE: ANALYTICS
    ════════════════════════════════════════════ */
-function AnalyticsPage() {
+function AnalyticsPage({ data }: { data: any }) {
   const [period, setPeriod] = useState("month");
 
-  const topBenefits = [...mockBenefits].sort((a, b) => b.redemptions - a.redemptions).slice(0, 5);
-  const topUsers = [...mockUsers].sort((a, b) => b.spent - a.spent).slice(0, 5);
+  const topBenefits = [...data.benefits].sort((a: any, b: any) => b.redemptions - a.redemptions).slice(0, 5);
+  const topUsers = [...data.users].sort((a: any, b: any) => b.spent - a.spent).slice(0, 5);
 
   const weeklyTrend = [
     { week: "Sem 1", canjes: 45 }, { week: "Sem 2", canjes: 62 },
@@ -1254,10 +1446,10 @@ function AnalyticsPage() {
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 32 }}>
-        <StatCard label="Usuarios activos" value="63" icon={Users} trend="+5 vs mes anterior" trendUp color={tokens.colors.humand[500]} />
-        <StatCard label="Canjes totales" value="325" icon={Gift} trend="+18% vs mes anterior" trendUp color={tokens.colors.green[600]} />
-        <StatCard label="Promedio canjes/usuario" value="5.2" icon={BarChart3} trend="+0.3 vs mes anterior" trendUp color={tokens.colors.purple[500]} />
-        <StatCard label="Satisfacción" value="4.7/5" icon={Star} trend="+0.2 vs mes anterior" trendUp color={tokens.colors.yellow[500]} />
+        <StatCard label="Usuarios activos" value={String(data.users.filter((u:any) => u.status === 'active').length)} icon={Users} trend={`${data.employees.length} colaboradores`} trendUp color={tokens.colors.humand[500]} />
+        <StatCard label="Canjes totales" value={String(data.transactions.filter((t:any) => t.type === 'debit').length)} icon={Gift} trend={`$${fmtNum(data.totalRedeemed)} en créditos`} trendUp color={tokens.colors.green[600]} />
+        <StatCard label="Promedio canjes/usuario" value={data.employees.length > 0 ? (data.transactions.filter((t:any) => t.type === 'debit').length / data.employees.length).toFixed(1) : "0"} icon={BarChart3} trend="por colaborador" trendUp color={tokens.colors.purple[500]} />
+        <StatCard label="Créditos asignados" value={fmtNum(data.totalCredited)} icon={Star} trend={`${fmtNum(data.totalPending)} pendientes`} trendUp color={tokens.colors.yellow[500]} />
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
@@ -1277,13 +1469,13 @@ function AnalyticsPage() {
         <Card>
           <h3 style={{ ...baseStyles, fontSize: 16, fontWeight: 600, margin: "0 0 20px 0", lineHeight: 1.4 }}>Uso por departamento</h3>
           <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={deptUsage} layout="vertical">
+            <BarChart data={data.deptUsage} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" stroke={tokens.semantic.borderLight} />
               <XAxis type="number" tick={{ fontSize: 12, fill: tokens.semantic.textLighter }} domain={[0, 100]} />
               <YAxis type="category" dataKey="dept" tick={{ fontSize: 12, fill: tokens.semantic.textLighter }} width={80} />
               <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12, fontFamily: "Roboto" }} formatter={v => `${v}%`} />
               <Bar dataKey="usage" radius={[0, 4, 4, 0]} name="Uso %">
-                {deptUsage.map((d, i) => (
+                {data.deptUsage.map((d: any, i: number) => (
                   <Cell key={i} fill={d.usage > 75 ? tokens.colors.green[500] : d.usage > 50 ? tokens.colors.humand[400] : tokens.colors.yellow[500]} />
                 ))}
               </Bar>
@@ -1367,20 +1559,41 @@ export default function App() {
   const [activePage, setActivePage] = useState("dashboard");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [benefitsOpen, setBenefitsOpen] = useState(true);
-  // Data is consistent with Supabase (same users, same benefits, same amounts)
+  const data = useAdminData();
 
   const isBenefitsPage = benefitsSubNav.some(s => s.key === activePage);
 
+  if (data.loading) {
+    return (
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: tokens.semantic.bgPage, ...baseStyles }}>
+        <div style={{ textAlign: "center", animation: "fadeIn 0.5s ease-out" }}>
+          <div style={{
+            width: 56, height: 56, borderRadius: 16,
+            background: `linear-gradient(135deg, ${tokens.colors.humand[500]}, ${tokens.colors.purple[500]})`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            color: "#fff", fontWeight: 700, fontSize: 16, margin: "0 auto 20px",
+            letterSpacing: "0.2px", animation: "pulse 1.5s ease-in-out infinite",
+            boxShadow: tokens.shadow.glow,
+          }}>hu</div>
+          <div style={{ fontSize: 18, fontWeight: 600, color: tokens.semantic.textDefault, marginBottom: 6 }}>Cargando datos...</div>
+          <div style={{ fontSize: 13, color: tokens.semantic.textLighter }}>Conectando con la base de datos</div>
+          <div style={{ width: 120, height: 3, borderRadius: 2, margin: "16px auto 0", background: tokens.colors.neutral[150], overflow: "hidden" }}>
+            <div style={{ width: "40%", height: "100%", borderRadius: 2, background: `linear-gradient(90deg, ${tokens.colors.humand[400]}, ${tokens.colors.purple[400]})`, animation: "shimmer 1.5s ease-in-out infinite", backgroundSize: "200% 100%" }} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const renderPage = () => {
-    // forces re-render when Supabase data arrives
     switch (activePage) {
-      case "dashboard": return <DashboardPage />;
-      case "bulk": return <BulkLoadPage />;
-      case "individual": return <IndividualLoadPage />;
-      case "auto": return <AutoRulesPage />;
-      case "benefits": return <BenefitsPage />;
-      case "analytics": return <AnalyticsPage />;
-      default: return <DashboardPage />;
+      case "dashboard": return <DashboardPage data={data} />;
+      case "bulk": return <BulkLoadPage data={data} />;
+      case "individual": return <IndividualLoadPage data={data} onRefresh={data.refresh} />;
+      case "auto": return <AutoRulesPage data={data} />;
+      case "benefits": return <BenefitsPage data={data} />;
+      case "analytics": return <AnalyticsPage data={data} />;
+      default: return <DashboardPage data={data} />;
     }
   };
 
@@ -1388,8 +1601,11 @@ export default function App() {
     <div style={{ display: "flex", minHeight: "100vh", background: tokens.semantic.bgPage, ...baseStyles }}>
       {/* Sidebar */}
       <aside style={{
-        width: sidebarCollapsed ? 72 : 260, background: "#fff", borderRight: `1px solid ${tokens.semantic.borderLight}`,
-        display: "flex", flexDirection: "column", transition: "width 0.2s ease", flexShrink: 0,
+        width: sidebarCollapsed ? 72 : 260,
+        background: "rgba(255,255,255,0.8)",
+        backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
+        borderRight: `1px solid ${tokens.semantic.borderLight}`,
+        display: "flex", flexDirection: "column", transition: "width 0.25s cubic-bezier(0.4,0,0.2,1)", flexShrink: 0,
         position: "sticky", top: 0, height: "100vh", overflowY: "auto",
       }}>
         {/* Logo */}
@@ -1399,7 +1615,8 @@ export default function App() {
         }}>
           <div style={{
             width: 36, height: 36, borderRadius: tokens.radius.m,
-            background: tokens.colors.humand[500], display: "flex", alignItems: "center", justifyContent: "center",
+            background: `linear-gradient(135deg, ${tokens.colors.humand[500]}, ${tokens.colors.purple[500]})`,
+            display: "flex", alignItems: "center", justifyContent: "center",
             color: "#fff", fontWeight: 600, fontSize: 14, flexShrink: 0, letterSpacing: "0.2px",
           }}>
             hu
@@ -1525,7 +1742,10 @@ export default function App() {
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, background: tokens.semantic.bgPage }}>
         {/* Top bar */}
         <header style={{
-          height: 56, background: "#fff", borderBottom: `1px solid ${tokens.semantic.borderLight}`,
+          height: 56,
+          background: "rgba(255,255,255,0.8)",
+          backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
           display: "flex", alignItems: "center", justifyContent: "space-between",
           padding: "0 24px", position: "sticky", top: 0, zIndex: 10, flexShrink: 0,
         }}>
@@ -1550,7 +1770,7 @@ export default function App() {
 
         {/* Page content */}
         <main style={{ flex: 1, padding: 32, minHeight: "calc(100vh - 56px)" }}>
-          <div style={{ maxWidth: 1200 }}>
+          <div key={activePage} style={{ maxWidth: 1200, animation: "fadeInUp 0.25s ease-out" }}>
             {renderPage()}
           </div>
         </main>

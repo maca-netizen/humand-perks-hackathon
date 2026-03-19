@@ -27,7 +27,7 @@ export default function PerksApp() {
   const [redeemResult, setRedeemResult] = useState<any>(null)
   const [expiresAt, setExpiresAt] = useState<string | null>(null)
 
-  const USER_ID = "u_maria01"
+  const USER_ID = "b423f21e-9fa6-4046-906d-7e691e5e5cb6" // María García
 
   // Load data from Supabase
   useEffect(() => {
