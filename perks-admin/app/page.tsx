@@ -1035,7 +1035,7 @@ function IndividualLoadPage({ data, onRefresh }: { data: any; onRefresh: () => v
               { header: t("loadedCredits"), key: "credits", render: r => r.credits.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") },
               { header: t("usedCredits"), key: "spent", render: r => r.spent.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") },
               { header: t("available"), key: "available", render: r => {
-                const avail = r.credits - r.spent;
+                const avail = r.balance;
                 return <span style={{ fontWeight: 600, color: avail > 0 ? tokens.colors.green[600] : tokens.colors.red[500] }}>{avail.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</span>;
               }},
               { header: t("status"), key: "status", render: r => (
@@ -1062,7 +1062,7 @@ function IndividualLoadPage({ data, onRefresh }: { data: any; onRefresh: () => v
               <div style={{ fontWeight: 600, fontSize: 14, letterSpacing: "0.2px" }}>{selected.name}</div>
               <div style={{ fontSize: 12, color: tokens.semantic.textLighter, letterSpacing: "0.2px" }}>{selected.email} · {selected.dept}</div>
               <div style={{ fontSize: 12, color: tokens.colors.green[600], marginTop: 2, letterSpacing: "0.2px" }}>
-                {t("available")}: {(selected.credits - selected.spent).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} {t("creditsLabel")}
+                {t("available")}: {selected.balance.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} {t("creditsLabel")}
               </div>
             </div>
           </div>
