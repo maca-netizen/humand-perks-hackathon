@@ -2,11 +2,23 @@
 
 import { useRouter } from "next/navigation"
 import { Home, MessageSquare, LayoutGrid, Star, User } from "lucide-react"
+import { useLanguage } from "@/contexts/LanguageContext"
+import { LanguageSelector } from "@/components/LanguageSelector"
 
-const apps = [
-  {
-    name: "Forms & Tasks",
-    color: "#EDEDFC",
+// Apps array will be created dynamically in the component
+interface AppItem {
+  name: string
+  color: string
+  isPerks?: boolean
+  isLearning?: boolean
+  icon: React.ReactNode
+}
+
+function getAppsArray(t: (key: string) => string): AppItem[] {
+  return [
+    {
+      name: t("formsAndTasks"),
+      color: "#EDEDFC",
     icon: (
       <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
         <rect x="8" y="5" width="24" height="30" rx="4" fill="#C4B5FD" />
@@ -17,20 +29,20 @@ const apps = [
       </svg>
     ),
   },
-  {
-    name: "People",
-    color: "#E8EEF8",
-    icon: (
+    {
+      name: t("people"),
+      color: "#E8EEF8",
+      icon: (
       <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
         <circle cx="20" cy="14" r="6" fill="#7B9AC5" />
         <ellipse cx="20" cy="30" rx="10" ry="6" fill="#7B9AC5" />
       </svg>
     ),
   },
-  {
-    name: "Time control",
-    color: "#E6F5E8",
-    icon: (
+    {
+      name: t("timeControl"),
+      color: "#E6F5E8",
+      icon: (
       <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
         <circle cx="20" cy="20" r="12" stroke="#5CB85C" strokeWidth="2.5" fill="none" />
         <line x1="20" y1="20" x2="20" y2="12" stroke="#5CB85C" strokeWidth="2.5" strokeLinecap="round" />
@@ -38,11 +50,11 @@ const apps = [
         <path d="M16 4 L20 1 L24 4" stroke="#5CB85C" strokeWidth="1.5" strokeLinecap="round" fill="none" />
       </svg>
     ),
-  },
-  {
-    name: "Org Chart",
-    color: "#FDEAE8",
-    icon: (
+    },
+    {
+      name: t("orgChart"),
+      color: "#FDEAE8",
+      icon: (
       <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
         <circle cx="20" cy="10" r="4" fill="#E8A09A" />
         <circle cx="11" cy="28" r="3.5" fill="#E8A09A" />
@@ -52,20 +64,20 @@ const apps = [
         <line x1="29" y1="24" x2="20" y2="20" stroke="#E8A09A" strokeWidth="2" />
       </svg>
     ),
-  },
-  {
-    name: "Files",
-    color: "#FFF5D6",
-    icon: (
+    },
+    {
+      name: t("files"),
+      color: "#FFF5D6",
+      icon: (
       <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
         <path d="M8 14C8 12 9.5 10 12 10H18L21 14H28C30.5 14 32 15.5 32 18V30C32 32 30.5 34 28 34H12C9.5 34 8 32 8 30V14Z" fill="#E8C95A" />
       </svg>
     ),
-  },
-  {
-    name: "Onboarding",
-    color: "#E0F0F5",
-    icon: (
+    },
+    {
+      name: t("onboarding"),
+      color: "#E0F0F5",
+      icon: (
       <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
         <rect x="7" y="8" width="26" height="24" rx="4" fill="#8FC7D5" />
         <rect x="12" y="13" width="16" height="2.5" rx="1" fill="white" />
@@ -73,42 +85,42 @@ const apps = [
         <path d="M14 25L18 29L26 21" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
       </svg>
     ),
-  },
-  {
-    name: "Surveys",
-    color: "#EDE8F5",
-    icon: (
+    },
+    {
+      name: t("surveys"),
+      color: "#EDE8F5",
+      icon: (
       <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
         <path d="M12 24L18 30L28 16" stroke="#8B6FC0" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
       </svg>
     ),
-  },
-  {
-    name: "Pronosticos deportivos",
-    color: "#FFF5D6",
-    icon: (
+    },
+    {
+      name: t("sportsForecast"),
+      color: "#FFF5D6",
+      icon: (
       <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
         <circle cx="20" cy="26" r="8" fill="#F5DFA0" />
         <rect x="16" y="6" width="8" height="12" rx="2" fill="#E8C040" />
         <rect x="18" y="18" width="4" height="4" fill="#E8C040" />
       </svg>
     ),
-  },
-  {
-    name: "Marketplace",
-    color: "#FCE4EC",
-    icon: (
+    },
+    {
+      name: t("marketplace"),
+      color: "#FCE4EC",
+      icon: (
       <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
         <rect x="8" y="16" width="24" height="18" rx="3" fill="#E88A9A" />
         <path d="M8 16L12 8H28L32 16" stroke="#E88A9A" strokeWidth="2" />
         <rect x="16" y="22" width="8" height="12" rx="1" fill="white" />
       </svg>
     ),
-  },
-  {
-    name: "Time off",
-    color: "#E3F0FC",
-    icon: (
+    },
+    {
+      name: t("timeOff"),
+      color: "#E3F0FC",
+      icon: (
       <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
         <rect x="7" y="12" width="26" height="22" rx="4" fill="#7BAFD4" />
         <rect x="7" y="12" width="26" height="7" rx="4" fill="#5A97C2" />
@@ -119,22 +131,22 @@ const apps = [
         <rect x="24" y="8" width="3" height="7" rx="1.5" fill="#5A97C2" />
       </svg>
     ),
-  },
-  {
-    name: "Performance Review",
-    color: "#FFF5D6",
-    icon: (
+    },
+    {
+      name: t("performanceReview"),
+      color: "#FFF5D6",
+      icon: (
       <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
         <circle cx="20" cy="26" r="9" fill="#F5DFA0" />
         <path d="M16 14L20 6L24 14" fill="#E89040" />
         <path d="M13 18L20 16L27 18" stroke="#E89040" strokeWidth="2" strokeLinecap="round" fill="none" />
       </svg>
     ),
-  },
-  {
-    name: "Agent workspace",
-    color: "#E0F5F0",
-    icon: (
+    },
+    {
+      name: t("agentWorkspace"),
+      color: "#E0F5F0",
+      icon: (
       <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
         <path d="M10 20C10 14 14 10 20 10C26 10 30 14 30 20" stroke="#5AC5B0" strokeWidth="3" fill="none" />
         <circle cx="14" cy="22" r="4" fill="#5AC5B0" />
@@ -142,12 +154,12 @@ const apps = [
         <rect x="15" y="28" width="10" height="4" rx="2" fill="#5AC5B0" />
       </svg>
     ),
-  },
-  {
-    name: "Perks",
-    color: "#E8EBF5",
-    isPerks: true,
-    icon: (
+    },
+    {
+      name: t("perks"),
+      color: "#E8EBF5",
+      isPerks: true,
+      icon: (
       <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
         <rect x="6" y="12" width="28" height="18" rx="4" fill="#4B5EAA" />
         <circle cx="20" cy="21" r="5" stroke="white" strokeWidth="1.5" fill="none" />
@@ -155,23 +167,23 @@ const apps = [
         <rect x="12" y="28" width="16" height="3" rx="1.5" fill="#E8B230" />
       </svg>
     ),
-  },
-  {
-    name: "Learning",
-    color: "#E0F5EC",
-    isLearning: true,
-    icon: (
+    },
+    {
+      name: t("learning"),
+      color: "#E0F5EC",
+      isLearning: true,
+      icon: (
       <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
         <path d="M20 8L6 16L20 24L34 16L20 8Z" fill="#6BC5A0" />
         <path d="M11 20V30L20 34L29 30V20" stroke="#4AA882" strokeWidth="2" fill="none" />
         <line x1="34" y1="16" x2="34" y2="28" stroke="#4AA882" strokeWidth="2" />
       </svg>
     ),
-  },
-  {
-    name: "Goals",
-    color: "#FDEAE8",
-    icon: (
+    },
+    {
+      name: t("goals"),
+      color: "#FDEAE8",
+      icon: (
       <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
         <circle cx="20" cy="20" r="13" fill="#FECACA" />
         <circle cx="20" cy="20" r="9" fill="white" />
@@ -181,19 +193,25 @@ const apps = [
         <path d="M30 7H33V10" stroke="#E05050" strokeWidth="2" strokeLinecap="round" />
       </svg>
     ),
-  },
-]
+    },
+  ]
+}
 
-const bottomTabs = [
-  { name: "Home", icon: Home },
-  { name: "Chats", icon: MessageSquare, badge: true },
-  { name: "Apps", icon: LayoutGrid, active: true },
-  { name: "Reco...", icon: Star },
-  { name: "Profile", icon: User },
-]
+function getBottomTabs(t: (key: string) => string) {
+  return [
+    { name: t("home"), icon: Home },
+    { name: t("chats"), icon: MessageSquare, badge: true },
+    { name: t("apps"), icon: LayoutGrid, active: true },
+    { name: t("recommendations"), icon: Star },
+    { name: t("profile"), icon: User },
+  ]
+}
 
 export default function AppsPage() {
   const router = useRouter()
+  const { t } = useLanguage()
+  const apps = getAppsArray(t)
+  const bottomTabs = getBottomTabs(t)
 
   return (
     <div className="min-h-screen bg-[#F2F3F7] flex justify-center">
@@ -220,9 +238,10 @@ export default function AppsPage() {
           </div>
         </div>
 
-        {/* Title */}
-        <div className="px-5 pt-6 pb-4">
-          <h1 className="text-[30px] font-bold text-[#1A1A2E] tracking-tight">Apps</h1>
+        {/* Title with Language Selector */}
+        <div className="px-5 pt-6 pb-4 flex items-center justify-between">
+          <h1 className="text-[30px] font-bold text-[#1A1A2E] tracking-tight">{t("apps")}</h1>
+          <LanguageSelector />
         </div>
 
         {/* Apps Grid */}

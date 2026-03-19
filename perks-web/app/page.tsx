@@ -1,29 +1,17 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import {
   Home, Users, Newspaper, MessageSquare, BookOpen, CalendarDays, Heart,
-  ClipboardList, UserCircle, GraduationCap, FileText, Menu, Search, Globe, Bell,
+  ClipboardList, UserCircle, GraduationCap, FileText, Menu, Search, Bell,
   HelpCircle, Gift, Wallet, Clock, CreditCard, Check, Copy, ChevronRight, X
 } from "lucide-react"
 import { getWallet, getBenefits, redeemBenefit, getCourses, getUserCompletions, completeCourse } from "@/lib/supabase"
+import { useLanguage } from "@/contexts/LanguageContext"
+import { LanguageSelector } from "@/components/LanguageSelector"
 
-const perksCategories = ["Todos", "Salud", "Educacion", "Bienestar", "Gastronomia", "Entretenimiento"]
-
-const sidebarItems = [
-  { name: "Feed", icon: Home },
-  { name: "Groups", icon: Users },
-  { name: "Magazine", icon: Newspaper },
-  { name: "Chats", icon: MessageSquare },
-  { name: "Knowledge libraries", icon: BookOpen },
-  { name: "Events", icon: CalendarDays },
-  { name: "Kudos", icon: Heart },
-  { name: "Forms and Tasks", icon: ClipboardList },
-  { name: "People", icon: UserCircle },
-  { name: "Learning", icon: GraduationCap },
-  { name: "Onboarding", icon: FileText },
-  { name: "Beneficios", icon: Gift },
-]
+const CATEGORY_KEYS = ["Todos", "Salud", "Educacion", "Bienestar", "Gastronomia", "Entretenimiento"]
+const CATEGORY_LABEL_KEYS = ["all", "health", "education", "wellness", "gastronomy", "entertainment"] as const
 
 const celebrationDates = [
   { label: "MAR 18 (Today)", active: true },
@@ -40,6 +28,7 @@ type Benefit = { id: string; name: string; category: string; cost: number; image
 type Transaction = { id: string; description: string; amount: number; type: string; created_at: string }
 
 export default function HumandApp() {
+  const { language, t } = useLanguage()
   const [activePage, setActivePage] = useState<ActivePage>("feed")
   const [perksTab, setPerksTab] = useState<PerksTab>("wallet")
   const [perksScreen, setPerksScreen] = useState<PerksScreen>("tabs")
@@ -59,7 +48,22 @@ export default function HumandApp() {
   const [lessonChecked, setLessonChecked] = useState(false)
   const [courseReward, setCourseReward] = useState<any>(null)
 
-  const USER_ID = "b423f21e-9fa6-4046-906d-7e691e5e5cb6" // María García
+  const sidebarItems = useMemo(() => [
+    { key: "feed", name: t("feed"), icon: Home },
+    { key: "groups", name: t("groups"), icon: Users },
+    { key: "magazine", name: t("magazine"), icon: Newspaper },
+    { key: "chats", name: t("chats"), icon: MessageSquare },
+    { key: "knowledgeLibraries", name: t("knowledgeLibraries"), icon: BookOpen },
+    { key: "events", name: t("events"), icon: CalendarDays },
+    { key: "kudos", name: t("kudos"), icon: Heart },
+    { key: "formsAndTasks", name: t("formsAndTasks"), icon: ClipboardList },
+    { key: "people", name: t("people"), icon: UserCircle },
+    { key: "learning", name: t("learning"), icon: GraduationCap },
+    { key: "onboarding", name: t("onboarding"), icon: FileText },
+    { key: "benefits", name: t("benefits"), icon: Gift },
+  ], [language])
+
+  const USER_ID = "u_maria01"
 
   useEffect(() => {
     async function load() {
@@ -81,6 +85,11 @@ export default function HumandApp() {
     ? benefits
     : benefits.filter((b) => b.category.toLowerCase() === selectedCategory.toLowerCase())
 
+  const perksCategories = CATEGORY_KEYS.map((key, i) => ({
+    key,
+    label: t(CATEGORY_LABEL_KEYS[i]),
+  }))
+
   const handleRedeem = (benefit: typeof benefits[0]) => {
     setSelectedBenefit(benefit)
     setPerksScreen("confirm")
@@ -96,7 +105,7 @@ export default function HumandApp() {
       const walletData = await getWallet(USER_ID)
       setTransactions(walletData.transactions)
     } catch (e: any) {
-      alert(e.message === "INSUFFICIENT_BALANCE" ? "No tenés créditos suficientes" : "Error al canjear")
+      alert(e.message === "INSUFFICIENT_BALANCE" ? t("notEnoughCredits") : t("errorRedeeming"))
       setPerksScreen("tabs")
     }
   }
@@ -108,11 +117,11 @@ export default function HumandApp() {
   }
 
   const handleSidebarClick = (name: string) => {
-    if (name === "Beneficios") {
+    if (name === t("benefits")) {
       setActivePage("beneficios")
       setPerksTab("wallet")
       setPerksScreen("tabs")
-    } else if (name === "Learning") {
+    } else if (name === t("learning")) {
       setActivePage("learning")
       setLearningScreen("list")
     } else {
@@ -140,17 +149,15 @@ export default function HumandApp() {
       <div className="flex items-center gap-2">
         <button className="flex items-center gap-2 px-4 py-2 border border-[#E5E5EA] rounded-lg text-[13px] font-medium text-[#4B5EAA] hover:bg-[#F2F3F7] transition-colors">
           <Users size={15} />
-          Add People
+          {t("addPeople")}
         </button>
         <button className="px-4 py-2 border border-[#4B5EAA] rounded-lg text-[13px] font-medium text-[#4B5EAA] hover:bg-[#4B5EAA] hover:text-white transition-colors">
-          Admin
+          {t("admin")}
         </button>
         <button className="w-9 h-9 rounded-full flex items-center justify-center text-[#8E8E93] hover:bg-[#F2F3F7] transition-colors">
           <HelpCircle size={20} />
         </button>
-        <button className="w-9 h-9 rounded-full flex items-center justify-center text-[#8E8E93] hover:bg-[#F2F3F7] transition-colors">
-          <Globe size={20} />
-        </button>
+        <LanguageSelector />
         <button className="w-9 h-9 rounded-full flex items-center justify-center text-[#8E8E93] hover:bg-[#F2F3F7] transition-colors">
           <Bell size={20} />
         </button>
@@ -172,15 +179,15 @@ export default function HumandApp() {
               </div>
               <div className="border-t border-[#E5E5EA] pt-3 space-y-1">
                 <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] text-[#1A1A2E] hover:bg-[#F2F3F7] transition-colors">
-                  <UserCircle size={18} color="#8E8E93" />Ver perfil
+                  <UserCircle size={18} color="#8E8E93" />{t("viewProfile")}
                 </button>
                 <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] text-[#1A1A2E] hover:bg-[#F2F3F7] transition-colors">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8E8E93" strokeWidth="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8E8E93" strokeWidth="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>{t("settings")}
                 </button>
               </div>
               <div className="border-t border-[#E5E5EA] mt-3 pt-3">
                 <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] text-[#4B5EAA] hover:bg-[#F2F3F7] transition-colors">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4B5EAA" strokeWidth="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Cerrar sesion
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4B5EAA" strokeWidth="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>{t("logout")}
                 </button>
               </div>
             </div>
@@ -196,9 +203,9 @@ export default function HumandApp() {
       <nav className="py-2">
         {sidebarItems.map((item) => {
           const isActive =
-            (item.name === "Feed" && activePage === "feed") ||
-            (item.name === "Beneficios" && activePage === "beneficios") ||
-            (item.name === "Learning" && activePage === "learning")
+            (item.key === "feed" && activePage === "feed") ||
+            (item.key === "benefits" && activePage === "beneficios") ||
+            (item.key === "learning" && activePage === "learning")
           return (
             <button
               key={item.name}
@@ -223,9 +230,9 @@ export default function HumandApp() {
     <aside className="w-[320px] shrink-0 overflow-y-auto sticky top-[60px] h-[calc(100vh-60px)] p-4 flex flex-col gap-4">
       {/* Celebrations */}
       <div className="bg-white rounded-2xl p-5 shadow-[0_1px_4px_rgba(0,0,0,0.04)]">
-        <h3 className="text-[18px] font-bold text-[#1A1A2E] mb-4">Celebrations</h3>
+        <h3 className="text-[18px] font-bold text-[#1A1A2E] mb-4">{t("celebrations")}</h3>
         <div className="flex gap-2 mb-4 flex-wrap">
-          {["All celebrations", "Anniversaries", "Birthdays"].map((label, i) => (
+          {[t("allCelebrations"), t("anniversaries"), t("birthdays")].map((label, i) => (
             <button
               key={label}
               className={`px-3 py-1.5 rounded-full text-[12px] font-medium border transition-colors ${
@@ -255,13 +262,13 @@ export default function HumandApp() {
         </div>
         <div className="flex flex-col items-center py-6 text-[#8E8E93]">
           <CalendarDays size={32} strokeWidth={1.2} className="mb-3 opacity-40" />
-          <p className="text-[14px]">There are no celebrations on this date</p>
+          <p className="text-[14px]">{t("noCelebrations")}</p>
         </div>
       </div>
 
       {/* Quick Links */}
       <div className="bg-white rounded-2xl p-5 shadow-[0_1px_4px_rgba(0,0,0,0.04)]">
-        <h3 className="text-[16px] font-bold text-[#1A1A2E] mb-4">Quick links</h3>
+        <h3 className="text-[16px] font-bold text-[#1A1A2E] mb-4">{t("quickLinks")}</h3>
         <div className="flex gap-3">
           {[
             { label: "NovaTech", color: "#4B5EAA" },
@@ -289,11 +296,11 @@ export default function HumandApp() {
     <div>
       {/* Title row */}
       <div className="flex items-center justify-between mb-5">
-        <h1 className="text-[28px] font-bold text-[#1A1A2E]">Feed</h1>
+        <h1 className="text-[28px] font-bold text-[#1A1A2E]">{t("feed")}</h1>
         <div className="flex items-center gap-2">
           <button className="flex items-center gap-2 px-4 py-2 border border-[#E5E5EA] rounded-lg text-[13px] text-[#1A1A2E] hover:bg-white transition-colors">
             <Search size={14} />
-            Search
+            {t("search")}
           </button>
           <button className="w-9 h-9 rounded-full border border-[#E5E5EA] flex items-center justify-center hover:bg-white transition-colors">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -311,18 +318,18 @@ export default function HumandApp() {
           <div className="w-10 h-10 rounded-full bg-[#EDEDFC] flex items-center justify-center text-[13px] font-bold text-[#4B5EAA]">MG</div>
           <div>
             <p className="text-[14px] font-semibold text-[#1A1A2E]">Maria Garcia</p>
-            <p className="text-[12px] text-[#4B5EAA]">All the organization</p>
+            <p className="text-[12px] text-[#4B5EAA]">{t("allOrg")}</p>
           </div>
           <div className="ml-auto text-right">
             <div className="flex items-center gap-1.5 text-[#8E8E93]">
               <Users size={14} />
-              <span className="text-[13px] font-medium text-[#1A1A2E]">Reach: 1388</span>
+              <span className="text-[13px] font-medium text-[#1A1A2E]">{t("reach")}: 1388</span>
             </div>
             <p className="text-[11px] text-[#8E8E93]">0 / 100 MB</p>
           </div>
         </div>
         <div className="border border-[#E5E5EA] rounded-xl px-4 py-3 mb-4">
-          <span className="text-[14px] text-[#8E8E93]">Write something...</span>
+          <span className="text-[14px] text-[#8E8E93]">{t("writeSomething")}</span>
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4 text-[#8E8E93]">
@@ -332,7 +339,7 @@ export default function HumandApp() {
             <button className="hover:text-[#4B5EAA] transition-colors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></button>
           </div>
           <button className="px-6 py-2 border border-[#E5E5EA] rounded-lg text-[14px] font-medium text-[#1A1A2E] hover:bg-[#F2F3F7] transition-colors">
-            Post
+            {t("post")}
           </button>
         </div>
       </div>
@@ -364,7 +371,7 @@ export default function HumandApp() {
             Today, we recognize the women and girls whose knowledge, talent, and dedication drive science, innovation, and sustainable development.
           </p>
           <p className="text-[14px] text-[#8E8E93]">...</p>
-          <button className="text-[14px] text-[#4B5EAA] font-medium mt-1 hover:underline">See more</button>
+          <button className="text-[14px] text-[#4B5EAA] font-medium mt-1 hover:underline">{t("seeMore")}</button>
         </div>
         <div className="h-[200px] bg-gradient-to-r from-[#1A3A5C] via-[#E05050] to-[#4B5EAA] flex items-center justify-center">
           <span className="text-white text-[28px] font-bold">Women and Girls in Science</span>
@@ -376,9 +383,9 @@ export default function HumandApp() {
   // ===== PERKS CONTENT =====
   const PerksContent = () => {
     const perksTabItems: { key: PerksTab; label: string }[] = [
-      { key: "wallet", label: "Mi Wallet" },
-      { key: "beneficios", label: "Beneficios" },
-      { key: "historial", label: "Historial" },
+      { key: "wallet", label: t("myWallet") },
+      { key: "beneficios", label: t("benefitsTab") },
+      { key: "historial", label: t("history") },
     ]
 
     // Success screen
@@ -388,11 +395,11 @@ export default function HumandApp() {
           <div className="w-[72px] h-[72px] rounded-full bg-[#34C759] flex items-center justify-center mb-5">
             <Check size={36} color="white" strokeWidth={3} />
           </div>
-          <h2 className="text-[22px] font-bold text-[#1A1A2E] mb-1">{"Beneficio activado!"}</h2>
+          <h2 className="text-[22px] font-bold text-[#1A1A2E] mb-1">{t("benefitActivated")}</h2>
           <p className="text-[15px] text-[#8E8E93] mb-6">{selectedBenefit.name}</p>
 
           <div className="w-full max-w-[400px] bg-white rounded-2xl p-6 shadow-[0_1px_4px_rgba(0,0,0,0.04)] mb-4">
-            <p className="text-[13px] text-[#8E8E93] mb-2">Codigo de voucher</p>
+            <p className="text-[13px] text-[#8E8E93] mb-2">{t("voucherCode")}</p>
             <div className="flex items-center justify-between bg-[#F2F3F7] rounded-xl px-4 py-3 mb-5">
               <span className="text-[18px] font-mono font-bold text-[#1A1A2E] tracking-wider">{voucherCode}</span>
               <button onClick={handleCopyCode} className="text-[#4B5EAA] hover:scale-110 transition-transform">
@@ -400,15 +407,15 @@ export default function HumandApp() {
               </button>
             </div>
             <div className="flex justify-between text-[13px]">
-              <span className="text-[#8E8E93]">Vence</span>
+              <span className="text-[#8E8E93]">{t("expires")}</span>
               <span className="text-[#1A1A2E] font-medium">18 Abr 2026</span>
             </div>
           </div>
 
           <div className="w-full max-w-[400px] bg-white rounded-2xl px-5 py-4 shadow-[0_1px_4px_rgba(0,0,0,0.04)] mb-6">
             <div className="flex items-center justify-between">
-              <span className="text-[14px] text-[#8E8E93]">Saldo restante</span>
-              <span className="text-[18px] font-bold text-[#4B5EAA]">{balance} creditos</span>
+              <span className="text-[14px] text-[#8E8E93]">{t("remainingBalance")}</span>
+              <span className="text-[18px] font-bold text-[#4B5EAA]">{balance} {t("credits")}</span>
             </div>
           </div>
 
@@ -416,7 +423,7 @@ export default function HumandApp() {
             onClick={() => { setPerksScreen("tabs"); setPerksTab("wallet"); }}
             className="px-8 py-3 bg-[#4B5EAA] text-white rounded-xl text-[15px] font-semibold hover:bg-[#3D4E94] transition-colors"
           >
-            Volver al inicio
+            {t("backToHome")}
           </button>
         </div>
       )
@@ -426,9 +433,9 @@ export default function HumandApp() {
       <div>
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
-          <h1 className="text-[28px] font-bold text-[#1A1A2E]">Beneficios</h1>
+          <h1 className="text-[28px] font-bold text-[#1A1A2E]">{t("benefits")}</h1>
           <div className="bg-[#EDEDFC] rounded-full px-4 py-2">
-            <span className="text-[13px] font-semibold text-[#4B5EAA]">Saldo: {balance} creditos</span>
+            <span className="text-[13px] font-semibold text-[#4B5EAA]">{t("balance")}: {balance} {t("credits")}</span>
           </div>
         </div>
 
@@ -465,9 +472,9 @@ export default function HumandApp() {
                   <Wallet size={26} color="#4B5EAA" />
                 </div>
                 <div>
-                  <p className="text-[13px] text-[#8E8E93]">Mi saldo</p>
+                  <p className="text-[13px] text-[#8E8E93]">{t("myBalance")}</p>
                   <p className="text-[32px] font-bold text-[#1A1A2E] leading-none">{balance}.00</p>
-                  <p className="text-[13px] text-[#8E8E93] mt-1">creditos disponibles</p>
+                  <p className="text-[13px] text-[#8E8E93] mt-1">{t("availableCredits")}</p>
                 </div>
               </div>
             </div>
@@ -479,8 +486,8 @@ export default function HumandApp() {
                   <Clock size={18} color="#E8B230" />
                 </div>
                 <div>
-                  <p className="text-[14px] font-semibold text-[#1A1A2E]">Tus creditos vencen el {new Date(expiresAt).toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })}</p>
-                  <p className="text-[12px] text-[#8E8E93]">Usalos antes de que expiren</p>
+                  <p className="text-[14px] font-semibold text-[#1A1A2E]">{t("creditsExpire")} {new Date(expiresAt).toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })}</p>
+                  <p className="text-[12px] text-[#8E8E93]">{t("useBeforeExpiry")}</p>
                 </div>
               </div>
             )}
@@ -493,14 +500,14 @@ export default function HumandApp() {
                 <Gift size={22} color="#E8B230" />
               </div>
               <div className="flex-1">
-                <p className="text-[15px] font-semibold text-[#1A1A2E]">Explorar beneficios</p>
-                <p className="text-[13px] text-[#8E8E93]">Tenes creditos para usar</p>
+                <p className="text-[15px] font-semibold text-[#1A1A2E]">{t("exploreBenefits")}</p>
+                <p className="text-[13px] text-[#8E8E93]">{t("youHaveCredits")}</p>
               </div>
               <ChevronRight size={20} color="#E8B230" />
             </button>
 
             <div>
-              <h3 className="text-[16px] font-semibold text-[#1A1A2E] mb-3">Ultimos movimientos</h3>
+              <h3 className="text-[16px] font-semibold text-[#1A1A2E] mb-3">{t("latestMovements")}</h3>
               <div className="bg-white rounded-2xl shadow-[0_1px_4px_rgba(0,0,0,0.04)] divide-y divide-[#F2F3F7]">
                 {transactions.slice(0, 4).map((tx) => (
                   <div key={tx.id} className="flex items-center justify-between px-5 py-4">
@@ -529,16 +536,16 @@ export default function HumandApp() {
             <div className="flex gap-2 mb-5 flex-wrap">
               {perksCategories.map((cat) => (
                 <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
+                  key={cat.key}
+                  onClick={() => setSelectedCategory(cat.key)}
                   className="px-4 py-2 rounded-full text-[13px] font-medium transition-all"
                   style={{
-                    backgroundColor: selectedCategory === cat ? "#4B5EAA" : "white",
-                    color: selectedCategory === cat ? "white" : "#1A1A2E",
-                    boxShadow: selectedCategory !== cat ? "0 1px 4px rgba(0,0,0,0.06)" : "none",
+                    backgroundColor: selectedCategory === cat.key ? "#4B5EAA" : "white",
+                    color: selectedCategory === cat.key ? "white" : "#1A1A2E",
+                    boxShadow: selectedCategory !== cat.key ? "0 1px 4px rgba(0,0,0,0.06)" : "none",
                   }}
                 >
-                  {cat}
+                  {cat.label}
                 </button>
               ))}
             </div>
@@ -556,14 +563,14 @@ export default function HumandApp() {
                   <div className="p-4 flex flex-col gap-2">
                     <p className="text-[14px] font-semibold text-[#1A1A2E]">{benefit.name}</p>
                     <span className="inline-block self-start bg-[#EDEDFC] text-[#4B5EAA] text-[12px] font-semibold px-2.5 py-1 rounded-full">
-                      {benefit.cost} creditos
+                      {benefit.cost} {t("credits")}
                     </span>
                     <button
                       onClick={() => handleRedeem(benefit)}
                       disabled={balance < benefit.cost}
                       className="w-full h-[38px] bg-[#E8B230] text-white rounded-xl text-[13px] font-semibold hover:bg-[#D4A02A] transition-all disabled:opacity-40"
                     >
-                      Canjear
+                      {t("redeem")}
                     </button>
                   </div>
                 </div>
@@ -607,38 +614,41 @@ export default function HumandApp() {
         <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setPerksScreen("tabs")} />
         <div className="relative w-full max-w-[440px] bg-white rounded-2xl px-6 pt-5 pb-6 mx-4 shadow-xl">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-[20px] font-bold text-[#1A1A2E]">Confirmar canje</h3>
+            <h3 className="text-[20px] font-bold text-[#1A1A2E]">{t("confirmRedeem")}</h3>
             <button onClick={() => setPerksScreen("tabs")} className="w-8 h-8 rounded-full hover:bg-[#F2F3F7] flex items-center justify-center transition-colors">
               <X size={18} color="#8E8E93" />
             </button>
           </div>
           <p className="text-[14px] text-[#8E8E93] mb-5">
-            {"Vas a canjear "}
+            {t("youAreRedeeming")}
+            {" "}
             <span className="font-semibold text-[#1A1A2E]">{selectedBenefit.name}</span>
-            {" por "}
-            <span className="font-semibold text-[#1A1A2E]">{selectedBenefit.price} creditos</span>.
+            {" "}
+            {t("for")}
+            {" "}
+            <span className="font-semibold text-[#1A1A2E]">{selectedBenefit.price} {t("credits")}</span>.
           </p>
 
           <div className="bg-[#F2F3F7] rounded-2xl p-4 mb-5">
             <div className="flex justify-between mb-3">
-              <span className="text-[14px] text-[#8E8E93]">Saldo actual</span>
-              <span className="text-[14px] font-semibold text-[#1A1A2E]">{balance} creditos</span>
+              <span className="text-[14px] text-[#8E8E93]">{t("currentBalance")}</span>
+              <span className="text-[14px] font-semibold text-[#1A1A2E]">{balance} {t("credits")}</span>
             </div>
             <div className="flex justify-between mb-3">
-              <span className="text-[14px] text-[#8E8E93]">Costo</span>
-              <span className="text-[14px] font-semibold text-[#E8B230]">-{selectedBenefit.price} creditos</span>
+              <span className="text-[14px] text-[#8E8E93]">{t("cost")}</span>
+              <span className="text-[14px] font-semibold text-[#E8B230]">-{selectedBenefit.price} {t("credits")}</span>
             </div>
             <div className="h-px bg-[#E5E5EA] my-2" />
             <div className="flex justify-between pt-1">
-              <span className="text-[14px] text-[#8E8E93]">Saldo restante</span>
+              <span className="text-[14px] text-[#8E8E93]">{t("remainingBalance")}</span>
               <span className={`text-[15px] font-bold ${canAfford ? "text-[#34C759]" : "text-[#FF3B30]"}`}>
-                {balance - selectedBenefit.price} creditos
+                {balance - selectedBenefit.price} {t("credits")}
               </span>
             </div>
           </div>
 
           {!canAfford && (
-            <p className="text-[13px] text-[#FF3B30] mb-4 text-center">No tenes creditos suficientes.</p>
+            <p className="text-[13px] text-[#FF3B30] mb-4 text-center">{t("notEnoughCredits")}</p>
           )}
 
           <div className="flex gap-3">
@@ -646,14 +656,14 @@ export default function HumandApp() {
               onClick={() => setPerksScreen("tabs")}
               className="flex-1 h-[46px] border-2 border-[#E5E5EA] rounded-xl text-[14px] font-semibold text-[#1A1A2E] hover:bg-[#F2F3F7] transition-colors"
             >
-              Cancelar
+              {t("cancel")}
             </button>
             <button
               onClick={confirmRedeem}
               disabled={!canAfford}
               className="flex-1 h-[46px] bg-[#4B5EAA] text-white rounded-xl text-[14px] font-semibold hover:bg-[#3D4E94] transition-colors disabled:opacity-40"
             >
-              Confirmar
+              {t("confirm")}
             </button>
           </div>
         </div>
@@ -673,7 +683,7 @@ export default function HumandApp() {
       setBalance(walletData.balance)
       setTransactions(walletData.transactions)
     } catch (e: any) {
-      if (e.message === "ALREADY_COMPLETED") alert("Ya completaste este curso")
+      if (e.message === "ALREADY_COMPLETED") alert(t("alreadyCompleted"))
     }
   }
 
@@ -693,28 +703,28 @@ export default function HumandApp() {
               <Check size={36} color="#34C759" strokeWidth={3} />
             </div>
           </div>
-          <h2 className="text-[22px] font-bold text-[#1A1A2E] mb-2">{"¡Felicidades!"}</h2>
-          <p className="text-[15px] text-[#8E8E93] mb-6">Completaste {selectedCourse?.title}</p>
+          <h2 className="text-[22px] font-bold text-[#1A1A2E] mb-2">{t("congratulations")}</h2>
+          <p className="text-[15px] text-[#8E8E93] mb-6">{t("completed")} {selectedCourse?.title}</p>
           <div className="w-full max-w-[400px] bg-white rounded-2xl p-5 shadow-[0_1px_4px_rgba(0,0,0,0.04)] border border-[#E8B230]/30 mb-6">
             <div className="flex items-center gap-4">
               <div className="w-[48px] h-[48px] rounded-2xl bg-[#FFF5E0] flex items-center justify-center"><Gift size={24} color="#E8B230" /></div>
               <div>
-                <p className="text-[13px] text-[#8E8E93]">Ganaste</p>
-                <p className="text-[24px] font-bold text-[#E8B230] leading-none">+{courseReward.credits_earned} creditos</p>
+                <p className="text-[13px] text-[#8E8E93]">{t("earned")}</p>
+                <p className="text-[24px] font-bold text-[#E8B230] leading-none">+{courseReward.credits_earned} {t("credits")}</p>
               </div>
             </div>
             <div className="h-px bg-[#F2F3F7] my-4" />
             <div className="flex justify-between">
-              <span className="text-[13px] text-[#8E8E93]">Nuevo saldo</span>
-              <span className="text-[15px] font-bold text-[#4B5EAA]">{courseReward.new_balance} creditos</span>
+              <span className="text-[13px] text-[#8E8E93]">{t("newBalance")}</span>
+              <span className="text-[15px] font-bold text-[#4B5EAA]">{courseReward.new_balance} {t("credits")}</span>
             </div>
           </div>
           <div className="flex gap-3">
             <button onClick={() => { setActivePage("beneficios"); setPerksTab("wallet"); }} className="px-6 py-3 bg-[#4B5EAA] text-white rounded-xl text-[15px] font-semibold hover:bg-[#3D4E94] transition-colors">
-              Usar mis creditos
+              {t("useMyCredits")}
             </button>
             <button onClick={() => setLearningScreen("list")} className="px-6 py-3 text-[#4B5EAA] text-[15px] font-semibold hover:bg-[#F2F3F7] rounded-xl transition-colors">
-              Volver a cursos
+              {t("backToCourses")}
             </button>
           </div>
         </div>
@@ -731,7 +741,7 @@ export default function HumandApp() {
           <div className="bg-white rounded-2xl p-6 shadow-[0_1px_4px_rgba(0,0,0,0.04)] mb-5">
             <div className="flex items-center gap-2 mb-4">
               <BookOpen size={14} color="#8E8E93" />
-              <span className="text-[12px] text-[#8E8E93] uppercase tracking-wide font-medium">Lectura</span>
+              <span className="text-[12px] text-[#8E8E93] uppercase tracking-wide font-medium">{t("reading")}</span>
             </div>
             <div className="space-y-4">
               {paragraphs.map((p: string, i: number) => {
@@ -752,11 +762,11 @@ export default function HumandApp() {
               <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${lessonChecked ? 'bg-[#4B5EAA] border-[#4B5EAA]' : 'border-[#D1D1D6]'}`} onClick={() => setLessonChecked(!lessonChecked)}>
                 {lessonChecked && <Check size={14} color="white" strokeWidth={3} />}
               </div>
-              <span className="text-[14px] text-[#1A1A2E]">Marca tu leccion como finalizada</span>
+              <span className="text-[14px] text-[#1A1A2E]">{t("markLessonDone")}</span>
             </label>
             <div className="flex gap-3">
-              <button onClick={() => setLearningScreen("detail")} className="px-5 py-2.5 text-[#4B5EAA] text-[14px] font-semibold hover:bg-[#F2F3F7] rounded-xl transition-colors">Volver</button>
-              <button onClick={handleCompleteCourse} disabled={!lessonChecked} className="px-5 py-2.5 bg-[#4B5EAA] text-white rounded-xl text-[14px] font-semibold hover:bg-[#3D4E94] transition-colors disabled:opacity-40">Continuar</button>
+              <button onClick={() => setLearningScreen("detail")} className="px-5 py-2.5 text-[#4B5EAA] text-[14px] font-semibold hover:bg-[#F2F3F7] rounded-xl transition-colors">{t("back")}</button>
+              <button onClick={handleCompleteCourse} disabled={!lessonChecked} className="px-5 py-2.5 bg-[#4B5EAA] text-white rounded-xl text-[14px] font-semibold hover:bg-[#3D4E94] transition-colors disabled:opacity-40">{t("continue")}</button>
             </div>
           </div>
         </div>
@@ -775,27 +785,27 @@ export default function HumandApp() {
           </div>
           <div className="bg-[#EDEDFC] rounded-2xl p-4 flex items-start gap-3 mb-5">
             <Gift size={18} color="#4B5EAA" className="shrink-0 mt-0.5" />
-            <p className="text-[14px] text-[#1A1A2E]">Completa este curso y gana <strong className="text-[#E8B230]">{selectedCourse.credits_reward} creditos</strong> para tu wallet de Perks.</p>
+            <p className="text-[14px] text-[#1A1A2E]">{t("completeAndEarn")} <strong className="text-[#E8B230]">{selectedCourse.credits_reward} {t("credits")}</strong> {t("forPerksWallet")}</p>
           </div>
           <div className="grid grid-cols-2 gap-4 mb-5">
             <div className="bg-white rounded-2xl p-5 shadow-[0_1px_4px_rgba(0,0,0,0.04)]">
-              <p className="text-[12px] text-[#8E8E93] uppercase tracking-wide mb-3">Detalles</p>
+              <p className="text-[12px] text-[#8E8E93] uppercase tracking-wide mb-3">{t("details")}</p>
               <div className="space-y-2 text-[14px] text-[#1A1A2E]">
-                <p>Tipo: Lectura</p>
-                <p>Duracion: 3 min</p>
-                <p>Recompensa: <strong className="text-[#E8B230]">{selectedCourse.credits_reward} cr</strong></p>
+                <p>{t("type")}: {t("reading")}</p>
+                <p>{t("duration")}: 3 min</p>
+                <p>{t("reward")}: <strong className="text-[#E8B230]">{selectedCourse.credits_reward} cr</strong></p>
               </div>
             </div>
             <div className="bg-white rounded-2xl p-5 shadow-[0_1px_4px_rgba(0,0,0,0.04)]">
-              <p className="text-[12px] text-[#8E8E93] uppercase tracking-wide mb-3">Progreso</p>
+              <p className="text-[12px] text-[#8E8E93] uppercase tracking-wide mb-3">{t("progress")}</p>
               <div className="h-2 bg-[#E5E5EA] rounded-full mb-2">
                 <div className="h-full bg-[#4B5EAA] rounded-full" style={{ width: isCompleted ? '100%' : '0%' }} />
               </div>
-              <p className="text-[13px] text-[#8E8E93]">{isCompleted ? '1/1' : '0/1'} leccion</p>
+              <p className="text-[13px] text-[#8E8E93]">{isCompleted ? '1/1' : '0/1'} {t("lesson")}</p>
             </div>
           </div>
           <button onClick={() => { setLearningScreen("lesson"); setLessonChecked(false); }} disabled={isCompleted} className="w-full h-[48px] bg-[#4B5EAA] text-white rounded-xl text-[15px] font-semibold hover:bg-[#3D4E94] transition-colors disabled:opacity-40">
-            {isCompleted ? "Curso completado ✓" : "Comenzar leccion"}
+            {isCompleted ? t("courseCompleted") : t("startLesson")}
           </button>
         </div>
       )
@@ -805,9 +815,9 @@ export default function HumandApp() {
     return (
       <div>
         <div className="flex items-center justify-between mb-5">
-          <h1 className="text-[28px] font-bold text-[#1A1A2E]">Aprendizaje</h1>
+          <h1 className="text-[28px] font-bold text-[#1A1A2E]">{t("learningTitle")}</h1>
         </div>
-        <p className="text-[15px] text-[#8E8E93] mb-5">Completa cursos y gana creditos para tu wallet de Perks.</p>
+        <p className="text-[15px] text-[#8E8E93] mb-5">{t("learningSubtitle")}</p>
         {courses.map((course: any) => {
           const isCompleted = completedCourseIds.includes(course.id)
           return (
@@ -821,7 +831,7 @@ export default function HumandApp() {
                   <div className="h-full bg-[#4B5EAA] rounded-full" style={{ width: isCompleted ? '100%' : '0%' }} />
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[12px] text-[#8E8E93]">{isCompleted ? '1/1' : '0/1'} leccion</span>
+                  <span className="text-[12px] text-[#8E8E93]">{isCompleted ? '1/1' : '0/1'} {t("lesson")}</span>
                   <span className="text-[12px] font-semibold text-[#E8B230]">+{course.credits_reward} cr</span>
                 </div>
               </div>
@@ -832,10 +842,10 @@ export default function HumandApp() {
         <div className="bg-[#EDEDFC] rounded-2xl p-4 flex items-center gap-3 mt-4">
           <Gift size={20} color="#4B5EAA" />
           <div className="flex-1">
-            <p className="text-[13px] font-semibold text-[#1A1A2E]">Completa cursos, gana creditos</p>
-            <p className="text-[11px] text-[#8E8E93]">Usalos en beneficios de Perks</p>
+            <p className="text-[13px] font-semibold text-[#1A1A2E]">{t("completeCoursesEarn")}</p>
+            <p className="text-[11px] text-[#8E8E93]">{t("useInPerks")}</p>
           </div>
-          <button onClick={() => { setActivePage("beneficios"); setPerksTab("wallet"); }} className="text-[12px] font-semibold text-[#4B5EAA]">{"Ver Perks →"}</button>
+          <button onClick={() => { setActivePage("beneficios"); setPerksTab("wallet"); }} className="text-[12px] font-semibold text-[#4B5EAA]">{t("seePerks")}</button>
         </div>
       </div>
     )

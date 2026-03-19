@@ -7,26 +7,28 @@ import { ChevronLeft, MapPin, Clock, Check, Copy, Download, Utensils, Dumbbell, 
 import { QRCode } from "@/components/qr-code"
 import { getPerkById } from "@/lib/perks-data"
 import Link from "next/link"
-
-const categoryConfig = {
-  food: { icon: Utensils, color: "#F97316", bgLight: "#FFF7ED", label: "Comida" },
-  wellness: { icon: Dumbbell, color: "#22C55E", bgLight: "#F0FDF4", label: "Bienestar" },
-  entertainment: { icon: Ticket, color: "#8B5CF6", bgLight: "#FAF5FF", label: "Entretenimiento" },
-  shopping: { icon: ShoppingBag, color: "#EC4899", bgLight: "#FDF2F8", label: "Shopping" },
-}
+import { useLanguage } from "@/contexts/LanguageContext"
 
 export default function RedeemPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
+  const { t } = useLanguage()
   const [isRedeemed, setIsRedeemed] = useState(false)
   const [isCopied, setIsCopied] = useState(false)
+
+  const categoryConfig = {
+    food: { icon: Utensils, color: "#F97316", bgLight: "#FFF7ED", label: t("food") },
+    wellness: { icon: Dumbbell, color: "#22C55E", bgLight: "#F0FDF4", label: t("wellness") },
+    entertainment: { icon: Ticket, color: "#8B5CF6", bgLight: "#FAF5FF", label: t("entertainment") },
+    shopping: { icon: ShoppingBag, color: "#EC4899", bgLight: "#FDF2F8", label: t("shopping") },
+  }
   
   const perk = getPerkById(id)
   
   if (!perk) {
     return (
       <div className="min-h-screen bg-[#F8F9FB] flex items-center justify-center">
-        <p className="text-[#718096]">Beneficio no encontrado</p>
+        <p className="text-[#718096]">{t("noBenefitsFound")}</p>
       </div>
     )
   }
@@ -55,7 +57,7 @@ export default function RedeemPage({ params }: { params: Promise<{ id: string }>
         <Link href="/perks/catalog" className="p-1">
           <ChevronLeft className="h-6 w-6 text-[#2D3748]" />
         </Link>
-        <h1 className="text-[18px] font-semibold text-[#2D3748]">Detalle</h1>
+        <h1 className="text-[18px] font-semibold text-[#2D3748]">{t("detail")}</h1>
       </header>
       
       <main className="max-w-lg mx-auto px-5 py-5 pb-28">
@@ -100,7 +102,7 @@ export default function RedeemPage({ params }: { params: Promise<{ id: string }>
 
             {/* Description */}
             <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] p-4 mb-4">
-              <h3 className="font-semibold text-[#2D3748] mb-2 text-[15px]">Sobre este beneficio</h3>
+              <h3 className="font-semibold text-[#2D3748] mb-2 text-[15px]">{t("aboutThisBenefit")}</h3>
               <p className="text-[14px] text-[#718096] leading-relaxed">
                 {perk.description}
               </p>
@@ -108,19 +110,19 @@ export default function RedeemPage({ params }: { params: Promise<{ id: string }>
 
             {/* Terms */}
             <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] p-4 mb-6">
-              <h3 className="font-semibold text-[#2D3748] mb-3 text-[15px]">Condiciones</h3>
+              <h3 className="font-semibold text-[#2D3748] mb-3 text-[15px]">{t("terms")}</h3>
               <ul className="text-[14px] text-[#718096] space-y-2">
                 <li className="flex items-start gap-2">
                   <Clock className="h-4 w-4 mt-0.5 shrink-0 text-[#3D5A80]" />
-                  Valido por 30 dias despues del canje
+                  {t("validFor30Days")}
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="h-4 w-4 mt-0.5 shrink-0 text-[#3D5A80]" />
-                  Un solo uso
+                  {t("singleUse")}
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="h-4 w-4 mt-0.5 shrink-0 text-[#3D5A80]" />
-                  No combinable con otras ofertas
+                  {t("notCombinableWithOtherOffers")}
                 </li>
               </ul>
             </div>
@@ -129,9 +131,9 @@ export default function RedeemPage({ params }: { params: Promise<{ id: string }>
             <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] p-4">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <p className="text-[12px] text-[#718096] mb-0.5">Precio</p>
+                  <p className="text-[12px] text-[#718096] mb-0.5">{t("price")}</p>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-[24px] font-bold text-[#2D3748]">{perk.price} <span className="text-[14px] font-medium">creditos</span></span>
+                    <span className="text-[24px] font-bold text-[#2D3748]">{perk.price} <span className="text-[14px] font-medium">{t("credits")}</span></span>
                     {perk.originalValue && (
                       <span className="text-[14px] text-[#A0AEC0] line-through">
                         {perk.originalValue} cr
@@ -140,15 +142,15 @@ export default function RedeemPage({ params }: { params: Promise<{ id: string }>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-[12px] text-[#718096] mb-0.5">Tu saldo</p>
+                  <p className="text-[12px] text-[#718096] mb-0.5">{t("yourBalance")}</p>
                   <span className="text-[18px] font-semibold text-[#22C55E]">245 cr</span>
                 </div>
               </div>
               <button 
-                className="w-full bg-[#3D5A80] hover:bg-[#2C4A6E] text-white h-12 rounded-xl text-[15px] font-semibold transition-colors" 
+                className="w-full bg-[#3D5A80] hover:bg-[#2C4A6E] text-white h-12 rounded-xl text-[15px] font-semibold transition-colors"
                 onClick={handleRedeem}
               >
-                Canjear por {perk.price} creditos
+                {t("redeemFor")} {perk.price} {t("credits")}
               </button>
             </div>
           </>
@@ -160,10 +162,10 @@ export default function RedeemPage({ params }: { params: Promise<{ id: string }>
             </div>
             
             <h1 className="text-[22px] font-bold text-[#2D3748] mb-2">
-              Beneficio canjeado
+              {t("benefitRedeemed")}
             </h1>
             <p className="text-[#718096] mb-8">
-              Mostra este QR o codigo al comercio
+              {t("showQROrCode")}
             </p>
 
             {/* QR Code Card */}
@@ -173,7 +175,7 @@ export default function RedeemPage({ params }: { params: Promise<{ id: string }>
               </div>
               
               <div className="space-y-2">
-                <p className="text-[12px] text-[#718096]">Codigo de canje</p>
+                <p className="text-[12px] text-[#718096]">{t("redemptionCode")}</p>
                 <div className="flex items-center justify-center gap-2">
                   <code className="text-[15px] font-mono font-semibold tracking-wider text-[#2D3748]">
                     {redemptionCode}
@@ -207,7 +209,7 @@ export default function RedeemPage({ params }: { params: Promise<{ id: string }>
                 </div>
               </div>
               <div className="mt-4 pt-4 border-t border-[#E8ECF1] flex items-center justify-between text-[14px]">
-                <span className="text-[#718096]">Valido hasta</span>
+                <span className="text-[#718096]">{t("validUntil")}</span>
                 <span className="font-medium text-[#2D3748]">17 Abril, 2026</span>
               </div>
             </div>
@@ -216,13 +218,13 @@ export default function RedeemPage({ params }: { params: Promise<{ id: string }>
             <div className="flex gap-3">
               <button className="flex-1 h-12 rounded-xl border border-[#E8ECF1] bg-white text-[#2D3748] font-medium flex items-center justify-center gap-2 hover:bg-[#F8F9FB]">
                 <Download className="h-4 w-4" />
-                Guardar
+                {t("save")}
               </button>
-              <button 
+              <button
                 className="flex-1 h-12 rounded-xl bg-[#3D5A80] hover:bg-[#2C4A6E] text-white font-medium transition-colors"
                 onClick={() => router.push("/perks")}
               >
-                Volver al inicio
+                {t("backToHome")}
               </button>
             </div>
           </div>
