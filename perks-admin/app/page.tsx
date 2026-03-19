@@ -14,13 +14,135 @@ import {
   DollarSign, ArrowUpRight, ArrowDownRight, Filter, Download,
   Eye, MoreVertical, Bell, Globe, HelpCircle, Star, Repeat,
   FileText, AlertCircle, CheckCircle, ChevronLeft, Home,
-  Layers, LayoutDashboard, Package, PieChart, UserCheck, Sparkles, PartyPopper
+  Layers, LayoutDashboard, Package, PieChart, UserCheck, Sparkles, PartyPopper,
+  ShoppingCart, Wallet
 } from "lucide-react";
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, PieChart as RePieChart, Pie,
   Cell, Area, AreaChart, Legend
 } from "recharts";
+
+/* ════════════════════════════════════════════
+   I18N SYSTEM
+   ════════════════════════════════════════════ */
+const i18n = {
+  es: {
+    dashboard: "Dashboard", general: "General", usuarios: "Usuarios",
+    creditosDisponibles: "Créditos disponibles para asignar",
+    creditosAdquiridos: "Créditos adquiridos", creditosAsignados: "Créditos asignados",
+    creditosCanjeados: "Créditos canjeados", tasaCanje: "Tasa de canje",
+    proximosVencer: "Próximos a vencer", notificar: "Notificar",
+    comprarCreditos: "Comprar más créditos", colaboradores: "Colaboradores",
+    beneficios: "Beneficios", reglasAutomaticas: "Reglas automáticas",
+    comprar: "Comprar créditos", buscar: "Buscar...",
+    cargados: "Cargados", canjeados: "Canjeados", disponible: "Disponible",
+    departamento: "Departamento", estado: "Estado", acciones: "Acciones",
+    activo: "Activo", inactivo: "Inactivo", cargar: "Cargar",
+    cargaMasiva: "Carga masiva", nuevoBeneficio: "Nuevo beneficio",
+    crearRegla: "Crear regla", reglasAsignacion: "Reglas de asignación",
+    reglasGeneracion: "Reglas de generación", categoria: "Categoría",
+    todos: "Todos", cancelar: "Cancelar", confirmar: "Confirmar",
+    canjePorCategoria: "Canjes por categoría", usoPorDepto: "Uso por departamento",
+    actividadReciente: "Actividad reciente", creditosVsMes: "Créditos cargados vs canjeados",
+    topBeneficios: "Top beneficios más canjeados", topUsuarios: "Colaboradores con mayor uso",
+    seleccionarPlan: "Seleccionar plan de créditos", pagarConTarjeta: "Pagar con tarjeta",
+    monto: "Monto", motivo: "Motivo", nota: "Nota",
+    dashCreditos: "Dashboard de Créditos", seguimiento: "Seguimiento general del uso de créditos en la plataforma",
+    delTotalAsignado: "del total asignado", canjes: "canjes",
+    vencenEn7Dias: "colaboradores tienen créditos que vencen en los próximos 7 días",
+    insights: "Insights", tendenciaSemanal: "Tendencia de canjes semanal",
+    gestionBeneficios: "Gestión de Beneficios", adminCatalogo: "Administrá el catálogo de beneficios disponibles para canjear",
+    creditosCargados: "Créditos cargados", creditosUsados: "Créditos usados",
+    gestionaCreditos: "Gestioná créditos de tus colaboradores de forma individual o masiva",
+    totalUsuarios: "Total usuarios", usuariosActivos: "Usuarios activos",
+    promCreditos: "Promedio créditos/usuario", salud: "Salud", educacion: "Educación",
+    gastronomia: "Gastronomía", entretenimiento: "Entretenimiento", bienestar: "Bienestar",
+    segmentar: "Segmentar", proveedor: "Proveedor", costoCreditos: "Costo en créditos",
+    stock: "Stock disponible (opcional)", descripcion: "Descripción", imagenEmoji: "Imagen o emoji representativo",
+    crearBeneficio: "Crear beneficio", editarBenef: "Editar", verBenef: "Ver",
+    pausado: "Pausado", creditosLabel: "créditos", canjesLabel: "canjes",
+    nombreRegla: "Nombre de la regla", tipoTrigger: "Tipo de trigger",
+    periodicidad: "Periodicidad (si aplica)", cantidadCreditos: "Cantidad de créditos",
+    aplicarA: "Aplicar a", fechaExpiracion: "Fecha de expiración de créditos (opcional)",
+    nuevaRegla: "Nueva regla automática", trigger: "Trigger", ultimaEjecucion: "Última ejecución",
+    activa: "Activa", pausada: "Pausada", activar: "Activar", pausar: "Pausar",
+    comprarCreditosTitulo: "Comprar créditos",
+    comprarCreditosDesc: "Adquirí paquetes de créditos para distribuir entre tus colaboradores",
+    starter: "Starter", professional: "Professional", enterprise: "Enterprise",
+    popular: "Popular", mes: "/mes", caracteristicas: "Características",
+    seleccionar: "Seleccionar", pagoPersonalizado: "Pago personalizado",
+    cantidadPersonalizada: "Cantidad personalizada de créditos",
+    tuCompra: "Tu compra", resumen: "Resumen",
+    numTarjeta: "Número de tarjeta", vencimiento: "Vencimiento", titular: "Titular",
+    procesarPago: "Procesar pago", pendientes: "pendientes",
+    cargaPeriodica: "Carga periódica", cumpleanos: "Cumpleaños",
+    aniversarioLaboral: "Aniversario laboral", onboarding: "Onboarding",
+    regla: "regla", reglas: "reglas", personas: "personas",
+    sumarCreditos: "Sumar créditos", montoRapido: "Monto rápido",
+    resumenCompra: "Resumen de compra", preciosReferencia: "Precios de referencia",
+    opcional: "opcional",
+  },
+  en: {
+    dashboard: "Dashboard", general: "General", usuarios: "Users",
+    creditosDisponibles: "Credits available to assign",
+    creditosAdquiridos: "Credits purchased", creditosAsignados: "Credits assigned",
+    creditosCanjeados: "Credits redeemed", tasaCanje: "Redemption rate",
+    proximosVencer: "Expiring soon", notificar: "Notify",
+    comprarCreditos: "Buy more credits", colaboradores: "Employees",
+    beneficios: "Benefits", reglasAutomaticas: "Auto rules",
+    comprar: "Buy credits", buscar: "Search...",
+    cargados: "Loaded", canjeados: "Redeemed", disponible: "Available",
+    departamento: "Department", estado: "Status", acciones: "Actions",
+    activo: "Active", inactivo: "Inactive", cargar: "Load",
+    cargaMasiva: "Bulk load", nuevoBeneficio: "New benefit",
+    crearRegla: "Create rule", reglasAsignacion: "Assignment rules",
+    reglasGeneracion: "Generation rules", categoria: "Category",
+    todos: "All", cancelar: "Cancel", confirmar: "Confirm",
+    canjePorCategoria: "Redemptions by category", usoPorDepto: "Usage by department",
+    actividadReciente: "Recent activity", creditosVsMes: "Credits loaded vs redeemed",
+    topBeneficios: "Top redeemed benefits", topUsuarios: "Top users by usage",
+    seleccionarPlan: "Select credit plan", pagarConTarjeta: "Pay with card",
+    monto: "Amount", motivo: "Reason", nota: "Note",
+    dashCreditos: "Credits Dashboard", seguimiento: "General tracking of credit usage on the platform",
+    delTotalAsignado: "of total assigned", canjes: "redemptions",
+    vencenEn7Dias: "employees have credits expiring in the next 7 days",
+    insights: "Insights", tendenciaSemanal: "Weekly redemption trend",
+    gestionBeneficios: "Benefits Management", adminCatalogo: "Manage the benefits catalog available for redemption",
+    creditosCargados: "Credits loaded", creditosUsados: "Credits used",
+    gestionaCreditos: "Manage your employees credits individually or in bulk",
+    totalUsuarios: "Total users", usuariosActivos: "Active users",
+    promCreditos: "Avg credits/user", salud: "Health", educacion: "Education",
+    gastronomia: "Food", entretenimiento: "Entertainment", bienestar: "Wellness",
+    segmentar: "Segment", proveedor: "Provider", costoCreditos: "Cost in credits",
+    stock: "Available stock (optional)", descripcion: "Description", imagenEmoji: "Image or emoji",
+    crearBeneficio: "Create benefit", editarBenef: "Edit", verBenef: "View",
+    pausado: "Paused", creditosLabel: "credits", canjesLabel: "redemptions",
+    nombreRegla: "Rule name", tipoTrigger: "Trigger type",
+    periodicidad: "Periodicity (if applicable)", cantidadCreditos: "Credit amount",
+    aplicarA: "Apply to", fechaExpiracion: "Credit expiration date (optional)",
+    nuevaRegla: "New auto rule", trigger: "Trigger", ultimaEjecucion: "Last run",
+    activa: "Active", pausada: "Paused", activar: "Activate", pausar: "Pause",
+    comprarCreditosTitulo: "Buy Credits",
+    comprarCreditosDesc: "Purchase credit packages to distribute among your employees",
+    starter: "Starter", professional: "Professional", enterprise: "Enterprise",
+    popular: "Popular", mes: "/mo", caracteristicas: "Features",
+    seleccionar: "Select", pagoPersonalizado: "Custom payment",
+    cantidadPersonalizada: "Custom credit amount",
+    tuCompra: "Your purchase", resumen: "Summary",
+    numTarjeta: "Card number", vencimiento: "Expiry", titular: "Cardholder",
+    procesarPago: "Process payment", pendientes: "pending",
+    cargaPeriodica: "Periodic load", cumpleanos: "Birthday",
+    aniversarioLaboral: "Work anniversary", onboarding: "Onboarding",
+    regla: "rule", reglas: "rules", personas: "people",
+    sumarCreditos: "Add credits", montoRapido: "Quick amount",
+    resumenCompra: "Purchase summary", preciosReferencia: "Price reference",
+    opcional: "optional",
+  }
+};
+
+type Lang = "es" | "en";
+type T = typeof i18n.es;
 
 /* ════════════════════════════════════════════
    DESIGN SYSTEM TOKENS (Humand Foundations)
@@ -128,7 +250,6 @@ function useAdminData() {
     fetchAll();
   }, [refreshKey]);
 
-  // Derived data for dashboard
   const credits = transactions.filter(t => t.type === "credit");
   const debits = transactions.filter(t => t.type === "debit");
   const totalCredited = credits.reduce((s, t) => s + Number(t.amount), 0);
@@ -136,41 +257,22 @@ function useAdminData() {
   const totalPending = Math.round((totalCredited - totalRedeemed) * 100) / 100;
   const employees = users.filter(u => u.role === "employee");
 
-  // Users with wallet data merged
   const usersWithWallet = users.map(u => {
     const w = wallets.find(w => w.user_id === u.id);
     const userCredits = credits.filter(t => t.wallet_id === w?.id).reduce((s, t) => s + Number(t.amount), 0);
     const userSpent = debits.filter(t => t.wallet_id === w?.id).reduce((s, t) => s + Number(t.amount), 0);
-    return {
-      ...u,
-      avatar: getInitials(u.name),
-      credits: userCredits,
-      spent: userSpent,
-      balance: w?.balance || 0,
-    };
+    return { ...u, avatar: getInitials(u.name), credits: userCredits, spent: userSpent, balance: w?.balance || 0 };
   });
 
-  // Benefits with redemption counts
   const benefitsWithStats = benefits.map(b => {
     const redemptionCount = debits.filter(t => t.benefit_id === b.id).length;
-    return {
-      ...b,
-      credits: Number(b.cost),
-      provider: b.merchant || "",
-      status: b.active ? "active" : "paused",
-      redemptions: redemptionCount,
-      image: categoryEmojis[b.category?.toLowerCase()] || "🎁",
-    };
+    return { ...b, credits: Number(b.cost), provider: b.merchant || "", status: b.active ? "active" : "paused", redemptions: redemptionCount, image: categoryEmojis[b.category?.toLowerCase()] || "🎁" };
   });
 
-  // Category breakdown for pie chart
   const catCounts: Record<string, number> = {};
   debits.forEach(t => {
     const benefit = benefits.find(b => b.id === t.benefit_id);
-    if (benefit) {
-      const cat = benefit.category || "Otro";
-      catCounts[cat] = (catCounts[cat] || 0) + 1;
-    }
+    if (benefit) { const cat = benefit.category || "Otro"; catCounts[cat] = (catCounts[cat] || 0) + 1; }
   });
   const totalDebits = debits.length || 1;
   const categoryData = Object.entries(catCounts).map(([name, count]) => ({
@@ -179,7 +281,6 @@ function useAdminData() {
     color: categoryColors[name.toLowerCase()] || tokens.colors.neutral[400],
   }));
 
-  // Department usage
   const deptMap: Record<string, { total: number; spent: number }> = {};
   usersWithWallet.forEach(u => {
     if (!u.dept) return;
@@ -187,47 +288,26 @@ function useAdminData() {
     deptMap[u.dept].total += u.credits || 1;
     deptMap[u.dept].spent += u.spent;
   });
-  const deptUsage = Object.entries(deptMap).map(([dept, v]) => ({
-    dept,
-    usage: v.total > 0 ? Math.round((v.spent / v.total) * 100) : 0,
-  }));
+  const deptUsage = Object.entries(deptMap).map(([dept, v]) => ({ dept, usage: v.total > 0 ? Math.round((v.spent / v.total) * 100) : 0 }));
 
-  // Recent activity from transactions
   const recentActivity = transactions.slice(0, 5).map(t => {
-    const user = users.find(u => {
-      const w = wallets.find(w => w.user_id === u.id);
-      return w?.id === t.wallet_id;
-    });
-    return {
-      user: user?.name || "Usuario",
-      action: t.description,
-      credits: t.type === "credit" ? Number(t.amount) : -Number(t.amount),
-      time: timeAgo(t.created_at),
-      type: t.type === "credit" ? "credit" : "redemption",
-    };
+    const user = users.find(u => { const w = wallets.find(w => w.user_id === u.id); return w?.id === t.wallet_id; });
+    return { user: user?.name || "Usuario", action: t.description, credits: t.type === "credit" ? Number(t.amount) : -Number(t.amount), time: timeAgo(t.created_at), type: t.type === "credit" ? "credit" : "redemption" };
   });
 
-  // Monthly credits chart data (aggregate by month)
   const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
   const monthMap: Record<string, { cargados: number; canjeados: number }> = {};
   transactions.forEach(t => {
     const d = new Date(t.created_at);
     const key = monthNames[d.getMonth()];
     if (!monthMap[key]) monthMap[key] = { cargados: 0, canjeados: 0 };
-    if (t.type === "credit") monthMap[key].cargados += Number(t.amount);
-    else monthMap[key].canjeados += Number(t.amount);
+    if (t.type === "credit") monthMap[key].cargados += Number(t.amount); else monthMap[key].canjeados += Number(t.amount);
   });
   const monthlyCredits = Object.entries(monthMap).map(([month, v]) => ({ month, ...v }));
   if (monthlyCredits.length === 0) monthlyCredits.push({ month: "Mar", cargados: 0, canjeados: 0 });
 
-  // Auto rules formatted
-  const autoRules = autoRulesData.map(r => ({
-    ...r,
-    amount: Number(r.amount),
-    lastRun: r.last_run ? new Date(r.last_run).toLocaleDateString("es-AR") : "—",
-  }));
+  const autoRules = autoRulesData.map(r => ({ ...r, amount: Number(r.amount), lastRun: r.last_run ? new Date(r.last_run).toLocaleDateString("es-AR") : "—" }));
 
-  // Rule types (derived from auto_rules)
   const ruleTypes = [
     { id: 1, name: "Carga periódica", icon: "repeat", rulesCount: autoRules.filter(r => r.type === "periodic").length, usersCount: employees.length, description: "Cargas recurrentes en intervalos regulares" },
     { id: 2, name: "Cumpleaños", icon: "cake", rulesCount: autoRules.filter(r => r.trigger === "Cumpleaños").length, usersCount: employees.length, description: "Créditos automáticos en el cumpleaños" },
@@ -235,50 +315,26 @@ function useAdminData() {
     { id: 4, name: "Onboarding", icon: "userplus", rulesCount: autoRules.filter(r => r.trigger === "Alta de usuario").length, usersCount: employees.length, description: "Bienvenida a nuevos colaboradores" },
   ];
 
-  // Bulk history formatted
-  const bulkHistory = bulkHistoryData.map(b => ({
-    ...b,
-    date: new Date(b.date).toLocaleDateString("es-AR"),
-    users: b.users_count,
-    credits: Number(b.credits),
-    total: Number(b.total),
-    by: b.created_by || "—",
-  }));
+  const bulkHistory = bulkHistoryData.map(b => ({ ...b, date: new Date(b.date).toLocaleDateString("es-AR"), users: b.users_count, credits: Number(b.credits), total: Number(b.total), by: b.created_by || "—" }));
 
-  return {
-    loading, refresh, users: usersWithWallet, benefits: benefitsWithStats,
-    transactions, totalCredited, totalRedeemed, totalPending,
-    employees, categoryData, deptUsage, recentActivity,
-    monthlyCredits, autoRules, ruleTypes, bulkHistory, wallets,
-  };
+  return { loading, refresh, users: usersWithWallet, benefits: benefitsWithStats, transactions, totalCredited, totalRedeemed, totalPending, employees, categoryData, deptUsage, recentActivity, monthlyCredits, autoRules, ruleTypes, bulkHistory, wallets };
 }
 
 /* ════════════════════════════════════════════
    SHARED COMPONENTS
    ════════════════════════════════════════════ */
-const baseStyles = {
-  fontFamily: "'Roboto', sans-serif",
-  letterSpacing: "0.2px",
-  color: tokens.semantic.textDefault,
-};
+const baseStyles = { fontFamily: "'Roboto', sans-serif", letterSpacing: "0.2px", color: tokens.semantic.textDefault };
 
-function Avatar({ initials, size = 36, color = tokens.colors.humand[400] }) {
+function Avatar({ initials, size = 36, color = tokens.colors.humand[400] }: any) {
   return (
-    <div style={{
-      width: size, height: size, borderRadius: "50%",
-      background: tokens.colors.humand[100],
-      color: tokens.colors.humand[700],
-      display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: size * 0.36, fontWeight: 600, letterSpacing: "0.2px",
-      flexShrink: 0,
-    }}>
+    <div style={{ width: size, height: size, borderRadius: "50%", background: tokens.colors.humand[100], color: tokens.colors.humand[700], display: "flex", alignItems: "center", justifyContent: "center", fontSize: size * 0.36, fontWeight: 600, letterSpacing: "0.2px", flexShrink: 0 }}>
       {initials}
     </div>
   );
 }
 
-function Badge({ children, variant = "default" }) {
-  const variants = {
+function Badge({ children, variant = "default" }: any) {
+  const variants: any = {
     default: { bg: tokens.colors.humand[100], color: tokens.colors.humand[700] },
     success: { bg: tokens.colors.green[100], color: tokens.colors.green[700] },
     warning: { bg: tokens.colors.yellow[100], color: tokens.colors.yellow[700] },
@@ -288,47 +344,35 @@ function Badge({ children, variant = "default" }) {
   };
   const v = variants[variant] || variants.default;
   return (
-    <span style={{
-      display: "inline-flex", alignItems: "center", padding: "2px 10px",
-      borderRadius: 999, fontSize: 12, fontWeight: 600,
-      background: v.bg, color: v.color, letterSpacing: "0.2px", lineHeight: 1.4,
-    }}>
+    <span style={{ display: "inline-flex", alignItems: "center", padding: "2px 10px", borderRadius: 999, fontSize: 12, fontWeight: 600, background: v.bg, color: v.color, letterSpacing: "0.2px", lineHeight: 1.4 }}>
       {children}
     </span>
   );
 }
 
-function Button({ children, variant = "primary", size = "md", icon: Icon, onClick, style: extraStyle }) {
+function Button({ children, variant = "primary", size = "md", icon: Icon, onClick, style: extraStyle }: any) {
   const [hovered, setHovered] = useState(false);
-  const sizes = {
-    sm: { padding: "6px 12px", fontSize: 12 },
-    md: { padding: "8px 16px", fontSize: 14 },
-    lg: { padding: "12px 24px", fontSize: 16 },
+  const sizes: any = { sm: { padding: "6px 12px", fontSize: 12 }, md: { padding: "8px 16px", fontSize: 14 }, lg: { padding: "12px 24px", fontSize: 16 } };
+  const borderBase = variant === "secondary" ? `1px solid ${hovered ? tokens.colors.humand[400] : tokens.colors.humand[300]}` : "none";
+  const variants: any = {
+    primary: { bg: `linear-gradient(135deg, ${tokens.colors.humand[500]}, ${tokens.colors.humand[600]})`, color: "#fff" },
+    secondary: { bg: "#fff", color: tokens.colors.humand[500] },
+    ghost: { bg: "transparent", color: tokens.semantic.textLighter },
+    danger: { bg: `linear-gradient(135deg, ${tokens.colors.red[500]}, ${tokens.colors.red[600]})`, color: "#fff" },
+    gradient: { bg: `linear-gradient(135deg, ${tokens.colors.humand[500]}, ${tokens.colors.purple[500]})`, color: "#fff" },
   };
-  const variants = {
-    primary: { bg: `linear-gradient(135deg, ${tokens.colors.humand[500]}, ${tokens.colors.humand[600]})`, color: "#fff", border: "none" },
-    secondary: { bg: "#fff", color: tokens.colors.humand[500], border: `1px solid ${tokens.colors.humand[300]}` },
-    ghost: { bg: "transparent", color: tokens.semantic.textLighter, border: "none" },
-    danger: { bg: `linear-gradient(135deg, ${tokens.colors.red[500]}, ${tokens.colors.red[600]})`, color: "#fff", border: "none" },
-  };
-  const v = variants[variant];
-  const s = sizes[size];
+  const v = variants[variant] || variants.primary;
+  const s = sizes[size] || sizes.md;
   const hoverStyle = hovered ? (
-    variant === "primary" || variant === "danger"
+    variant === "primary" || variant === "danger" || variant === "gradient"
       ? { transform: "translateY(-1px)", boxShadow: tokens.shadow.glow }
       : variant === "secondary"
-        ? { boxShadow: tokens.shadow.dp2, border: `1px solid ${tokens.colors.humand[400]}` }
+        ? { boxShadow: tokens.shadow.dp2 }
         : { background: tokens.colors.neutral[100] }
   ) : {};
   return (
-    <button onClick={onClick}
-      onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
-      style={{
-        ...s, ...baseStyles, fontWeight: 600, borderRadius: tokens.radius.m,
-        background: v.bg, color: v.color, border: v.border,
-        cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8,
-        transition: tokens.transition.fast, ...hoverStyle, ...extraStyle,
-      }}>
+    <button onClick={onClick} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+      style={{ ...s, ...baseStyles, fontWeight: 600, borderRadius: tokens.radius.m, background: v.bg, color: v.color, borderTop: borderBase, borderRight: borderBase, borderBottom: borderBase, borderLeft: borderBase, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, transition: tokens.transition.fast, ...hoverStyle, ...extraStyle }}>
       {Icon && <Icon size={size === "sm" ? 14 : 16} />}
       {children}
     </button>
@@ -338,32 +382,17 @@ function Button({ children, variant = "primary", size = "md", icon: Icon, onClic
 function Card({ children, style: extraStyle, noPadding, hoverable }: any) {
   const [hovered, setHovered] = useState(false);
   return (
-    <div
-      onMouseEnter={hoverable ? () => setHovered(true) : undefined}
-      onMouseLeave={hoverable ? () => setHovered(false) : undefined}
-      style={{
-        background: tokens.semantic.bgCard,
-        borderRadius: tokens.radius.l,
-        boxShadow: hovered ? tokens.shadow.dp8 : tokens.shadow.dp4,
-        outline: hovered ? `1px solid ${tokens.colors.humand[200]}` : "1px solid transparent",
-        outlineOffset: -1,
-        padding: noPadding ? 0 : 24,
-        transition: tokens.transition.medium,
-        ...extraStyle,
-      }}>
+    <div onMouseEnter={hoverable ? () => setHovered(true) : undefined} onMouseLeave={hoverable ? () => setHovered(false) : undefined}
+      style={{ background: tokens.semantic.bgCard, borderRadius: tokens.radius.l, boxShadow: hovered ? tokens.shadow.dp8 : tokens.shadow.dp4, borderTop: `1px solid ${hovered ? tokens.colors.humand[200] : "transparent"}`, borderRight: `1px solid ${hovered ? tokens.colors.humand[200] : "transparent"}`, borderBottom: `1px solid ${hovered ? tokens.colors.humand[200] : "transparent"}`, borderLeft: `1px solid ${hovered ? tokens.colors.humand[200] : "transparent"}`, padding: noPadding ? 0 : 24, transition: tokens.transition.medium, ...extraStyle }}>
       {children}
     </div>
   );
 }
 
-function StatCard({ label, value, icon: Icon, trend, trendUp, color = tokens.colors.humand[500] }) {
+function StatCard({ label, value, icon: Icon, trend, trendUp, color = tokens.colors.humand[500] }: any) {
   return (
     <Card hoverable style={{ display: "flex", alignItems: "flex-start", gap: 16, boxShadow: `inset 3px 0 0 ${color}, ${tokens.shadow.dp4}` }}>
-      <div style={{
-        width: 52, height: 52, borderRadius: tokens.radius.m,
-        background: `radial-gradient(circle at top left, ${color}20, ${color}08)`,
-        display: "flex", alignItems: "center", justifyContent: "center",
-      }}>
+      <div style={{ width: 52, height: 52, borderRadius: tokens.radius.m, background: `radial-gradient(circle at top left, ${color}20, ${color}08)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
         <Icon size={26} color={color} />
       </div>
       <div style={{ flex: 1 }}>
@@ -380,41 +409,25 @@ function StatCard({ label, value, icon: Icon, trend, trendUp, color = tokens.col
   );
 }
 
-function SearchInput({ value, onChange, placeholder = "Buscar..." }) {
+function SearchInput({ value, onChange, placeholder = "Buscar..." }: any) {
   return (
     <div style={{ position: "relative", flex: 1, maxWidth: 360 }}>
       <Search size={16} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: tokens.semantic.textDisabled }} />
-      <input
-        type="text" value={value} onChange={e => onChange(e.target.value)}
-        placeholder={placeholder}
-        style={{
-          ...baseStyles, width: "100%", padding: "8px 12px 8px 36px",
-          border: `1px solid ${tokens.semantic.border}`, borderRadius: tokens.radius.m,
-          fontSize: 14, lineHeight: 1.4, outline: "none", background: "#fff",
-          boxSizing: "border-box",
-        }}
-      />
+      <input type="text" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
+        style={{ ...baseStyles, width: "100%", padding: "8px 12px 8px 36px", border: `1px solid ${tokens.semantic.border}`, borderRadius: tokens.radius.m, fontSize: 14, lineHeight: 1.4, outline: "none", background: "#fff", boxSizing: "border-box" as const }} />
     </div>
   );
 }
 
-function Table({ columns, data }) {
+function Table({ columns, data }: any) {
   const [hoveredRow, setHoveredRow] = useState(-1);
   return (
     <div style={{ overflowX: "auto" }}>
       <table style={{ width: "100%", borderCollapse: "collapse", ...baseStyles, fontSize: 14, lineHeight: 1.4 }}>
         <thead>
           <tr>
-            {columns.map((col, i) => (
-              <th key={i} style={{
-                padding: "12px 16px", textAlign: "left", fontWeight: 700, fontSize: 11,
-                textTransform: "uppercase" as const, letterSpacing: "0.5px",
-                background: tokens.semantic.bgTableHeader, color: tokens.semantic.textTableHeader,
-                borderBottom: `1px solid ${tokens.semantic.borderLight}`,
-                lineHeight: 1.4,
-                ...(i === 0 ? { borderRadius: "8px 0 0 0" } : {}),
-                ...(i === columns.length - 1 ? { borderRadius: "0 8px 0 0" } : {}),
-              }}>
+            {columns.map((col: any, i: number) => (
+              <th key={i} style={{ padding: "12px 16px", textAlign: "left" as const, fontWeight: 700, fontSize: 11, textTransform: "uppercase" as const, letterSpacing: "0.5px", background: tokens.semantic.bgTableHeader, color: tokens.semantic.textTableHeader, borderBottom: `1px solid ${tokens.semantic.borderLight}`, lineHeight: 1.4, ...(i === 0 ? { borderRadius: "8px 0 0 0" } : {}), ...(i === columns.length - 1 ? { borderRadius: "0 8px 0 0" } : {}) }}>
                 {col.header}
               </th>
             ))}
@@ -422,16 +435,11 @@ function Table({ columns, data }) {
         </thead>
         <tbody>
           {data.length === 0 ? (
-            <tr><td colSpan={columns.length} style={{ padding: 40, textAlign: "center", color: tokens.semantic.textDisabled, fontSize: 13 }}>No hay datos disponibles</td></tr>
-          ) : data.map((row, ri) => (
-            <tr key={ri}
-              onMouseEnter={() => setHoveredRow(ri)} onMouseLeave={() => setHoveredRow(-1)}
-              style={{
-                borderBottom: `1px solid ${tokens.semantic.borderLight}`,
-                background: hoveredRow === ri ? tokens.colors.neutral[50] : "transparent",
-                transition: tokens.transition.fast,
-              }}>
-              {columns.map((col, ci) => (
+            <tr><td colSpan={columns.length} style={{ padding: 40, textAlign: "center" as const, color: tokens.semantic.textDisabled, fontSize: 13 }}>No hay datos disponibles</td></tr>
+          ) : data.map((row: any, ri: number) => (
+            <tr key={ri} onMouseEnter={() => setHoveredRow(ri)} onMouseLeave={() => setHoveredRow(-1)}
+              style={{ borderBottom: `1px solid ${tokens.semantic.borderLight}`, background: hoveredRow === ri ? tokens.colors.neutral[50] : "transparent", transition: tokens.transition.fast }}>
+              {columns.map((col: any, ci: number) => (
                 <td key={ci} style={{ padding: "12px 16px", color: tokens.semantic.textDefault, letterSpacing: "0.2px" }}>
                   {col.render ? col.render(row) : row[col.key]}
                 </td>
@@ -444,15 +452,15 @@ function Table({ columns, data }) {
   );
 }
 
-function Tabs({ tabs, active, onChange }) {
+function Tabs({ tabs, active, onChange }: any) {
   return (
     <div style={{ display: "flex", gap: 0, borderBottom: `2px solid ${tokens.semantic.borderLight}`, marginBottom: 24 }}>
-      {tabs.map(t => (
+      {tabs.map((t: any) => (
         <button key={t.key} onClick={() => onChange(t.key)} style={{
           ...baseStyles, padding: "12px 20px", fontSize: 14, fontWeight: active === t.key ? 600 : 400,
           color: active === t.key ? tokens.colors.humand[500] : tokens.semantic.textLighter,
           background: "transparent", border: "none", cursor: "pointer",
-          boxShadow: active === t.key ? `inset 0 -2px 0 ${tokens.colors.humand[500]}` : "none",
+          borderBottom: active === t.key ? `2px solid ${tokens.colors.humand[500]}` : "2px solid transparent",
           marginBottom: -2, transition: "all 0.15s ease", letterSpacing: "0.2px",
         }}>
           {t.label}
@@ -462,25 +470,13 @@ function Tabs({ tabs, active, onChange }) {
   );
 }
 
-function Modal({ title, onClose, children, wide }) {
+function Modal({ title, onClose, children, wide }: any) {
   return (
-    <div style={{
-      position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)",
-      backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)",
-      display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000,
-      animation: "fadeIn 0.2s ease-out",
-    }} onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{
-        background: "#fff", borderRadius: 20, padding: 32,
-        width: wide ? 640 : 480, maxHeight: "85vh", overflowY: "auto",
-        boxShadow: tokens.shadow.dp12,
-        animation: "fadeInUp 0.25s ease-out",
-      }}>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, animation: "fadeIn 0.2s ease-out" }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: 20, padding: 32, width: wide ? 640 : 480, maxHeight: "85vh", overflowY: "auto" as const, boxShadow: tokens.shadow.dp12, animation: "fadeInUp 0.25s ease-out" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
           <h2 style={{ ...baseStyles, fontSize: 18, fontWeight: 600, lineHeight: 1.4, margin: 0 }}>{title}</h2>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: tokens.semantic.textLighter, padding: 4 }}>
-            <X size={20} />
-          </button>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: tokens.semantic.textLighter, padding: 4 }}><X size={20} /></button>
         </div>
         {children}
       </div>
@@ -488,47 +484,30 @@ function Modal({ title, onClose, children, wide }) {
   );
 }
 
-function FormField({ label, children }) {
+function FormField({ label, children }: any) {
   return (
     <div style={{ marginBottom: 16 }}>
-      <label style={{ ...baseStyles, display: "block", fontSize: 12, fontWeight: 600, color: tokens.semantic.textLighter, marginBottom: 6, letterSpacing: "0.2px", lineHeight: 1.4 }}>
-        {label}
-      </label>
+      <label style={{ ...baseStyles, display: "block", fontSize: 12, fontWeight: 600, color: tokens.semantic.textLighter, marginBottom: 6, letterSpacing: "0.2px", lineHeight: 1.4 }}>{label}</label>
       {children}
     </div>
   );
 }
 
-function Input({ ...props }) {
-  return (
-    <input {...props} style={{
-      ...baseStyles, width: "100%", padding: "10px 12px",
-      border: `1px solid ${tokens.semantic.border}`, borderRadius: tokens.radius.s,
-      fontSize: 14, lineHeight: 1.4, outline: "none", boxSizing: "border-box",
-      ...props.style,
-    }} />
-  );
+function Input({ ...props }: any) {
+  return <input {...props} style={{ ...baseStyles, width: "100%", padding: "10px 12px", border: `1px solid ${tokens.semantic.border}`, borderRadius: tokens.radius.s, fontSize: 14, lineHeight: 1.4, outline: "none", boxSizing: "border-box" as const, ...props.style }} />;
 }
 
-function Select({ options, ...props }) {
+function Select({ options, ...props }: any) {
   return (
-    <select {...props} style={{
-      ...baseStyles, width: "100%", padding: "10px 12px",
-      border: `1px solid ${tokens.semantic.border}`, borderRadius: tokens.radius.s,
-      fontSize: 14, lineHeight: 1.4, outline: "none", background: "#fff",
-      boxSizing: "border-box", ...props.style,
-    }}>
-      {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+    <select {...props} style={{ ...baseStyles, width: "100%", padding: "10px 12px", border: `1px solid ${tokens.semantic.border}`, borderRadius: tokens.radius.s, fontSize: 14, lineHeight: 1.4, outline: "none", background: "#fff", boxSizing: "border-box" as const, ...props.style }}>
+      {options.map((o: any) => <option key={o.value} value={o.value}>{o.label}</option>)}
     </select>
   );
 }
 
-function EmptyDrop({ label }) {
+function EmptyDrop({ label }: any) {
   return (
-    <div style={{
-      border: `2px dashed ${tokens.semantic.border}`, borderRadius: tokens.radius.m,
-      padding: 40, textAlign: "center", color: tokens.semantic.textLighter,
-    }}>
+    <div style={{ border: `2px dashed ${tokens.semantic.border}`, borderRadius: tokens.radius.m, padding: 40, textAlign: "center" as const, color: tokens.semantic.textLighter }}>
       <Upload size={32} style={{ marginBottom: 12, color: tokens.colors.humand[400] }} />
       <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, letterSpacing: "0.2px" }}>{label}</div>
       <div style={{ fontSize: 12, letterSpacing: "0.2px" }}>Arrastrá un archivo o hacé click para seleccionar</div>
@@ -536,7 +515,7 @@ function EmptyDrop({ label }) {
   );
 }
 
-function ProgressBar({ value, max, color = tokens.colors.humand[500] }) {
+function ProgressBar({ value, max, color = tokens.colors.humand[500] }: any) {
   const pct = Math.min((value / max) * 100, 100);
   return (
     <div style={{ width: "100%", height: 6, background: tokens.colors.neutral[100], borderRadius: 3 }}>
@@ -545,228 +524,15 @@ function ProgressBar({ value, max, color = tokens.colors.humand[500] }) {
   );
 }
 
-
 /* ════════════════════════════════════════════
-   PAGE: DASHBOARD
+   PAGE: DASHBOARD (General + Usuarios tabs)
    ════════════════════════════════════════════ */
-function DashboardPage({ data }: { data: any }) {
+function DashboardPage({ data, t, onNavigate, onRefresh }: { data: any; t: T; onNavigate: (page: string) => void; onRefresh: () => void }) {
   const { totalCredited, totalRedeemed, totalPending, employees, categoryData, deptUsage, recentActivity, monthlyCredits } = data;
   const rate = totalCredited > 0 ? Math.round((totalRedeemed / totalCredited) * 100) : 0;
-  return (
-    <div>
-      <div style={{ marginBottom: 32 }}>
-        <h1 style={{ ...baseStyles, fontSize: 24, fontWeight: 600, lineHeight: 1.4, margin: 0 }}>Dashboard de Créditos</h1>
-        <p style={{ ...baseStyles, fontSize: 14, color: tokens.semantic.textLighter, marginTop: 4, lineHeight: 1.4 }}>
-          Seguimiento general del uso de créditos en la plataforma
-        </p>
-      </div>
-
-      {/* KPI Cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 32 }}>
-        <StatCard label="Créditos pendientes" value={fmtCurrency(totalPending)} icon={DollarSign} trend="Disponibles para canjear" trendUp color={tokens.colors.purple[500]} />
-        <StatCard label="Créditos totales asignados" value={fmtCurrency(totalCredited)} icon={CreditCard} trend={`${employees.length} colaboradores`} trendUp color={tokens.colors.humand[500]} />
-        <StatCard label="Créditos canjeados" value={fmtCurrency(totalRedeemed)} icon={Gift} trend={`${data.transactions.filter((t:any) => t.type === 'debit').length} canjes`} trendUp color={tokens.colors.green[600]} />
-        <StatCard label="Tasa de canje" value={`${rate}%`} icon={TrendingUp} trend="del total asignado" trendUp={rate > 50} color={tokens.colors.teal[500]} />
-      </div>
-
-      {/* Charts Row */}
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16, marginBottom: 32 }}>
-        <Card>
-          <h3 style={{ ...baseStyles, fontSize: 16, fontWeight: 600, margin: "0 0 20px 0", lineHeight: 1.4 }}>Créditos cargados vs canjeados</h3>
-          <ResponsiveContainer width="100%" height={280}>
-            <AreaChart data={monthlyCredits}>
-              <defs>
-                <linearGradient id="gradLoaded" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={tokens.colors.humand[400]} stopOpacity={0.2} />
-                  <stop offset="95%" stopColor={tokens.colors.humand[400]} stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="gradRedeemed" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={tokens.colors.green[500]} stopOpacity={0.2} />
-                  <stop offset="95%" stopColor={tokens.colors.green[500]} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke={tokens.semantic.borderLight} />
-              <XAxis dataKey="month" tick={{ fontSize: 12, fill: tokens.semantic.textLighter }} />
-              <YAxis tick={{ fontSize: 12, fill: tokens.semantic.textLighter }} />
-              <Tooltip contentStyle={{ borderRadius: 8, border: `1px solid ${tokens.semantic.border}`, fontSize: 13, fontFamily: "Roboto" }} />
-              <Area type="monotone" dataKey="cargados" stroke={tokens.colors.humand[500]} fill="url(#gradLoaded)" strokeWidth={2} name="Cargados" />
-              <Area type="monotone" dataKey="canjeados" stroke={tokens.colors.green[500]} fill="url(#gradRedeemed)" strokeWidth={2} name="Canjeados" />
-              <Legend wrapperStyle={{ fontSize: 12, fontFamily: "Roboto" }} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </Card>
-
-        <Card>
-          <h3 style={{ ...baseStyles, fontSize: 16, fontWeight: 600, margin: "0 0 20px 0", lineHeight: 1.4 }}>Canjes por categoría</h3>
-          <ResponsiveContainer width="100%" height={200}>
-            <RePieChart>
-              <Pie data={categoryData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
-                {categoryData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
-              </Pie>
-              <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12, fontFamily: "Roboto" }} />
-            </RePieChart>
-          </ResponsiveContainer>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {categoryData.map((c, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, letterSpacing: "0.2px" }}>
-                <div style={{ width: 8, height: 8, borderRadius: "50%", background: c.color, flexShrink: 0 }} />
-                <span style={{ flex: 1, color: tokens.semantic.textDefault }}>{c.name}</span>
-                <span style={{ fontWeight: 600 }}>{c.value}%</span>
-              </div>
-            ))}
-          </div>
-        </Card>
-      </div>
-
-      {/* Usage by department + Recent Activity */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-        <Card>
-          <h3 style={{ ...baseStyles, fontSize: 16, fontWeight: 600, margin: "0 0 20px 0", lineHeight: 1.4 }}>Uso por departamento</h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {deptUsage.map((d, i) => (
-              <div key={i}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: 13, letterSpacing: "0.2px" }}>
-                  <span style={{ color: tokens.semantic.textDefault }}>{d.dept}</span>
-                  <span style={{ fontWeight: 600, color: tokens.semantic.textDefault }}>{d.usage}%</span>
-                </div>
-                <ProgressBar value={d.usage} max={100} color={d.usage > 75 ? tokens.colors.green[500] : d.usage > 50 ? tokens.colors.humand[400] : tokens.colors.yellow[500]} />
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        <Card>
-          <h3 style={{ ...baseStyles, fontSize: 16, fontWeight: 600, margin: "0 0 20px 0", lineHeight: 1.4 }}>Actividad reciente</h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-            {recentActivity.map((a, i) => (
-              <div key={i} style={{
-                display: "flex", alignItems: "center", gap: 12, padding: "12px 0",
-                borderBottom: i < recentActivity.length - 1 ? `1px solid ${tokens.semantic.borderLight}` : "none",
-              }}>
-                <div style={{
-                  width: 32, height: 32, borderRadius: "50%",
-                  background: a.type === "credit" ? tokens.colors.green[100] : tokens.colors.humand[100],
-                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-                }}>
-                  {a.type === "credit" ? <ArrowUpRight size={16} color={tokens.colors.green[600]} /> : <Gift size={16} color={tokens.colors.humand[500]} />}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: "0.2px", lineHeight: 1.4 }}>{a.user}</div>
-                  <div style={{ fontSize: 12, color: tokens.semantic.textLighter, letterSpacing: "0.2px", lineHeight: 1.4 }}>{a.action}</div>
-                </div>
-                <div style={{ textAlign: "right", flexShrink: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: a.credits > 0 ? tokens.colors.green[600] : tokens.colors.red[500], letterSpacing: "0.2px" }}>
-                    {a.credits > 0 ? "+" : ""}{a.credits.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                  </div>
-                  <div style={{ fontSize: 11, color: tokens.semantic.textDisabled, letterSpacing: "0.2px" }}>{a.time}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      </div>
-    </div>
-  );
-}
-
-
-/* ════════════════════════════════════════════
-   PAGE: BULK CREDIT LOADING
-   ════════════════════════════════════════════ */
-function BulkLoadPage({ data }: { data: any }) {
-  const { bulkHistory } = data;
-  const [showModal, setShowModal] = useState(false);
-  const totalBulkCredits = bulkHistory.reduce((s: number, b: any) => s + (b.status === "completed" ? Number(b.total) : 0), 0);
-  const totalBulkUsers = bulkHistory.reduce((s: number, b: any) => s + (b.status === "completed" ? Number(b.users) : 0), 0);
-  return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
-        <div>
-          <h1 style={{ ...baseStyles, fontSize: 24, fontWeight: 600, lineHeight: 1.4, margin: 0 }}>Carga masiva de créditos</h1>
-          <p style={{ ...baseStyles, fontSize: 14, color: tokens.semantic.textLighter, marginTop: 4, lineHeight: 1.4 }}>
-            Cargá créditos a múltiples colaboradores mediante archivo CSV
-          </p>
-        </div>
-        <Button icon={Upload} onClick={() => setShowModal(true)}>Nueva carga masiva</Button>
-      </div>
-
-      <Card style={{ marginBottom: 24 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24, marginBottom: 24 }}>
-          <div style={{ textAlign: "center", padding: 16, background: tokens.colors.humand[50], borderRadius: tokens.radius.m }}>
-            <div style={{ fontSize: 24, fontWeight: 600, color: tokens.colors.humand[700], letterSpacing: "0.2px" }}>{bulkHistory.length}</div>
-            <div style={{ fontSize: 12, color: tokens.semantic.textLighter, marginTop: 4, letterSpacing: "0.2px" }}>Cargas realizadas</div>
-          </div>
-          <div style={{ textAlign: "center", padding: 16, background: tokens.colors.green[50], borderRadius: tokens.radius.m }}>
-            <div style={{ fontSize: 24, fontWeight: 600, color: tokens.colors.green[700], letterSpacing: "0.2px" }}>{fmtNum(totalBulkCredits)}</div>
-            <div style={{ fontSize: 12, color: tokens.semantic.textLighter, marginTop: 4, letterSpacing: "0.2px" }}>Créditos cargados total</div>
-          </div>
-          <div style={{ textAlign: "center", padding: 16, background: tokens.colors.yellow[50], borderRadius: tokens.radius.m }}>
-            <div style={{ fontSize: 24, fontWeight: 600, color: tokens.colors.yellow[700], letterSpacing: "0.2px" }}>{fmtNum(totalBulkUsers)}</div>
-            <div style={{ fontSize: 12, color: tokens.semantic.textLighter, marginTop: 4, letterSpacing: "0.2px" }}>Usuarios alcanzados</div>
-          </div>
-        </div>
-      </Card>
-
-      <Card noPadding>
-        <div style={{ padding: "20px 24px 0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h3 style={{ ...baseStyles, fontSize: 16, fontWeight: 600, lineHeight: 1.4, margin: 0 }}>Historial de cargas</h3>
-          <Button variant="ghost" icon={Download} size="sm">Exportar</Button>
-        </div>
-        <div style={{ padding: "16px 24px 24px" }}>
-          <Table
-            columns={[
-              { header: "Fecha", key: "date" },
-              { header: "Archivo", key: "file", render: r => (
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <FileText size={14} color={tokens.colors.humand[400]} />
-                  <span>{r.file}</span>
-                </div>
-              )},
-              { header: "Usuarios", key: "users" },
-              { header: "Créditos/usuario", key: "credits", render: r => r.credits.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") },
-              { header: "Total", key: "total", render: r => <span style={{ fontWeight: 600 }}>{r.total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</span> },
-              { header: "Estado", key: "status", render: r => (
-                <Badge variant={r.status === "completed" ? "success" : "error"}>
-                  {r.status === "completed" ? "Completado" : "Fallido"}
-                </Badge>
-              )},
-              { header: "Creado por", key: "by" },
-            ]}
-            data={bulkHistory}
-          />
-        </div>
-      </Card>
-
-      {showModal && (
-        <Modal title="Nueva carga masiva" onClose={() => setShowModal(false)} wide>
-          <EmptyDrop label="Subí tu archivo CSV" />
-          <div style={{ marginTop: 16, padding: 12, background: tokens.colors.info[50], borderRadius: tokens.radius.s, fontSize: 12, color: tokens.colors.info[700], letterSpacing: "0.2px", lineHeight: 1.4 }}>
-            <strong>Formato esperado:</strong> El CSV debe contener las columnas: email, creditos. Podés descargar una plantilla de ejemplo.
-          </div>
-          <FormField label="Créditos por usuario (si no se especifica en el CSV)">
-            <Input type="number" placeholder="1500" />
-          </FormField>
-          <FormField label="Motivo de la carga">
-            <Input placeholder="Ej: Carga mensual marzo 2026" />
-          </FormField>
-          <FormField label="Fecha de expiración (opcional)">
-            <Input type="date" />
-          </FormField>
-          <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
-            <Button variant="secondary" onClick={() => setShowModal(false)}>Cancelar</Button>
-            <Button icon={Upload} onClick={() => { toast.success("Carga masiva procesada exitosamente"); setShowModal(false); }}>Procesar carga</Button>
-          </div>
-        </Modal>
-      )}
-    </div>
-  );
-}
-
-
-/* ════════════════════════════════════════════
-   PAGE: INDIVIDUAL CREDIT LOADING
-   ════════════════════════════════════════════ */
-function IndividualLoadPage({ data, onRefresh }: { data: any; onRefresh: () => void }) {
+  const totalPurchased = totalCredited + totalPending;
+  const [tab, setTab] = useState("general");
+  const [insightsOpen, setInsightsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<any>(null);
   const [showModal, setShowModal] = useState(false);
@@ -775,7 +541,348 @@ function IndividualLoadPage({ data, onRefresh }: { data: any; onRefresh: () => v
   const [loadReason, setLoadReason] = useState("");
   const [loadNote, setLoadNote] = useState("");
   const [loadingCredits, setLoadingCredits] = useState(false);
-  const [successMsg, setSuccessMsg] = useState("");
+
+  const handleLoadCredits = async () => {
+    if (!selected || !loadAmount || Number(loadAmount) <= 0) return;
+    setLoadingCredits(true);
+    try {
+      const reasons: Record<string, string> = { bonus: "Bonus especial", adjustment: "Ajuste", compensation: "Compensación", other: "Otro" };
+      const desc = (reasons[loadReason] || "Carga manual") + (loadNote ? ` - ${loadNote}` : "");
+      const { data: wallet } = await supabase.from("wallets").select("*").eq("user_id", selected.id).single();
+      if (!wallet) throw new Error("Wallet not found");
+      const newBalance = Math.round((Number(wallet.balance) + Number(loadAmount)) * 100) / 100;
+      await supabase.from("wallets").update({ balance: newBalance, updated_at: new Date().toISOString() }).eq("id", wallet.id);
+      await supabase.from("transactions").insert({ user_id: selected.id, wallet_id: wallet.id, type: "credit", amount: Number(loadAmount), description: desc });
+      toast.success(`Se cargaron ${loadAmount} créditos a ${selected.name}`);
+      setShowModal(false); setSelected(null); setLoadAmount(""); setLoadReason(""); setLoadNote(""); onRefresh();
+    } catch (e) { console.error(e); toast.error("Error al cargar créditos"); }
+    setLoadingCredits(false);
+  };
+
+  const filtered = data.users.filter((u: any) =>
+    u.name.toLowerCase().includes(search.toLowerCase()) ||
+    (u.email || "").toLowerCase().includes(search.toLowerCase()) ||
+    (u.dept || "").toLowerCase().includes(search.toLowerCase())
+  );
+
+  const topBenefits = [...data.benefits].sort((a: any, b: any) => b.redemptions - a.redemptions).slice(0, 5);
+  const topUsers = [...data.users].sort((a: any, b: any) => b.spent - a.spent).slice(0, 5);
+  const weeklyTrend = [{ week: "Sem 1", canjes: 45 }, { week: "Sem 2", canjes: 62 }, { week: "Sem 3", canjes: 58 }, { week: "Sem 4", canjes: 71 }];
+
+  const activeUsers = data.users.filter((u: any) => u.status === "active").length;
+  const avgCredits = employees.length > 0 ? Math.round(totalCredited / employees.length) : 0;
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+        <div>
+          <h1 style={{ ...baseStyles, fontSize: 24, fontWeight: 600, lineHeight: 1.4, margin: 0 }}>{t.dashCreditos}</h1>
+          <p style={{ ...baseStyles, fontSize: 14, color: tokens.semantic.textLighter, marginTop: 4, lineHeight: 1.4 }}>{t.seguimiento}</p>
+        </div>
+        {tab === "general" && (
+          <Button variant="gradient" icon={ShoppingCart} onClick={() => onNavigate("buy")} size="lg">
+            {t.comprarCreditos}
+          </Button>
+        )}
+      </div>
+
+      <Tabs tabs={[{ key: "general", label: t.general }, { key: "usuarios", label: t.usuarios }]} active={tab} onChange={setTab} />
+
+      {/* ── TAB GENERAL ── */}
+      {tab === "general" && (
+        <div>
+          {/* KPI Cards */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 32 }}>
+            <StatCard label={t.creditosAdquiridos} value={fmtCurrency(totalPurchased)} icon={Wallet} trend={t.creditosDisponibles} trendUp color={tokens.colors.purple[500]} />
+            <StatCard label={t.creditosAsignados} value={fmtCurrency(totalCredited)} icon={CreditCard} trend={`${employees.length} ${t.colaboradores.toLowerCase()}`} trendUp color={tokens.colors.humand[500]} />
+            <StatCard label={t.creditosCanjeados} value={fmtCurrency(totalRedeemed)} icon={Gift} trend={`${data.transactions.filter((tx: any) => tx.type === 'debit').length} ${t.canjes}`} trendUp color={tokens.colors.green[600]} />
+            <StatCard label={t.tasaCanje} value={`${rate}%`} icon={TrendingUp} trend={t.delTotalAsignado} trendUp={rate > 50} color={tokens.colors.teal[500]} />
+          </div>
+
+          {/* Expiring soon alert */}
+          <Card style={{ marginBottom: 32, background: `linear-gradient(135deg, ${tokens.colors.yellow[50]}, ${tokens.colors.yellow[100]})`, borderLeft: `4px solid ${tokens.colors.yellow[500]}` }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              <div style={{ width: 44, height: 44, borderRadius: "50%", background: tokens.colors.yellow[200], display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Bell size={22} color={tokens.colors.yellow[700]} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600, fontSize: 14, color: tokens.colors.yellow[700], letterSpacing: "0.2px" }}>{t.proximosVencer}</div>
+                <div style={{ fontSize: 13, color: tokens.colors.yellow[700], marginTop: 2, letterSpacing: "0.2px" }}>3 {t.vencenEn7Dias}</div>
+              </div>
+              <Button variant="secondary" size="sm" icon={Bell} onClick={() => toast.success("Notificaciones enviadas")}>{t.notificar}</Button>
+            </div>
+          </Card>
+
+          {/* Charts Row */}
+          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16, marginBottom: 32 }}>
+            <Card>
+              <h3 style={{ ...baseStyles, fontSize: 16, fontWeight: 600, margin: "0 0 20px 0", lineHeight: 1.4 }}>{t.creditosVsMes}</h3>
+              <ResponsiveContainer width="100%" height={280}>
+                <AreaChart data={monthlyCredits}>
+                  <defs>
+                    <linearGradient id="gradLoaded" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={tokens.colors.humand[400]} stopOpacity={0.2} />
+                      <stop offset="95%" stopColor={tokens.colors.humand[400]} stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="gradRedeemed" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={tokens.colors.green[500]} stopOpacity={0.2} />
+                      <stop offset="95%" stopColor={tokens.colors.green[500]} stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke={tokens.semantic.borderLight} />
+                  <XAxis dataKey="month" tick={{ fontSize: 12, fill: tokens.semantic.textLighter }} />
+                  <YAxis tick={{ fontSize: 12, fill: tokens.semantic.textLighter }} />
+                  <Tooltip contentStyle={{ borderRadius: 8, border: `1px solid ${tokens.semantic.border}`, fontSize: 13, fontFamily: "Roboto" }} />
+                  <Area type="monotone" dataKey="cargados" stroke={tokens.colors.humand[500]} fill="url(#gradLoaded)" strokeWidth={2} name={t.cargados} />
+                  <Area type="monotone" dataKey="canjeados" stroke={tokens.colors.green[500]} fill="url(#gradRedeemed)" strokeWidth={2} name={t.canjeados} />
+                  <Legend wrapperStyle={{ fontSize: 12, fontFamily: "Roboto" }} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </Card>
+
+            <Card>
+              <h3 style={{ ...baseStyles, fontSize: 16, fontWeight: 600, margin: "0 0 20px 0", lineHeight: 1.4 }}>{t.canjePorCategoria}</h3>
+              <ResponsiveContainer width="100%" height={200}>
+                <RePieChart>
+                  <Pie data={categoryData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
+                    {categoryData.map((entry: any, i: number) => <Cell key={i} fill={entry.color} />)}
+                  </Pie>
+                  <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12, fontFamily: "Roboto" }} />
+                </RePieChart>
+              </ResponsiveContainer>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {categoryData.map((c: any, i: number) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, letterSpacing: "0.2px" }}>
+                    <div style={{ width: 8, height: 8, borderRadius: "50%", background: c.color, flexShrink: 0 }} />
+                    <span style={{ flex: 1, color: tokens.semantic.textDefault }}>{c.name}</span>
+                    <span style={{ fontWeight: 600 }}>{c.value}%</span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+
+          {/* Usage by department + Recent Activity */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 32 }}>
+            <Card>
+              <h3 style={{ ...baseStyles, fontSize: 16, fontWeight: 600, margin: "0 0 20px 0", lineHeight: 1.4 }}>{t.usoPorDepto}</h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                {deptUsage.map((d: any, i: number) => (
+                  <div key={i}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: 13, letterSpacing: "0.2px" }}>
+                      <span style={{ color: tokens.semantic.textDefault }}>{d.dept}</span>
+                      <span style={{ fontWeight: 600, color: tokens.semantic.textDefault }}>{d.usage}%</span>
+                    </div>
+                    <ProgressBar value={d.usage} max={100} color={d.usage > 75 ? tokens.colors.green[500] : d.usage > 50 ? tokens.colors.humand[400] : tokens.colors.yellow[500]} />
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            <Card>
+              <h3 style={{ ...baseStyles, fontSize: 16, fontWeight: 600, margin: "0 0 20px 0", lineHeight: 1.4 }}>{t.actividadReciente}</h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                {recentActivity.map((a: any, i: number) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 0", borderBottom: i < recentActivity.length - 1 ? `1px solid ${tokens.semantic.borderLight}` : "none" }}>
+                    <div style={{ width: 32, height: 32, borderRadius: "50%", background: a.type === "credit" ? tokens.colors.green[100] : tokens.colors.humand[100], display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      {a.type === "credit" ? <ArrowUpRight size={16} color={tokens.colors.green[600]} /> : <Gift size={16} color={tokens.colors.humand[500]} />}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: "0.2px", lineHeight: 1.4 }}>{a.user}</div>
+                      <div style={{ fontSize: 12, color: tokens.semantic.textLighter, letterSpacing: "0.2px", lineHeight: 1.4 }}>{a.action}</div>
+                    </div>
+                    <div style={{ textAlign: "right" as const, flexShrink: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: a.credits > 0 ? tokens.colors.green[600] : tokens.colors.red[500], letterSpacing: "0.2px" }}>
+                        {a.credits > 0 ? "+" : ""}{fmtNum(a.credits)}
+                      </div>
+                      <div style={{ fontSize: 11, color: tokens.semantic.textDisabled, letterSpacing: "0.2px" }}>{a.time}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+
+          {/* Insights collapsible */}
+          <Card style={{ marginBottom: 0 }}>
+            <button onClick={() => setInsightsOpen(!insightsOpen)} style={{ ...baseStyles, display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer", padding: 0, width: "100%", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Sparkles size={18} color={tokens.colors.purple[500]} />
+                <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0, lineHeight: 1.4 }}>{t.insights}</h3>
+              </div>
+              <ChevronDown size={18} style={{ transition: "transform 0.2s ease", transform: insightsOpen ? "rotate(0deg)" : "rotate(-90deg)", color: tokens.semantic.textLighter }} />
+            </button>
+            {insightsOpen && (
+              <div style={{ marginTop: 24 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 16 }}>
+                  <div>
+                    <h4 style={{ ...baseStyles, fontSize: 14, fontWeight: 600, margin: "0 0 12px 0" }}>{t.tendenciaSemanal}</h4>
+                    <ResponsiveContainer width="100%" height={180}>
+                      <BarChart data={weeklyTrend}>
+                        <CartesianGrid strokeDasharray="3 3" stroke={tokens.semantic.borderLight} />
+                        <XAxis dataKey="week" tick={{ fontSize: 11, fill: tokens.semantic.textLighter }} />
+                        <YAxis tick={{ fontSize: 11, fill: tokens.semantic.textLighter }} />
+                        <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12, fontFamily: "Roboto" }} />
+                        <Bar dataKey="canjes" fill={tokens.colors.humand[400]} radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div>
+                    <h4 style={{ ...baseStyles, fontSize: 14, fontWeight: 600, margin: "0 0 12px 0" }}>{t.topBeneficios}</h4>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {topBenefits.map((b: any, i: number) => (
+                        <div key={b.id} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12 }}>
+                          <span style={{ fontWeight: 600, color: tokens.semantic.textDisabled, width: 16 }}>#{i + 1}</span>
+                          <span style={{ fontSize: 16 }}>{b.image}</span>
+                          <span style={{ flex: 1, fontWeight: 500 }}>{b.name}</span>
+                          <span style={{ fontWeight: 600 }}>{b.redemptions}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <h4 style={{ ...baseStyles, fontSize: 14, fontWeight: 600, margin: "0 0 12px 0" }}>{t.topUsuarios}</h4>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {topUsers.map((u: any, i: number) => (
+                        <div key={u.id} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12 }}>
+                          <span style={{ fontWeight: 600, color: tokens.semantic.textDisabled, width: 16 }}>#{i + 1}</span>
+                          <Avatar initials={u.avatar} size={24} />
+                          <span style={{ flex: 1, fontWeight: 500 }}>{u.name}</span>
+                          <span style={{ fontWeight: 600 }}>{fmtNum(u.spent)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </Card>
+        </div>
+      )}
+
+      {/* ── TAB USUARIOS ── */}
+      {tab === "usuarios" && (
+        <div>
+          {/* Quick stats */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 24 }}>
+            <Card hoverable style={{ textAlign: "center" as const }}>
+              <div style={{ fontSize: 28, fontWeight: 700, color: tokens.colors.humand[600] }}>{data.users.length}</div>
+              <div style={{ fontSize: 12, color: tokens.semantic.textLighter, marginTop: 4 }}>{t.totalUsuarios}</div>
+            </Card>
+            <Card hoverable style={{ textAlign: "center" as const }}>
+              <div style={{ fontSize: 28, fontWeight: 700, color: tokens.colors.green[600] }}>{activeUsers}</div>
+              <div style={{ fontSize: 12, color: tokens.semantic.textLighter, marginTop: 4 }}>{t.usuariosActivos}</div>
+            </Card>
+            <Card hoverable style={{ textAlign: "center" as const }}>
+              <div style={{ fontSize: 28, fontWeight: 700, color: tokens.colors.purple[500] }}>{fmtNum(avgCredits)}</div>
+              <div style={{ fontSize: 12, color: tokens.semantic.textLighter, marginTop: 4 }}>{t.promCreditos}</div>
+            </Card>
+          </div>
+
+          <Card noPadding>
+            <div style={{ padding: "20px 24px", display: "flex", gap: 12, alignItems: "center" }}>
+              <SearchInput value={search} onChange={setSearch} placeholder={t.buscar} />
+              <Button variant="secondary" icon={Filter} size="md">Filtros</Button>
+              <Button icon={Upload} onClick={() => setShowBulkModal(true)}>{t.cargaMasiva}</Button>
+            </div>
+            <div style={{ padding: "0 24px 24px" }}>
+              <Table
+                columns={[
+                  { header: t.colaboradores, key: "name", render: (r: any) => (
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <Avatar initials={r.avatar} size={32} />
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: 13, letterSpacing: "0.2px" }}>{r.name}</div>
+                        <div style={{ fontSize: 12, color: tokens.semantic.textLighter, letterSpacing: "0.2px" }}>{r.email}</div>
+                      </div>
+                    </div>
+                  )},
+                  { header: t.departamento, key: "dept", render: (r: any) => <Badge variant="neutral">{r.dept}</Badge> },
+                  { header: t.cargados, key: "credits", render: (r: any) => fmtNum(r.credits) },
+                  { header: t.canjeados, key: "spent", render: (r: any) => fmtNum(r.spent) },
+                  { header: t.disponible, key: "available", render: (r: any) => {
+                    const avail = r.credits - r.spent;
+                    return <span style={{ fontWeight: 600, color: avail > 0 ? tokens.colors.green[600] : tokens.colors.red[500] }}>{fmtNum(avail)}</span>;
+                  }},
+                  { header: t.estado, key: "status", render: (r: any) => (
+                    <Badge variant={r.status === "active" ? "success" : "error"}>{r.status === "active" ? t.activo : t.inactivo}</Badge>
+                  )},
+                  { header: t.acciones, key: "actions", render: (r: any) => (
+                    <Button variant="secondary" size="sm" icon={Plus} onClick={() => { setSelected(r); setShowModal(true); }}>{t.cargar}</Button>
+                  )},
+                ]}
+                data={filtered}
+              />
+            </div>
+          </Card>
+
+          {showModal && selected && (
+            <Modal title={`${t.cargar} créditos a ${selected.name}`} onClose={() => { setShowModal(false); setSelected(null); }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, padding: 16, background: tokens.colors.neutral[50], borderRadius: tokens.radius.m, marginBottom: 20 }}>
+                <Avatar initials={selected.avatar} size={40} />
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: 14, letterSpacing: "0.2px" }}>{selected.name}</div>
+                  <div style={{ fontSize: 12, color: tokens.semantic.textLighter, letterSpacing: "0.2px" }}>{selected.email} · {selected.dept}</div>
+                  <div style={{ fontSize: 12, color: tokens.colors.green[600], marginTop: 2, letterSpacing: "0.2px" }}>
+                    {t.disponible}: {fmtNum(selected.credits - selected.spent)} {t.creditosLabel}
+                  </div>
+                </div>
+              </div>
+              <FormField label={t.monto}>
+                <Input type="number" placeholder="Ej: 5" value={loadAmount} onChange={(e: any) => setLoadAmount(e.target.value)} />
+              </FormField>
+              <FormField label={t.motivo}>
+                <Select value={loadReason} onChange={(e: any) => setLoadReason(e.target.value)} options={[
+                  { value: "", label: "Seleccionar motivo..." },
+                  { value: "bonus", label: "Bonus especial" },
+                  { value: "adjustment", label: "Ajuste" },
+                  { value: "compensation", label: "Compensación" },
+                  { value: "other", label: "Otro" },
+                ]} />
+              </FormField>
+              <FormField label={t.nota}>
+                <Input placeholder="Comentario interno sobre la carga" value={loadNote} onChange={(e: any) => setLoadNote(e.target.value)} />
+              </FormField>
+              <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
+                <Button variant="secondary" onClick={() => { setShowModal(false); setSelected(null); }}>{t.cancelar}</Button>
+                <Button icon={CreditCard} onClick={handleLoadCredits}>{loadingCredits ? "Cargando..." : t.cargar + " créditos"}</Button>
+              </div>
+            </Modal>
+          )}
+
+          {showBulkModal && (
+            <Modal title={t.cargaMasiva} onClose={() => setShowBulkModal(false)} wide>
+              <EmptyDrop label="Subí tu archivo CSV" />
+              <div style={{ marginTop: 16, padding: 12, background: tokens.colors.info[50], borderRadius: tokens.radius.s, fontSize: 12, color: tokens.colors.info[700], letterSpacing: "0.2px", lineHeight: 1.4 }}>
+                <strong>Formato esperado:</strong> El CSV debe contener las columnas: email, creditos.
+              </div>
+              <FormField label={t.monto}><Input type="number" placeholder="1500" /></FormField>
+              <FormField label={t.motivo}><Input placeholder="Ej: Carga mensual marzo 2026" /></FormField>
+              <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
+                <Button variant="secondary" onClick={() => setShowBulkModal(false)}>{t.cancelar}</Button>
+                <Button icon={Upload} onClick={() => { toast.success("Carga masiva procesada exitosamente"); setShowBulkModal(false); }}>Procesar carga</Button>
+              </div>
+            </Modal>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+/* ════════════════════════════════════════════
+   PAGE: COLABORADORES (standalone)
+   ════════════════════════════════════════════ */
+function ColaboradoresPage({ data, t, onRefresh }: { data: any; t: T; onRefresh: () => void }) {
+  const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<any>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [showBulkModal, setShowBulkModal] = useState(false);
+  const [loadAmount, setLoadAmount] = useState("");
+  const [loadReason, setLoadReason] = useState("");
+  const [loadNote, setLoadNote] = useState("");
+  const [loadingCredits, setLoadingCredits] = useState(false);
 
   const handleLoadCredits = async () => {
     if (!selected || !loadAmount || Number(loadAmount) <= 0) return;
@@ -804,23 +911,21 @@ function IndividualLoadPage({ data, onRefresh }: { data: any; onRefresh: () => v
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
         <div>
-          <h1 style={{ ...baseStyles, fontSize: 24, fontWeight: 600, lineHeight: 1.4, margin: 0 }}>Colaboradores</h1>
-          <p style={{ ...baseStyles, fontSize: 14, color: tokens.semantic.textLighter, marginTop: 4, lineHeight: 1.4 }}>
-            Gestioná créditos de tus colaboradores de forma individual o masiva
-          </p>
+          <h1 style={{ ...baseStyles, fontSize: 24, fontWeight: 600, lineHeight: 1.4, margin: 0 }}>{t.colaboradores}</h1>
+          <p style={{ ...baseStyles, fontSize: 14, color: tokens.semantic.textLighter, marginTop: 4, lineHeight: 1.4 }}>{t.gestionaCreditos}</p>
         </div>
-        <Button icon={Upload} onClick={() => setShowBulkModal(true)}>Carga masiva</Button>
+        <Button icon={Upload} onClick={() => setShowBulkModal(true)}>{t.cargaMasiva}</Button>
       </div>
 
       <Card noPadding>
         <div style={{ padding: "20px 24px", display: "flex", gap: 12, alignItems: "center" }}>
-          <SearchInput value={search} onChange={setSearch} placeholder="Buscar por nombre, email o departamento..." />
+          <SearchInput value={search} onChange={setSearch} placeholder={t.buscar} />
           <Button variant="secondary" icon={Filter} size="md">Filtros</Button>
         </div>
         <div style={{ padding: "0 24px 24px" }}>
           <Table
             columns={[
-              { header: "Colaborador", key: "name", render: r => (
+              { header: t.colaboradores, key: "name", render: (r: any) => (
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <Avatar initials={r.avatar} size={32} />
                   <div>
@@ -829,22 +934,18 @@ function IndividualLoadPage({ data, onRefresh }: { data: any; onRefresh: () => v
                   </div>
                 </div>
               )},
-              { header: "Departamento", key: "dept", render: r => <Badge variant="neutral">{r.dept}</Badge> },
-              { header: "Créditos cargados", key: "credits", render: r => r.credits.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") },
-              { header: "Créditos usados", key: "spent", render: r => r.spent.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") },
-              { header: "Disponible", key: "available", render: r => {
+              { header: t.departamento, key: "dept", render: (r: any) => <Badge variant="neutral">{r.dept}</Badge> },
+              { header: t.cargados, key: "credits", render: (r: any) => fmtNum(r.credits) },
+              { header: t.canjeados, key: "spent", render: (r: any) => fmtNum(r.spent) },
+              { header: t.disponible, key: "available", render: (r: any) => {
                 const avail = r.credits - r.spent;
-                return <span style={{ fontWeight: 600, color: avail > 0 ? tokens.colors.green[600] : tokens.colors.red[500] }}>{avail.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</span>;
+                return <span style={{ fontWeight: 600, color: avail > 0 ? tokens.colors.green[600] : tokens.colors.red[500] }}>{fmtNum(avail)}</span>;
               }},
-              { header: "Estado", key: "status", render: r => (
-                <Badge variant={r.status === "active" ? "success" : "error"}>
-                  {r.status === "active" ? "Activo" : "Inactivo"}
-                </Badge>
+              { header: t.estado, key: "status", render: (r: any) => (
+                <Badge variant={r.status === "active" ? "success" : "error"}>{r.status === "active" ? t.activo : t.inactivo}</Badge>
               )},
-              { header: "Acciones", key: "actions", render: r => (
-                <Button variant="secondary" size="sm" icon={Plus} onClick={() => { setSelected(r); setShowModal(true); }}>
-                  Cargar
-                </Button>
+              { header: t.acciones, key: "actions", render: (r: any) => (
+                <Button variant="secondary" size="sm" icon={Plus} onClick={() => { setSelected(r); setShowModal(true); }}>{t.cargar}</Button>
               )},
             ]}
             data={filtered}
@@ -853,403 +954,36 @@ function IndividualLoadPage({ data, onRefresh }: { data: any; onRefresh: () => v
       </Card>
 
       {showModal && selected && (
-        <Modal title={`Cargar créditos a ${selected.name}`} onClose={() => { setShowModal(false); setSelected(null); }}>
+        <Modal title={`${t.cargar} créditos a ${selected.name}`} onClose={() => { setShowModal(false); setSelected(null); }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, padding: 16, background: tokens.colors.neutral[50], borderRadius: tokens.radius.m, marginBottom: 20 }}>
             <Avatar initials={selected.avatar} size={40} />
             <div>
-              <div style={{ fontWeight: 600, fontSize: 14, letterSpacing: "0.2px" }}>{selected.name}</div>
-              <div style={{ fontSize: 12, color: tokens.semantic.textLighter, letterSpacing: "0.2px" }}>{selected.email} · {selected.dept}</div>
-              <div style={{ fontSize: 12, color: tokens.colors.green[600], marginTop: 2, letterSpacing: "0.2px" }}>
-                Disponible: {(selected.credits - selected.spent).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} créditos
-              </div>
+              <div style={{ fontWeight: 600, fontSize: 14 }}>{selected.name}</div>
+              <div style={{ fontSize: 12, color: tokens.semantic.textLighter }}>{selected.email} · {selected.dept}</div>
+              <div style={{ fontSize: 12, color: tokens.colors.green[600], marginTop: 2 }}>{t.disponible}: {fmtNum(selected.credits - selected.spent)} {t.creditosLabel}</div>
             </div>
           </div>
-          {successMsg ? (
-            <div style={{ padding: 20, textAlign: "center", color: tokens.colors.green[700], background: tokens.colors.green[50], borderRadius: tokens.radius.m }}>
-              <CheckCircle size={32} style={{ marginBottom: 8 }} />
-              <div style={{ fontWeight: 600, fontSize: 14 }}>{successMsg}</div>
-            </div>
-          ) : (
-            <>
-              <FormField label="Cantidad de créditos">
-                <Input type="number" placeholder="Ej: 5" value={loadAmount} onChange={(e: any) => setLoadAmount(e.target.value)} />
-              </FormField>
-              <FormField label="Motivo">
-                <Select value={loadReason} onChange={(e: any) => setLoadReason(e.target.value)} options={[
-                  { value: "", label: "Seleccionar motivo..." },
-                  { value: "bonus", label: "Bonus especial" },
-                  { value: "adjustment", label: "Ajuste" },
-                  { value: "compensation", label: "Compensación" },
-                  { value: "other", label: "Otro" },
-                ]} />
-              </FormField>
-              <FormField label="Nota (opcional)">
-                <Input placeholder="Comentario interno sobre la carga" value={loadNote} onChange={(e: any) => setLoadNote(e.target.value)} />
-              </FormField>
-              <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
-                <Button variant="secondary" onClick={() => { setShowModal(false); setSelected(null); }}>Cancelar</Button>
-                <Button icon={CreditCard} onClick={handleLoadCredits}>{loadingCredits ? "Cargando..." : "Cargar créditos"}</Button>
-              </div>
-            </>
-          )}
+          <FormField label={t.monto}><Input type="number" placeholder="Ej: 5" value={loadAmount} onChange={(e: any) => setLoadAmount(e.target.value)} /></FormField>
+          <FormField label={t.motivo}><Select value={loadReason} onChange={(e: any) => setLoadReason(e.target.value)} options={[{ value: "", label: "Seleccionar motivo..." }, { value: "bonus", label: "Bonus especial" }, { value: "adjustment", label: "Ajuste" }, { value: "compensation", label: "Compensación" }, { value: "other", label: "Otro" }]} /></FormField>
+          <FormField label={t.nota}><Input placeholder="Comentario interno" value={loadNote} onChange={(e: any) => setLoadNote(e.target.value)} /></FormField>
+          <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
+            <Button variant="secondary" onClick={() => { setShowModal(false); setSelected(null); }}>{t.cancelar}</Button>
+            <Button icon={CreditCard} onClick={handleLoadCredits}>{loadingCredits ? "Cargando..." : t.cargar + " créditos"}</Button>
+          </div>
         </Modal>
       )}
 
-      {/* Bulk load modal */}
       {showBulkModal && (
-        <Modal title="Carga masiva de créditos" onClose={() => setShowBulkModal(false)} wide>
+        <Modal title={t.cargaMasiva} onClose={() => setShowBulkModal(false)} wide>
           <EmptyDrop label="Subí tu archivo CSV" />
-          <div style={{ marginTop: 16, padding: 12, background: tokens.colors.info[50], borderRadius: tokens.radius.s, fontSize: 12, color: tokens.colors.info[700], letterSpacing: "0.2px", lineHeight: 1.4 }}>
-            <strong>Formato esperado:</strong> El CSV debe contener las columnas: email, creditos. Podés descargar una plantilla de ejemplo.
+          <div style={{ marginTop: 16, padding: 12, background: tokens.colors.info[50], borderRadius: tokens.radius.s, fontSize: 12, color: tokens.colors.info[700], lineHeight: 1.4 }}>
+            <strong>Formato esperado:</strong> El CSV debe contener las columnas: email, creditos.
           </div>
-          <FormField label="Créditos por usuario (si no se especifica en el CSV)">
-            <Input type="number" placeholder="1500" />
-          </FormField>
-          <FormField label="Motivo de la carga">
-            <Input placeholder="Ej: Carga mensual marzo 2026" />
-          </FormField>
-          <FormField label="Fecha de expiración (opcional)">
-            <Input type="date" />
-          </FormField>
+          <FormField label={t.monto}><Input type="number" placeholder="1500" /></FormField>
+          <FormField label={t.motivo}><Input placeholder="Ej: Carga mensual" /></FormField>
           <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
-            <Button variant="secondary" onClick={() => setShowBulkModal(false)}>Cancelar</Button>
-            <Button icon={Upload}>Procesar carga</Button>
-          </div>
-        </Modal>
-      )}
-    </div>
-  );
-}
-
-
-/* ════════════════════════════════════════════
-   PAGE: AUTOMATIC RULES
-   ════════════════════════════════════════════ */
-function RuleTypeIcon({ type, size = 28 }) {
-  const color = tokens.colors.humand[600];
-  const icons = {
-    repeat: <Repeat size={size} color={color} />,
-    cake: <Gift size={size} color={color} />,
-    award: <PartyPopper size={size} color={color} />,
-    userplus: <UserPlus size={size} color={color} />,
-  };
-  return icons[type] || <Zap size={size} color={color} />;
-}
-
-function AutoRulesPage({ data }: { data: any }) {
-  const { autoRules, ruleTypes } = data;
-  const [showModal, setShowModal] = useState(false);
-  const [tab, setTab] = useState("types");
-  const [selectedType, setSelectedType] = useState<any>(null);
-  const [menuOpen, setMenuOpen] = useState<any>(null);
-
-  const rulesForType = selectedType
-    ? autoRules.filter((r: any) => {
-        if (selectedType.id === 1) return r.type === "periodic";
-        if (selectedType.id === 2) return r.trigger === "Cumpleaños";
-        if (selectedType.id === 3) return r.trigger === "Aniversario";
-        if (selectedType.id === 4) return r.trigger === "Alta de usuario";
-        return false;
-      })
-    : [];
-
-  return (
-    <div>
-      {/* Tabs row */}
-      <Tabs
-        tabs={[
-          { key: "types", label: "Tipos de reglas" },
-          { key: "rules", label: "Reglas" },
-          { key: "history", label: "Historial" },
-        ]}
-        active={tab}
-        onChange={t => { setTab(t); setSelectedType(null); }}
-      />
-
-      {/* ── TAB: Tipos de reglas ── */}
-      {tab === "types" && !selectedType && (
-        <div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-            <h1 style={{ ...baseStyles, fontSize: 24, fontWeight: 600, lineHeight: 1.4, margin: 0 }}>Tipos de reglas</h1>
-            <Button icon={Plus} onClick={() => setShowModal(true)}>Nuevo tipo de regla</Button>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
-            {ruleTypes.map(rt => (
-              <div key={rt.id} onClick={() => setSelectedType(rt)} style={{
-                background: "#fff", borderRadius: tokens.radius.l,
-                border: `1px solid ${tokens.semantic.border}`,
-                padding: "20px 20px 16px", cursor: "pointer",
-                transition: "box-shadow 0.15s ease, border-color 0.15s ease",
-                position: "relative",
-              }}
-              onMouseEnter={e => { e.currentTarget.style.boxShadow = tokens.shadow.dp4; e.currentTarget.style.border = `1px solid ${tokens.colors.humand[300]}`; }}
-              onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.border = `1px solid ${tokens.semantic.border}`; }}
-              >
-                {/* Header: icon + menu */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
-                  <div style={{
-                    width: 44, height: 44, borderRadius: tokens.radius.m,
-                    background: tokens.colors.humand[50],
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}>
-                    <RuleTypeIcon type={rt.icon} size={24} />
-                  </div>
-                  <button
-                    onClick={e => { e.stopPropagation(); setMenuOpen(menuOpen === rt.id ? null : rt.id); }}
-                    style={{
-                      background: "none", border: "none", cursor: "pointer",
-                      color: tokens.semantic.textDisabled, padding: 4, borderRadius: tokens.radius.s,
-                    }}
-                  >
-                    <MoreVertical size={18} />
-                  </button>
-
-                  {/* Dropdown menu */}
-                  {menuOpen === rt.id && (
-                    <div style={{
-                      position: "absolute", top: 52, right: 16, background: "#fff",
-                      borderRadius: tokens.radius.m, boxShadow: tokens.shadow.dp8,
-                      border: `1px solid ${tokens.semantic.borderLight}`,
-                      zIndex: 20, minWidth: 160, overflow: "hidden",
-                    }}>
-                      {[
-                        { label: "Editar", icon: Edit3 },
-                        { label: "Duplicar", icon: Layers },
-                        { label: "Pausar todas", icon: X },
-                        { label: "Eliminar", icon: Trash2, danger: true },
-                      ].map((action, i) => (
-                        <button key={i} onClick={e => { e.stopPropagation(); setMenuOpen(null); }} style={{
-                          width: "100%", display: "flex", alignItems: "center", gap: 10,
-                          padding: "10px 14px", background: "none", border: "none",
-                          cursor: "pointer", fontSize: 13, fontFamily: "Roboto",
-                          color: action.danger ? tokens.colors.red[600] : tokens.semantic.textDefault,
-                          letterSpacing: "0.2px",
-                          borderBottom: i < 3 ? `1px solid ${tokens.semantic.borderLight}` : "none",
-                        }}>
-                          <action.icon size={15} />
-                          {action.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Title */}
-                <div style={{ fontWeight: 600, fontSize: 15, letterSpacing: "0.2px", lineHeight: 1.4, marginBottom: 6, color: tokens.semantic.textDefault }}>
-                  {rt.name}
-                </div>
-
-                {/* Subtitle */}
-                <div style={{ fontSize: 13, color: tokens.semantic.textLighter, letterSpacing: "0.2px", lineHeight: 1.4 }}>
-                  {rt.rulesCount} {rt.rulesCount === 1 ? "regla" : "reglas"}, {rt.usersCount} personas
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ── TAB: Tipos de reglas → Detalle de un tipo ── */}
-      {tab === "types" && selectedType && (
-        <div>
-          <button onClick={() => setSelectedType(null)} style={{
-            ...baseStyles, display: "flex", alignItems: "center", gap: 6,
-            background: "none", border: "none", cursor: "pointer",
-            color: tokens.colors.humand[500], fontSize: 13, fontWeight: 600,
-            padding: 0, marginBottom: 20, letterSpacing: "0.2px",
-          }}>
-            <ChevronLeft size={16} /> Volver a tipos de reglas
-          </button>
-
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-              <div style={{
-                width: 48, height: 48, borderRadius: tokens.radius.m,
-                background: tokens.colors.humand[50],
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <RuleTypeIcon type={selectedType.icon} size={26} />
-              </div>
-              <div>
-                <h1 style={{ ...baseStyles, fontSize: 22, fontWeight: 600, lineHeight: 1.4, margin: 0 }}>{selectedType.name}</h1>
-                <p style={{ ...baseStyles, fontSize: 13, color: tokens.semantic.textLighter, marginTop: 2, lineHeight: 1.4 }}>
-                  {selectedType.description}
-                </p>
-              </div>
-            </div>
-            <Button icon={Plus} onClick={() => setShowModal(true)}>Nueva regla</Button>
-          </div>
-
-          <Card noPadding>
-            <div style={{ padding: "16px 24px" }}>
-              {rulesForType.length === 0 ? (
-                <div style={{ textAlign: "center", padding: 40, color: tokens.semantic.textLighter }}>
-                  <Zap size={32} style={{ marginBottom: 8, color: tokens.semantic.textDisabled }} />
-                  <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, letterSpacing: "0.2px" }}>No hay reglas configuradas</div>
-                  <div style={{ fontSize: 13, letterSpacing: "0.2px" }}>Creá una nueva regla para este tipo</div>
-                </div>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  {rulesForType.map(rule => (
-                    <div key={rule.id} style={{
-                      display: "flex", alignItems: "center", gap: 16, padding: 16,
-                      border: `1px solid ${tokens.semantic.borderLight}`, borderRadius: tokens.radius.m,
-                      background: rule.status === "paused" ? tokens.colors.neutral[50] : "#fff",
-                    }}>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <span style={{ fontWeight: 600, fontSize: 14, letterSpacing: "0.2px" }}>{rule.name}</span>
-                          <Badge variant={rule.status === "active" ? "success" : "warning"}>
-                            {rule.status === "active" ? "Activa" : "Pausada"}
-                          </Badge>
-                        </div>
-                        <div style={{ fontSize: 12, color: tokens.semantic.textLighter, marginTop: 4, letterSpacing: "0.2px", lineHeight: 1.4 }}>
-                          Trigger: {rule.trigger} · {rule.amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} créditos · {rule.target}
-                        </div>
-                        <div style={{ fontSize: 11, color: tokens.semantic.textDisabled, marginTop: 2, letterSpacing: "0.2px" }}>
-                          Última ejecución: {rule.lastRun}
-                        </div>
-                      </div>
-                      <div style={{ display: "flex", gap: 8 }}>
-                        <Button variant="ghost" size="sm" icon={Edit3}>Editar</Button>
-                        <Button variant="ghost" size="sm" icon={rule.status === "active" ? X : Check}>
-                          {rule.status === "active" ? "Pausar" : "Activar"}
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </Card>
-        </div>
-      )}
-
-      {/* ── TAB: Reglas (flat list) ── */}
-      {tab === "rules" && (
-        <div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-            <h1 style={{ ...baseStyles, fontSize: 24, fontWeight: 600, lineHeight: 1.4, margin: 0 }}>Reglas</h1>
-            <Button icon={Plus} onClick={() => setShowModal(true)}>Nueva regla</Button>
-          </div>
-          <Card noPadding>
-            <div style={{ padding: "16px 24px" }}>
-              <Table
-                columns={[
-                  { header: "Regla", key: "name", render: r => (
-                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                      <div style={{
-                        width: 36, height: 36, borderRadius: tokens.radius.m, flexShrink: 0,
-                        background: r.type === "periodic" ? tokens.colors.humand[50] : tokens.colors.purple[50],
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                      }}>
-                        {r.type === "periodic" ? <Repeat size={18} color={tokens.colors.humand[600]} /> : <Sparkles size={18} color={tokens.colors.purple[600]} />}
-                      </div>
-                      <div>
-                        <div style={{ fontWeight: 600, fontSize: 13, letterSpacing: "0.2px" }}>{r.name}</div>
-                        <div style={{ fontSize: 12, color: tokens.semantic.textLighter, letterSpacing: "0.2px" }}>{r.target}</div>
-                      </div>
-                    </div>
-                  )},
-                  { header: "Trigger", key: "trigger" },
-                  { header: "Créditos", key: "amount", render: r => <span style={{ fontWeight: 600 }}>{r.amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</span> },
-                  { header: "Última ejecución", key: "lastRun" },
-                  { header: "Estado", key: "status", render: r => (
-                    <Badge variant={r.status === "active" ? "success" : "warning"}>
-                      {r.status === "active" ? "Activa" : "Pausada"}
-                    </Badge>
-                  )},
-                  { header: "", key: "actions", render: r => (
-                    <div style={{ display: "flex", gap: 4 }}>
-                      <Button variant="ghost" size="sm" icon={Edit3} />
-                      <Button variant="ghost" size="sm" icon={Trash2} />
-                    </div>
-                  )},
-                ]}
-                data={autoRules}
-              />
-            </div>
-          </Card>
-        </div>
-      )}
-
-      {/* ── TAB: Historial ── */}
-      {tab === "history" && (
-        <div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-            <h1 style={{ ...baseStyles, fontSize: 24, fontWeight: 600, lineHeight: 1.4, margin: 0 }}>Historial de ejecuciones</h1>
-            <Button variant="secondary" icon={Download} size="md">Exportar</Button>
-          </div>
-          <Card noPadding>
-            <div style={{ padding: "16px 24px" }}>
-              <Table
-                columns={[
-                  { header: "Fecha", key: "date", render: () => {
-                    const dates = ["18/03/2026", "15/03/2026", "10/03/2026", "01/03/2026", "15/02/2026", "01/02/2026"];
-                    return dates[Math.floor(Math.random() * dates.length)];
-                  }},
-                  { header: "Regla", key: "name" },
-                  { header: "Trigger", key: "trigger" },
-                  { header: "Usuarios", key: "target", render: r => {
-                    const counts = [85, 12, 1, 85, 3];
-                    return counts[Math.floor(Math.random() * counts.length)];
-                  }},
-                  { header: "Créditos total", key: "amount", render: r => <span style={{ fontWeight: 600 }}>{(r.amount * 85).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</span> },
-                  { header: "Estado", key: "status", render: () => (
-                    <Badge variant="success">Ejecutada</Badge>
-                  )},
-                ]}
-                data={autoRules.filter(r => r.status === "active")}
-              />
-            </div>
-          </Card>
-        </div>
-      )}
-
-      {/* ── Modal: Nueva regla ── */}
-      {showModal && (
-        <Modal title="Nueva regla automática" onClose={() => setShowModal(false)} wide>
-          <FormField label="Nombre de la regla">
-            <Input placeholder="Ej: Bonus de cumpleaños" />
-          </FormField>
-          <FormField label="Tipo de trigger">
-            <Select options={[
-              { value: "", label: "Seleccionar tipo..." },
-              { value: "periodic", label: "Periódico (diario, semanal, mensual, etc.)" },
-              { value: "birthday", label: "Evento: Cumpleaños" },
-              { value: "anniversary", label: "Evento: Aniversario laboral" },
-              { value: "onboarding", label: "Evento: Alta de usuario" },
-              { value: "custom", label: "Evento personalizado" },
-            ]} />
-          </FormField>
-          <FormField label="Periodicidad (si aplica)">
-            <Select options={[
-              { value: "", label: "Seleccionar..." },
-              { value: "daily", label: "Diario" },
-              { value: "weekly", label: "Semanal" },
-              { value: "monthly", label: "Mensual" },
-              { value: "quarterly", label: "Trimestral" },
-              { value: "yearly", label: "Anual" },
-            ]} />
-          </FormField>
-          <FormField label="Cantidad de créditos">
-            <Input type="number" placeholder="Ej: 1000" />
-          </FormField>
-          <FormField label="Aplicar a">
-            <Select options={[
-              { value: "all", label: "Todos los colaboradores" },
-              { value: "group", label: "Grupo específico" },
-              { value: "dept", label: "Departamento" },
-              { value: "segment", label: "Segmento" },
-            ]} />
-          </FormField>
-          <FormField label="Fecha de expiración de créditos (opcional)">
-            <Input type="date" />
-          </FormField>
-          <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
-            <Button variant="secondary" onClick={() => setShowModal(false)}>Cancelar</Button>
-            <Button icon={Zap} onClick={() => { toast.success("Regla automática creada"); setShowModal(false); }}>Crear regla</Button>
+            <Button variant="secondary" onClick={() => setShowBulkModal(false)}>{t.cancelar}</Button>
+            <Button icon={Upload} onClick={() => { toast.success("Carga masiva procesada exitosamente"); setShowBulkModal(false); }}>Procesar carga</Button>
           </div>
         </Modal>
       )}
@@ -1261,639 +995,162 @@ function AutoRulesPage({ data }: { data: any }) {
 /* ════════════════════════════════════════════
    PAGE: BENEFITS MANAGEMENT
    ════════════════════════════════════════════ */
-/* Predefined benefit catalog that admins can publish */
 const BENEFIT_CATALOG = [
   { name: "Gimnasio SmartFit", category: "salud", provider: "SmartFit", cost: 8, description: "Acceso mensual a cualquier sede SmartFit", image: "🏋️" },
   { name: "Sesión de nutrición", category: "salud", provider: "NutriPlan", cost: 5, description: "Consulta personalizada con nutricionista", image: "🥗" },
-  { name: "Chequeo médico anual", category: "salud", provider: "MedCheck", cost: 12, description: "Chequeo médico preventivo completo", image: "🩺" },
   { name: "Clase de yoga", category: "bienestar", provider: "ZenFlow", cost: 3, description: "Clase grupal de yoga y meditación", image: "🧘" },
   { name: "Día de spa", category: "bienestar", provider: "RelaxSpa", cost: 10, description: "Jornada de relajación y masajes", image: "💆" },
-  { name: "Sesión de terapia", category: "bienestar", provider: "MindWell", cost: 6, description: "Sesión individual con psicólogo", image: "🧠" },
-  { name: "Almuerzo gourmet", category: "gastronomía", provider: "FoodBox", cost: 4, description: "Almuerzo saludable delivery en la oficina", image: "🍕" },
+  { name: "Almuerzo gourmet", category: "gastronomía", provider: "FoodBox", cost: 4, description: "Almuerzo saludable delivery", image: "🍕" },
   { name: "Coffee break premium", category: "gastronomía", provider: "CaféSelect", cost: 2, description: "Café de especialidad y snacks", image: "☕" },
-  { name: "Cena para dos", category: "gastronomía", provider: "RestóClub", cost: 15, description: "Cena en restaurantes seleccionados", image: "🍽️" },
   { name: "Curso de inglés", category: "educación", provider: "LangPro", cost: 7, description: "Mes de clases de inglés online", image: "📚" },
   { name: "Curso Udemy", category: "educación", provider: "Udemy", cost: 5, description: "Acceso a un curso en Udemy Business", image: "🎓" },
-  { name: "Certificación profesional", category: "educación", provider: "Coursera", cost: 20, description: "Certificación en Coursera o similar", image: "📜" },
   { name: "Entrada de cine", category: "entretenimiento", provider: "Cinemark", cost: 3, description: "Entrada para cualquier función", image: "🎬" },
-  { name: "Streaming mensual", category: "entretenimiento", provider: "Multi", cost: 4, description: "Netflix, Spotify o Disney+ por un mes", image: "📺" },
-  { name: "Escape room", category: "entretenimiento", provider: "EscapeAR", cost: 6, description: "Experiencia de escape room para equipo", image: "🔐" },
+  { name: "Streaming mensual", category: "entretenimiento", provider: "Multi", cost: 4, description: "Netflix, Spotify o Disney+", image: "📺" },
   { name: "Gift card shopping", category: "shopping", provider: "MercadoLibre", cost: 10, description: "Gift card canjeable en MercadoLibre", image: "🛍️" },
-  { name: "Día libre", category: "bienestar", provider: "Interno", cost: 15, description: "Un día libre adicional para uso personal", image: "🏖️" },
-  { name: "Home office kit", category: "bienestar", provider: "TechStore", cost: 12, description: "Kit de accesorios para home office", image: "💻" },
+  { name: "Día libre", category: "bienestar", provider: "Interno", cost: 15, description: "Un día libre adicional", image: "🏖️" },
 ];
 
-const BENEFIT_CATEGORIES = [
-  { key: "todas", label: "Todas", icon: "🎁" },
-  { key: "salud", label: "Salud", icon: "🏋️" },
-  { key: "bienestar", label: "Bienestar", icon: "🧘" },
-  { key: "gastronomía", label: "Gastronomía", icon: "🍕" },
-  { key: "educación", label: "Educación", icon: "📚" },
-  { key: "entretenimiento", label: "Entretenimiento", icon: "🎬" },
-  { key: "shopping", label: "Shopping", icon: "🛍️" },
-];
-
-function BenefitsPage({ data }: { data: any }) {
+function BenefitsPage({ data, t }: { data: any; t: T }) {
   const [search, setSearch] = useState("");
-  const [showCatalog, setShowCatalog] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [viewMode, setViewMode] = useState("grid");
-  const [selectedCategory, setSelectedCategory] = useState("todas");
-  const [editBenefit, setEditBenefit] = useState<any>(null);
-  const [viewBenefit, setViewBenefit] = useState<any>(null);
-  const [catalogCategory, setCatalogCategory] = useState("todas");
-  const [catalogSearch, setCatalogSearch] = useState("");
-  // Edit form state
-  const [editName, setEditName] = useState("");
-  const [editCost, setEditCost] = useState("");
-  const [editDescription, setEditDescription] = useState("");
-  const [editSegments, setEditSegments] = useState<string[]>([]);
-  const [editSegmentType, setEditSegmentType] = useState<"all" | "individual" | "group">("all");
-  const [editActive, setEditActive] = useState(true);
-  const [segDropdownOpen, setSegDropdownOpen] = useState(false);
-  const [segIndividualSearch, setSegIndividualSearch] = useState("");
+  const [catFilter, setCatFilter] = useState("all");
 
-  const allDepts = [...new Set(data.users.map((u: any) => u.dept).filter(Boolean))] as string[];
-  const employeeUsers = data.users.filter((u: any) => u.role === "employee" || !u.role);
+  const categories = [
+    { key: "all", label: t.todos },
+    { key: "salud", label: t.salud },
+    { key: "educacion", label: t.educacion },
+    { key: "gastronomia", label: t.gastronomia },
+    { key: "entretenimiento", label: t.entretenimiento },
+    { key: "bienestar", label: t.bienestar },
+  ];
 
   const filtered = data.benefits.filter((b: any) => {
-    const matchSearch = b.name.toLowerCase().includes(search.toLowerCase()) ||
-      (b.category || "").toLowerCase().includes(search.toLowerCase());
-    const matchCategory = selectedCategory === "todas" || (b.category || "").toLowerCase() === selectedCategory.toLowerCase();
-    return matchSearch && matchCategory;
+    const matchesSearch = b.name.toLowerCase().includes(search.toLowerCase()) || (b.category || "").toLowerCase().includes(search.toLowerCase());
+    const matchesCat = catFilter === "all" || (b.category || "").toLowerCase().includes(catFilter);
+    return matchesSearch && matchesCat;
   });
-
-  const catalogFiltered = BENEFIT_CATALOG.filter(b => {
-    const alreadyPublished = data.benefits.some((pub: any) => pub.name.toLowerCase() === b.name.toLowerCase());
-    const matchSearch = b.name.toLowerCase().includes(catalogSearch.toLowerCase()) || b.provider.toLowerCase().includes(catalogSearch.toLowerCase());
-    const matchCat = catalogCategory === "todas" || b.category === catalogCategory.replace("í", "i").replace("ó", "o");
-    return !alreadyPublished && matchSearch && matchCat;
-  });
-
-  const openEdit = (b: any) => {
-    setEditBenefit(b);
-    setEditName(b.name);
-    setEditCost(String(b.credits || b.cost));
-    setEditDescription(b.description || "");
-    const segs = b.segments || [];
-    setEditSegments(segs);
-    setEditSegmentType(segs.length === 0 ? "all" : (allDepts.some(d => segs.includes(d)) ? "group" : "individual"));
-    setEditActive(b.status === "active");
-    setSegDropdownOpen(false);
-    setSegIndividualSearch("");
-  };
-
-  const handleSaveEdit = async () => {
-    if (!editBenefit) return;
-    try {
-      await supabase.from("benefits").update({
-        name: editName,
-        cost: Number(editCost),
-        description: editDescription,
-        active: editActive,
-        segments: editSegments.length > 0 ? editSegments : null,
-      }).eq("id", editBenefit.id);
-      toast.success(`Beneficio "${editName}" actualizado`);
-      setEditBenefit(null);
-      data.refresh();
-    } catch { toast.error("Error al guardar"); }
-  };
-
-  const handlePublishFromCatalog = async (item: any) => {
-    try {
-      const id = `ben_${Math.random().toString(36).substring(2, 10)}`;
-      await supabase.from("benefits").insert({
-        id,
-        name: item.name,
-        category: item.category,
-        merchant: item.provider,
-        cost: item.cost,
-        description: item.description,
-        image_url: null,
-        active: true,
-      });
-      toast.success(`"${item.name}" publicado exitosamente`);
-      data.refresh();
-    } catch { toast.error("Error al publicar beneficio"); }
-  };
-
-  const handleToggleStatus = async (b: any) => {
-    const newActive = b.status !== "active";
-    await supabase.from("benefits").update({ active: newActive }).eq("id", b.id);
-    toast.success(newActive ? `"${b.name}" activado` : `"${b.name}" pausado`);
-    data.refresh();
-  };
-
-  const handleDelete = async (b: any) => {
-    if (!confirm(`¿Eliminar el beneficio "${b.name}"?`)) return;
-    await supabase.from("benefits").delete().eq("id", b.id);
-    toast.success(`"${b.name}" eliminado`);
-    data.refresh();
-  };
 
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
         <div>
-          <h1 style={{ ...baseStyles, fontSize: 24, fontWeight: 600, lineHeight: 1.4, margin: 0 }}>Gestión de Beneficios</h1>
-          <p style={{ ...baseStyles, fontSize: 14, color: tokens.semantic.textLighter, marginTop: 4, lineHeight: 1.4 }}>
-            Administrá el catálogo de beneficios disponibles para canjear
-          </p>
+          <h1 style={{ ...baseStyles, fontSize: 24, fontWeight: 600, lineHeight: 1.4, margin: 0 }}>{t.gestionBeneficios}</h1>
+          <p style={{ ...baseStyles, fontSize: 14, color: tokens.semantic.textLighter, marginTop: 4, lineHeight: 1.4 }}>{t.adminCatalogo}</p>
         </div>
-        <Button icon={Plus} onClick={() => setShowCatalog(true)}>Nuevo beneficio</Button>
+        <Button icon={Plus} onClick={() => setShowModal(true)}>{t.nuevoBeneficio}</Button>
       </div>
 
-      <div style={{ display: "flex", gap: 24 }}>
-        {/* Category sidebar */}
-        <div style={{ width: 220, flexShrink: 0 }}>
-          <div style={{ ...baseStyles, fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.5px", color: tokens.semantic.textLighter, marginBottom: 12, padding: "0 12px" }}>
-            Categorías
-          </div>
-          {BENEFIT_CATEGORIES.map(cat => {
-            const isActive = selectedCategory === cat.key;
-            const count = cat.key === "todas"
-              ? data.benefits.length
-              : data.benefits.filter((b: any) => (b.category || "").toLowerCase() === cat.key.replace("í", "i").replace("ó", "o")).length;
-            return (
-              <button key={cat.key} onClick={() => setSelectedCategory(cat.key)} style={{
-                width: "100%", display: "flex", alignItems: "center", gap: 10,
-                padding: "10px 12px", textAlign: "left",
-                background: isActive ? tokens.colors.humand[50] : "transparent",
-                color: isActive ? tokens.colors.humand[600] : tokens.semantic.textDefault,
-                border: "none", cursor: "pointer", borderRadius: tokens.radius.m,
-                fontSize: 14, fontWeight: isActive ? 600 : 400,
-                fontFamily: "Roboto", letterSpacing: "0.2px",
-                transition: "all 0.15s ease", marginBottom: 2,
-              }}>
-                <span style={{ fontSize: 18 }}>{cat.icon}</span>
-                <span style={{ flex: 1 }}>{cat.label}</span>
-                <span style={{ fontSize: 12, color: tokens.semantic.textDisabled, fontWeight: 400 }}>{count}</span>
-              </button>
-            );
-          })}
-        </div>
+      {/* Category filter buttons */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" as const }}>
+        {categories.map(cat => (
+          <button key={cat.key} onClick={() => setCatFilter(cat.key)} style={{
+            ...baseStyles, padding: "6px 16px", fontSize: 13, fontWeight: catFilter === cat.key ? 600 : 400,
+            background: catFilter === cat.key ? tokens.colors.humand[500] : "#fff",
+            color: catFilter === cat.key ? "#fff" : tokens.semantic.textLighter,
+            border: `1px solid ${catFilter === cat.key ? tokens.colors.humand[500] : tokens.semantic.border}`,
+            borderRadius: 999, cursor: "pointer", transition: tokens.transition.fast,
+          }}>
+            {cat.label}
+          </button>
+        ))}
+      </div>
 
-        {/* Main content */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: "flex", gap: 12, marginBottom: 24, alignItems: "center" }}>
-            <SearchInput value={search} onChange={setSearch} placeholder="Buscar beneficios..." />
-            <Button variant={viewMode === "grid" ? "primary" : "secondary"} size="sm" icon={Layers} onClick={() => setViewMode("grid")} />
-            <Button variant={viewMode === "list" ? "primary" : "secondary"} size="sm" icon={FileText} onClick={() => setViewMode("list")} />
-          </div>
+      <div style={{ display: "flex", gap: 12, marginBottom: 24, alignItems: "center" }}>
+        <SearchInput value={search} onChange={setSearch} placeholder={t.buscar} />
+        <Button variant={viewMode === "grid" ? "primary" : "secondary"} size="sm" icon={Layers} onClick={() => setViewMode("grid")} />
+        <Button variant={viewMode === "list" ? "primary" : "secondary"} size="sm" icon={FileText} onClick={() => setViewMode("list")} />
+      </div>
 
-          {viewMode === "grid" ? (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
-              {filtered.map(b => (
-                <Card key={b.id} hoverable style={{ cursor: "pointer" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-                    <div style={{ fontSize: 40, lineHeight: 1 }}>{b.image}</div>
-                    <Badge variant={b.status === "active" ? "success" : "warning"}>
-                      {b.status === "active" ? "Activo" : "Pausado"}
-                    </Badge>
-                  </div>
-                  <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 4, letterSpacing: "0.2px", lineHeight: 1.4 }}>{b.name}</div>
-                  <div style={{ fontSize: 12, color: tokens.semantic.textLighter, marginBottom: 12, letterSpacing: "0.2px" }}>{b.category} · {b.provider}</div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                      <CreditCard size={14} color={tokens.colors.humand[500]} />
-                      <span style={{ fontWeight: 600, fontSize: 14, color: tokens.colors.humand[600], letterSpacing: "0.2px" }}>{b.credits}</span>
-                      <span style={{ fontSize: 12, color: tokens.semantic.textLighter, letterSpacing: "0.2px" }}>créditos</span>
-                    </div>
-                    <div style={{ fontSize: 12, color: tokens.semantic.textLighter, letterSpacing: "0.2px" }}>
-                      {b.redemptions} canjes
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
-                    <Button variant="secondary" size="sm" icon={Edit3} style={{ flex: 1 }} onClick={() => openEdit(b)}>Editar</Button>
-                    <Button variant="ghost" size="sm" icon={Eye} onClick={() => setViewBenefit(b)}>Ver</Button>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <Card noPadding>
-              <div style={{ padding: "16px 24px" }}>
-                <Table
-                  columns={[
-                    { header: "Beneficio", key: "name", render: r => (
-                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                        <span style={{ fontSize: 24 }}>{r.image}</span>
-                        <div>
-                          <div style={{ fontWeight: 600, fontSize: 13, letterSpacing: "0.2px" }}>{r.name}</div>
-                          <div style={{ fontSize: 12, color: tokens.semantic.textLighter, letterSpacing: "0.2px" }}>{r.provider}</div>
-                        </div>
-                      </div>
-                    )},
-                    { header: "Categoría", key: "category", render: r => <Badge>{r.category}</Badge> },
-                    { header: "Créditos", key: "credits", render: r => <span style={{ fontWeight: 600 }}>{r.credits}</span> },
-                    { header: "Canjes", key: "redemptions" },
-                    { header: "Estado", key: "status", render: r => (
-                      <Badge variant={r.status === "active" ? "success" : "warning"}>
-                        {r.status === "active" ? "Activo" : "Pausado"}
-                      </Badge>
-                    )},
-                    { header: "Acciones", key: "actions", render: r => (
-                      <div style={{ display: "flex", gap: 4 }}>
-                        <Button variant="ghost" size="sm" icon={Edit3} onClick={() => openEdit(r)} />
-                        <Button variant="ghost" size="sm" icon={Eye} onClick={() => setViewBenefit(r)} />
-                        <Button variant="ghost" size="sm" icon={Trash2} onClick={() => handleDelete(r)} />
-                      </div>
-                    )},
-                  ]}
-                  data={filtered}
-                />
+      {viewMode === "grid" ? (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+          {filtered.map((b: any) => (
+            <Card key={b.id} hoverable style={{ cursor: "pointer" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+                <div style={{ fontSize: 40, lineHeight: 1 }}>{b.image}</div>
+                <Badge variant={b.status === "active" ? "success" : "warning"}>{b.status === "active" ? t.activo : t.pausado}</Badge>
+              </div>
+              <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 4, letterSpacing: "0.2px", lineHeight: 1.4 }}>{b.name}</div>
+              <div style={{ fontSize: 12, color: tokens.semantic.textLighter, marginBottom: 12, letterSpacing: "0.2px" }}>{b.category} · {b.provider}</div>
+              {/* Prominent credit cost */}
+              <div style={{ background: tokens.colors.humand[50], borderRadius: tokens.radius.m, padding: "8px 12px", marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                <CreditCard size={18} color={tokens.colors.humand[600]} />
+                <span style={{ fontWeight: 700, fontSize: 20, color: tokens.colors.humand[600] }}>{b.credits}</span>
+                <span style={{ fontSize: 12, color: tokens.semantic.textLighter }}>{t.creditosLabel}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ fontSize: 12, color: tokens.semantic.textLighter }}>{b.redemptions} {t.canjesLabel}</div>
+              </div>
+              <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                <Button variant="secondary" size="sm" icon={Edit3} style={{ flex: 1 }}>{t.editarBenef}</Button>
+                <Button variant="ghost" size="sm" icon={Eye}>{t.verBenef}</Button>
               </div>
             </Card>
-          )}
+          ))}
         </div>
-      </div>
-
-      {/* ── Catalog picker modal ── */}
-      {showCatalog && (
-        <Modal title="Publicar beneficio del catálogo" onClose={() => { setShowCatalog(false); setCatalogSearch(""); setCatalogCategory("todas"); }} wide>
-          <p style={{ ...baseStyles, fontSize: 13, color: tokens.semantic.textLighter, marginBottom: 16, marginTop: -8, lineHeight: 1.4 }}>
-            Seleccioná un beneficio predefinido para publicarlo en tu organización
-          </p>
-          <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
-            <SearchInput value={catalogSearch} onChange={setCatalogSearch} placeholder="Buscar en catálogo..." />
-          </div>
-          <div style={{ display: "flex", gap: 6, marginBottom: 20, flexWrap: "wrap" as const }}>
-            {BENEFIT_CATEGORIES.map(cat => (
-              <button key={cat.key} onClick={() => setCatalogCategory(cat.key)} style={{
-                ...baseStyles, padding: "6px 14px", fontSize: 12, fontWeight: catalogCategory === cat.key ? 600 : 400,
-                background: catalogCategory === cat.key ? tokens.colors.humand[500] : "#fff",
-                color: catalogCategory === cat.key ? "#fff" : tokens.semantic.textLighter,
-                border: `1px solid ${catalogCategory === cat.key ? tokens.colors.humand[500] : tokens.semantic.border}`,
-                borderRadius: 999, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4,
-              }}>
-                <span>{cat.icon}</span> {cat.label}
-              </button>
-            ))}
-          </div>
-          <div style={{ maxHeight: 400, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8 }}>
-            {catalogFiltered.length === 0 ? (
-              <div style={{ padding: 32, textAlign: "center", color: tokens.semantic.textDisabled, fontSize: 13 }}>
-                No hay beneficios disponibles en esta categoría
-              </div>
-            ) : catalogFiltered.map((item, i) => (
-              <div key={i} style={{
-                display: "flex", alignItems: "center", gap: 12, padding: "12px 16px",
-                border: `1px solid ${tokens.semantic.border}`, borderRadius: tokens.radius.m,
-                transition: tokens.transition.fast,
-              }}>
-                <span style={{ fontSize: 28 }}>{item.image}</span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 600, fontSize: 14, letterSpacing: "0.2px" }}>{item.name}</div>
-                  <div style={{ fontSize: 12, color: tokens.semantic.textLighter, letterSpacing: "0.2px" }}>
-                    {item.provider} · {item.category} · {item.cost} créditos
+      ) : (
+        <Card noPadding>
+          <div style={{ padding: "16px 24px" }}>
+            <Table
+              columns={[
+                { header: t.beneficios, key: "name", render: (r: any) => (
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <span style={{ fontSize: 24 }}>{r.image}</span>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 13 }}>{r.name}</div>
+                      <div style={{ fontSize: 12, color: tokens.semantic.textLighter }}>{r.provider}</div>
+                    </div>
                   </div>
-                  <div style={{ fontSize: 12, color: tokens.semantic.textDisabled, marginTop: 2, letterSpacing: "0.2px" }}>{item.description}</div>
-                </div>
-                <Button variant="secondary" size="sm" icon={Plus} onClick={() => handlePublishFromCatalog(item)}>Publicar</Button>
-              </div>
-            ))}
+                )},
+                { header: t.categoria, key: "category", render: (r: any) => <Badge>{r.category}</Badge> },
+                { header: t.creditosLabel, key: "credits", render: (r: any) => <span style={{ fontWeight: 600 }}>{r.credits}</span> },
+                { header: t.canjesLabel, key: "redemptions" },
+                { header: t.estado, key: "status", render: (r: any) => <Badge variant={r.status === "active" ? "success" : "warning"}>{r.status === "active" ? t.activo : t.pausado}</Badge> },
+                { header: t.acciones, key: "actions", render: () => (
+                  <div style={{ display: "flex", gap: 4 }}>
+                    <Button variant="ghost" size="sm" icon={Edit3} />
+                    <Button variant="ghost" size="sm" icon={Trash2} />
+                  </div>
+                )},
+              ]}
+              data={filtered}
+            />
           </div>
-        </Modal>
+        </Card>
       )}
 
-      {/* ── View benefit detail modal ── */}
-      {viewBenefit && (
-        <Modal title={viewBenefit.name} onClose={() => setViewBenefit(null)}>
-          <div style={{ textAlign: "center", marginBottom: 20 }}>
-            <span style={{ fontSize: 56 }}>{viewBenefit.image}</span>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${tokens.semantic.borderLight}` }}>
-              <span style={{ fontSize: 13, color: tokens.semantic.textLighter }}>Categoría</span>
-              <Badge>{viewBenefit.category}</Badge>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${tokens.semantic.borderLight}` }}>
-              <span style={{ fontSize: 13, color: tokens.semantic.textLighter }}>Proveedor</span>
-              <span style={{ fontSize: 13, fontWeight: 600 }}>{viewBenefit.provider || "—"}</span>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${tokens.semantic.borderLight}` }}>
-              <span style={{ fontSize: 13, color: tokens.semantic.textLighter }}>Costo</span>
-              <span style={{ fontSize: 13, fontWeight: 600, color: tokens.colors.humand[600] }}>{viewBenefit.credits} créditos</span>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${tokens.semantic.borderLight}` }}>
-              <span style={{ fontSize: 13, color: tokens.semantic.textLighter }}>Canjes realizados</span>
-              <span style={{ fontSize: 13, fontWeight: 600 }}>{viewBenefit.redemptions}</span>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${tokens.semantic.borderLight}` }}>
-              <span style={{ fontSize: 13, color: tokens.semantic.textLighter }}>Estado</span>
-              <Badge variant={viewBenefit.status === "active" ? "success" : "warning"}>
-                {viewBenefit.status === "active" ? "Activo" : "Pausado"}
-              </Badge>
-            </div>
-            {viewBenefit.description && (
-              <div style={{ padding: "8px 0" }}>
-                <span style={{ fontSize: 13, color: tokens.semantic.textLighter, display: "block", marginBottom: 4 }}>Descripción</span>
-                <span style={{ fontSize: 13 }}>{viewBenefit.description}</span>
-              </div>
-            )}
-          </div>
-          <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
-            <Button variant="secondary" onClick={() => { setViewBenefit(null); openEdit(viewBenefit); }}>Editar</Button>
-            <Button variant={viewBenefit.status === "active" ? "ghost" : "primary"} onClick={() => { handleToggleStatus(viewBenefit); setViewBenefit(null); }}>
-              {viewBenefit.status === "active" ? "Pausar" : "Activar"}
-            </Button>
-          </div>
-        </Modal>
-      )}
-
-      {/* ── Edit benefit modal with segmentation ── */}
-      {editBenefit && (
-        <Modal title={`Editar: ${editBenefit.name}`} onClose={() => setEditBenefit(null)} wide>
-          <FormField label="Nombre del beneficio">
-            <Input value={editName} onChange={(e: any) => setEditName(e.target.value)} />
-          </FormField>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 16 }}>
-            <FormField label="Estado">
-              <Select value={editActive ? "active" : "paused"} onChange={(e: any) => setEditActive(e.target.value === "active")} options={[
-                { value: "active", label: "Activo" },
-                { value: "paused", label: "Pausado" },
+      {showModal && (
+        <Modal title={t.nuevoBeneficio} onClose={() => setShowModal(false)} wide>
+          <FormField label="Nombre del beneficio"><Input placeholder="Ej: Gimnasio mensual" /></FormField>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <FormField label={t.categoria}>
+              <Select options={[
+                { value: "", label: "Seleccionar..." },
+                { value: "wellness", label: t.bienestar }, { value: "education", label: t.educacion },
+                { value: "food", label: t.gastronomia }, { value: "entertainment", label: t.entretenimiento },
+                { value: "health", label: t.salud },
               ]} />
             </FormField>
+            <FormField label={t.proveedor}><Input placeholder="Ej: SmartFit" /></FormField>
           </div>
-          <FormField label="Descripción">
-            <textarea value={editDescription} onChange={(e: any) => setEditDescription(e.target.value)} style={{
-              ...baseStyles, width: "100%", padding: "10px 12px", minHeight: 80,
-              border: `1px solid ${tokens.semantic.border}`, borderRadius: tokens.radius.s,
-              fontSize: 14, lineHeight: 1.4, outline: "none", resize: "vertical", boxSizing: "border-box",
-            }} />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <FormField label={t.costoCreditos}><Input type="number" placeholder="Ej: 500" /></FormField>
+            <FormField label={t.stock}><Input type="number" placeholder="Ilimitado si se deja vacío" /></FormField>
+          </div>
+          <FormField label={t.segmentar}>
+            <Select options={[
+              { value: "all", label: t.todos }, { value: "marketing", label: "Marketing" },
+              { value: "tech", label: "Tecnología" }, { value: "hr", label: "RRHH" },
+              { value: "sales", label: "Ventas" }, { value: "finance", label: "Finanzas" },
+            ]} />
           </FormField>
-
-          {/* Segmentation section — Colaboradores */}
-          <div style={{ marginTop: 8, background: tokens.colors.neutral[50], borderRadius: tokens.radius.l, padding: 24 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
-              <div>
-                <h3 style={{ ...baseStyles, fontSize: 18, fontWeight: 700, margin: 0, lineHeight: 1.4 }}>Colaboradores</h3>
-                <p style={{ ...baseStyles, fontSize: 13, color: tokens.semantic.textLighter, marginTop: 4, lineHeight: 1.4 }}>
-                  Seleccioná colaboradores a los que se les asignará este beneficio.
-                </p>
-              </div>
-              <span style={{
-                padding: "6px 16px", borderRadius: 999, fontSize: 12, fontWeight: 600,
-                border: `1.5px solid ${tokens.colors.humand[300]}`, color: tokens.colors.humand[700],
-                background: "#fff", whiteSpace: "nowrap" as const,
-              }}>
-                Alcance: {editSegmentType === "all"
-                  ? `${employeeUsers.length} colaboradores`
-                  : editSegmentType === "individual"
-                    ? `${editSegments.length} colaborador${editSegments.length !== 1 ? "es" : ""}`
-                    : `${editSegments.length} grupo${editSegments.length !== 1 ? "s" : ""}`
-                }
-              </span>
-            </div>
-
-            {/* Active criteria cards */}
-            {editSegmentType !== "all" && (
-              <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
-                {editSegmentType === "individual" && editSegments.length > 0 && (
-                  <div style={{
-                    display: "flex", alignItems: "center", gap: 14, padding: "16px 20px",
-                    background: "#fff", borderRadius: tokens.radius.m,
-                    border: `1px solid ${tokens.semantic.border}`,
-                  }}>
-                    <div style={{
-                      width: 40, height: 40, borderRadius: tokens.radius.m,
-                      background: tokens.colors.neutral[100],
-                      display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-                    }}>
-                      <Users size={20} color={tokens.semantic.textLighter} />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ ...baseStyles, fontWeight: 600, fontSize: 14 }}>Selección individual de colaboradores</div>
-                      <div style={{ ...baseStyles, fontSize: 12, color: tokens.semantic.textLighter, marginTop: 2 }}>
-                        {editSegments.length} colaborador{editSegments.length !== 1 ? "es" : ""} alcanzado{editSegments.length !== 1 ? "s" : ""} por este criterio.
-                      </div>
-                    </div>
-                    <button onClick={() => { setEditSegments([]); setEditSegmentType("all"); }} style={{
-                      background: "none", border: "none", cursor: "pointer", color: tokens.semantic.textLighter, padding: 4,
-                    }}>
-                      <MoreVertical size={18} />
-                    </button>
-                  </div>
-                )}
-                {editSegmentType === "group" && editSegments.length > 0 && (
-                  <div style={{
-                    display: "flex", alignItems: "center", gap: 14, padding: "16px 20px",
-                    background: "#fff", borderRadius: tokens.radius.m,
-                    border: `1px solid ${tokens.semantic.border}`,
-                  }}>
-                    <div style={{
-                      width: 40, height: 40, borderRadius: tokens.radius.m,
-                      background: tokens.colors.neutral[100],
-                      display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-                    }}>
-                      <Layers size={20} color={tokens.semantic.textLighter} />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ ...baseStyles, fontWeight: 600, fontSize: 14 }}>Grupos de segmentación</div>
-                      <div style={{ ...baseStyles, fontSize: 12, color: tokens.semantic.textLighter, marginTop: 2 }}>
-                        {editSegments.join(", ")}
-                      </div>
-                    </div>
-                    <button onClick={() => { setEditSegments([]); setEditSegmentType("all"); }} style={{
-                      background: "none", border: "none", cursor: "pointer", color: tokens.semantic.textLighter, padding: 4,
-                    }}>
-                      <MoreVertical size={18} />
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Dropdown: Sumar criterio de selección */}
-            <div style={{ marginTop: 16, position: "relative" }}>
-              <button onClick={() => setSegDropdownOpen(!segDropdownOpen)} style={{
-                ...baseStyles, width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
-                padding: "14px 20px", background: "#fff", border: `1.5px solid ${segDropdownOpen ? tokens.colors.humand[400] : tokens.semantic.border}`,
-                borderRadius: tokens.radius.m, cursor: "pointer", fontSize: 14,
-                color: tokens.semantic.textLighter, transition: tokens.transition.fast,
-              }}>
-                Sumar criterio de selección
-                <ChevronDown size={18} style={{ transition: "transform 0.2s", transform: segDropdownOpen ? "rotate(180deg)" : "rotate(0)" }} />
-              </button>
-
-              {segDropdownOpen && (
-                <div style={{
-                  marginTop: 8, background: "#fff", borderRadius: tokens.radius.m,
-                  border: `1px solid ${tokens.semantic.border}`, boxShadow: tokens.shadow.dp4,
-                  overflow: "hidden",
-                }}>
-                  {/* Option: Individual selection */}
-                  <button onClick={() => { setSegDropdownOpen(false); setEditSegmentType("individual"); }} style={{
-                    ...baseStyles, width: "100%", display: "flex", alignItems: "center", gap: 14,
-                    padding: "16px 20px", background: "transparent", border: "none",
-                    borderBottom: `1px solid ${tokens.semantic.borderLight}`,
-                    cursor: "pointer", textAlign: "left", transition: tokens.transition.fast,
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = tokens.colors.neutral[50]; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
-                  >
-                    <div style={{
-                      width: 40, height: 40, borderRadius: tokens.radius.m,
-                      background: tokens.colors.neutral[100],
-                      display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-                    }}>
-                      <Users size={20} color={tokens.semantic.textLighter} />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 2 }}>Selección individual de colaboradores</div>
-                      <div style={{ fontSize: 12, color: tokens.semantic.textLighter, lineHeight: 1.4 }}>
-                        Elegí colaboradores específicos que podrán acceder a este beneficio.
-                      </div>
-                    </div>
-                  </button>
-
-                  {/* Option: Segmentation groups */}
-                  <button onClick={() => { setSegDropdownOpen(false); setEditSegmentType("group"); }} style={{
-                    ...baseStyles, width: "100%", display: "flex", alignItems: "center", gap: 14,
-                    padding: "16px 20px", background: "transparent", border: "none",
-                    borderBottom: `1px solid ${tokens.semantic.borderLight}`,
-                    cursor: "pointer", textAlign: "left", transition: tokens.transition.fast,
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = tokens.colors.neutral[50]; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
-                  >
-                    <div style={{
-                      width: 40, height: 40, borderRadius: tokens.radius.m,
-                      background: tokens.colors.neutral[100],
-                      display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-                    }}>
-                      <Layers size={20} color={tokens.semantic.textLighter} />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 2 }}>Grupos de segmentación</div>
-                      <div style={{ fontSize: 12, color: tokens.semantic.textLighter, lineHeight: 1.4 }}>
-                        Creá segmentos en base a distintos grupos que actualizarán su base de colaboradores automáticamente.
-                      </div>
-                    </div>
-                    <Badge variant="info">Asignación automática</Badge>
-                  </button>
-
-                  {/* Option: All */}
-                  <button onClick={() => { setSegDropdownOpen(false); setEditSegmentType("all"); setEditSegments([]); }} style={{
-                    ...baseStyles, width: "100%", display: "flex", alignItems: "center", gap: 14,
-                    padding: "16px 20px", background: "transparent", border: "none",
-                    cursor: "pointer", textAlign: "left", transition: tokens.transition.fast,
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = tokens.colors.neutral[50]; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
-                  >
-                    <div style={{
-                      width: 40, height: 40, borderRadius: tokens.radius.m,
-                      background: tokens.colors.neutral[100],
-                      display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-                    }}>
-                      <Globe size={20} color={tokens.semantic.textLighter} />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 2 }}>Todos los colaboradores de la comunidad</div>
-                      <div style={{ fontSize: 12, color: tokens.semantic.textLighter, lineHeight: 1.4 }}>
-                        Seleccioná a todos los colaboradores, este criterio se actualizará automáticamente e incluirá a los nuevos ingresos.
-                      </div>
-                    </div>
-                    <Badge variant="info">Asignación automática</Badge>
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Individual user picker (shown when type=individual) */}
-            {editSegmentType === "individual" && (
-              <div style={{ marginTop: 16 }}>
-                <div style={{ position: "relative", marginBottom: 12 }}>
-                  <Search size={16} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: tokens.semantic.textDisabled }} />
-                  <input
-                    type="text" value={segIndividualSearch} onChange={e => setSegIndividualSearch(e.target.value)}
-                    placeholder="Buscar colaborador por nombre o email..."
-                    style={{
-                      ...baseStyles, width: "100%", padding: "10px 12px 10px 36px",
-                      border: `1px solid ${tokens.semantic.border}`, borderRadius: tokens.radius.m,
-                      fontSize: 13, outline: "none", background: "#fff", boxSizing: "border-box",
-                    }}
-                  />
-                </div>
-                <div style={{ maxHeight: 200, overflowY: "auto", display: "flex", flexDirection: "column", gap: 4 }}>
-                  {employeeUsers
-                    .filter((u: any) =>
-                      u.name.toLowerCase().includes(segIndividualSearch.toLowerCase()) ||
-                      (u.email || "").toLowerCase().includes(segIndividualSearch.toLowerCase())
-                    )
-                    .map((u: any) => {
-                      const isSelected = editSegments.includes(u.id);
-                      return (
-                        <button key={u.id} onClick={() => {
-                          setEditSegments(prev => isSelected ? prev.filter(id => id !== u.id) : [...prev, u.id]);
-                        }} style={{
-                          ...baseStyles, width: "100%", display: "flex", alignItems: "center", gap: 10,
-                          padding: "8px 12px", background: isSelected ? tokens.colors.humand[50] : "#fff",
-                          border: `1px solid ${isSelected ? tokens.colors.humand[300] : tokens.semantic.borderLight}`,
-                          borderRadius: tokens.radius.s, cursor: "pointer", textAlign: "left",
-                          transition: tokens.transition.fast,
-                        }}>
-                          <div style={{
-                            width: 20, height: 20, borderRadius: 4, flexShrink: 0,
-                            border: `2px solid ${isSelected ? tokens.colors.humand[500] : tokens.semantic.border}`,
-                            background: isSelected ? tokens.colors.humand[500] : "#fff",
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                          }}>
-                            {isSelected && <Check size={12} color="#fff" />}
-                          </div>
-                          <Avatar initials={getInitials(u.name)} size={28} />
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 13, fontWeight: 500, letterSpacing: "0.2px" }}>{u.name}</div>
-                            <div style={{ fontSize: 11, color: tokens.semantic.textLighter }}>{u.email} · {u.dept}</div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                </div>
-              </div>
-            )}
-
-            {/* Group/department picker (shown when type=group) */}
-            {editSegmentType === "group" && (
-              <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 4 }}>
-                {allDepts.map(dept => {
-                  const isSelected = editSegments.includes(dept);
-                  const deptCount = employeeUsers.filter((u: any) => u.dept === dept).length;
-                  return (
-                    <button key={dept} onClick={() => {
-                      setEditSegments(prev => isSelected ? prev.filter(d => d !== dept) : [...prev, dept]);
-                    }} style={{
-                      ...baseStyles, width: "100%", display: "flex", alignItems: "center", gap: 10,
-                      padding: "12px 16px", background: isSelected ? tokens.colors.humand[50] : "#fff",
-                      border: `1px solid ${isSelected ? tokens.colors.humand[300] : tokens.semantic.borderLight}`,
-                      borderRadius: tokens.radius.s, cursor: "pointer", textAlign: "left",
-                      transition: tokens.transition.fast,
-                    }}>
-                      <div style={{
-                        width: 20, height: 20, borderRadius: 4, flexShrink: 0,
-                        border: `2px solid ${isSelected ? tokens.colors.humand[500] : tokens.semantic.border}`,
-                        background: isSelected ? tokens.colors.humand[500] : "#fff",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                      }}>
-                        {isSelected && <Check size={12} color="#fff" />}
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 14, fontWeight: 500 }}>{dept}</div>
-                      </div>
-                      <span style={{ fontSize: 12, color: tokens.semantic.textDisabled }}>{deptCount} colaboradores</span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          <div style={{ display: "flex", gap: 12, justifyContent: "space-between", marginTop: 24, alignItems: "center" }}>
-            <Button variant="danger" size="sm" icon={Trash2} onClick={() => { handleDelete(editBenefit); setEditBenefit(null); }}>Eliminar</Button>
-            <div style={{ display: "flex", gap: 12 }}>
-              <Button variant="secondary" onClick={() => setEditBenefit(null)}>Cancelar</Button>
-              <Button icon={Check} onClick={handleSaveEdit}>Guardar cambios</Button>
-            </div>
+          <FormField label={t.descripcion}>
+            <textarea placeholder="Describí el beneficio..." style={{ ...baseStyles, width: "100%", padding: "10px 12px", minHeight: 80, border: `1px solid ${tokens.semantic.border}`, borderRadius: tokens.radius.s, fontSize: 14, lineHeight: 1.4, outline: "none", resize: "vertical" as const, boxSizing: "border-box" as const }} />
+          </FormField>
+          <FormField label={t.imagenEmoji}><Input placeholder="Ej: 🏋️ o URL de imagen" /></FormField>
+          <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
+            <Button variant="secondary" onClick={() => setShowModal(false)}>{t.cancelar}</Button>
+            <Button icon={Plus} onClick={() => { toast.success("Beneficio creado exitosamente"); setShowModal(false); }}>{t.crearBeneficio}</Button>
           </div>
         </Modal>
       )}
@@ -1903,123 +1160,290 @@ function BenefitsPage({ data }: { data: any }) {
 
 
 /* ════════════════════════════════════════════
-   PAGE: ANALYTICS
+   PAGE: AUTO RULES (simplified)
    ════════════════════════════════════════════ */
-function AnalyticsPage({ data }: { data: any }) {
-  const [period, setPeriod] = useState("month");
+function RuleRow({ rule, t }: { rule: any; t: T }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 16, padding: 16, borderTop: `1px solid ${tokens.semantic.borderLight}`, borderRight: `1px solid ${tokens.semantic.borderLight}`, borderBottom: `1px solid ${tokens.semantic.borderLight}`, borderLeft: `1px solid ${tokens.semantic.borderLight}`, borderRadius: tokens.radius.m, background: rule.status === "paused" ? tokens.colors.neutral[50] : "#fff" }}>
+      <div style={{ width: 40, height: 40, borderRadius: tokens.radius.m, background: rule._isGeneration ? tokens.colors.purple[50] : tokens.colors.humand[50], display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        {rule._isGeneration ? <Sparkles size={20} color={tokens.colors.purple[600]} /> : rule.type === "periodic" ? <Repeat size={20} color={tokens.colors.humand[600]} /> : <Gift size={20} color={tokens.colors.humand[600]} />}
+      </div>
+      <div style={{ flex: 1 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontWeight: 600, fontSize: 14 }}>{rule.name}</span>
+          <Badge variant={rule.status === "active" ? "success" : "warning"}>{rule.status === "active" ? t.activa : t.pausada}</Badge>
+        </div>
+        <div style={{ fontSize: 12, color: tokens.semantic.textLighter, marginTop: 4 }}>
+          {t.trigger}: {rule.trigger} · {fmtNum(rule.amount)} {t.creditosLabel}{rule.target ? ` · ${rule.target}` : ""}
+        </div>
+        <div style={{ fontSize: 11, color: tokens.semantic.textDisabled, marginTop: 2 }}>{t.ultimaEjecucion}: {rule.lastRun}</div>
+      </div>
+      <div onClick={() => toast.success(rule.status === "active" ? "Regla pausada" : "Regla activada")}
+        style={{ width: 44, height: 24, borderRadius: 12, background: rule.status === "active" ? tokens.colors.green[500] : tokens.colors.neutral[300], cursor: "pointer", position: "relative" as const, transition: tokens.transition.fast, flexShrink: 0 }}>
+        <div style={{ width: 18, height: 18, borderRadius: "50%", background: "#fff", position: "absolute" as const, top: 3, left: rule.status === "active" ? 23 : 3, transition: tokens.transition.fast, boxShadow: tokens.shadow.dp2 }} />
+      </div>
+      <div style={{ display: "flex", gap: 4 }}>
+        <Button variant="ghost" size="sm" icon={Edit3} />
+        <Button variant="ghost" size="sm" icon={Trash2} />
+      </div>
+    </div>
+  );
+}
 
-  const topBenefits = [...data.benefits].sort((a: any, b: any) => b.redemptions - a.redemptions).slice(0, 5);
-  const topUsers = [...data.users].sort((a: any, b: any) => b.spent - a.spent).slice(0, 5);
+function AutoRulesPage({ data, t }: { data: any; t: T }) {
+  const { autoRules } = data;
+  const [showModal, setShowModal] = useState(false);
+  const [tab, setTab] = useState("assignment");
+  const [modalType, setModalType] = useState<"assignment" | "generation">("assignment");
 
-  const weeklyTrend = [
-    { week: "Sem 1", canjes: 45 }, { week: "Sem 2", canjes: 62 },
-    { week: "Sem 3", canjes: 58 }, { week: "Sem 4", canjes: 71 },
+  const assignmentRules = autoRules.filter((r: any) => r.type === "periodic" || ["Cumpleaños", "Aniversario", "Alta de usuario"].includes(r.trigger));
+
+  // Generation rules: examples that connect with learning/courses
+  const generationRules = [
+    { id: "gen_1", name: "Completar curso de capacitación", type: "event", trigger: "Curso completado", amount: 5, target: "", status: "active", lastRun: "17/03/2026", _isGeneration: true },
+    { id: "gen_2", name: "Aprobar evaluación de desempeño", type: "event", trigger: "Evaluación aprobada", amount: 10, target: "", status: "active", lastRun: "01/03/2026", _isGeneration: true },
+    { id: "gen_3", name: "Referir candidato contratado", type: "event", trigger: "Referido contratado", amount: 20, target: "", status: "active", lastRun: "10/03/2026", _isGeneration: true },
+    { id: "gen_4", name: "Completar lección de Learning", type: "event", trigger: "Lección completada", amount: 2, target: "", status: "paused", lastRun: "—", _isGeneration: true },
   ];
+
+  const currentRules = tab === "assignment" ? assignmentRules : generationRules;
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
         <div>
-          <h1 style={{ ...baseStyles, fontSize: 24, fontWeight: 600, lineHeight: 1.4, margin: 0 }}>Analíticas de uso</h1>
+          <h1 style={{ ...baseStyles, fontSize: 24, fontWeight: 600, lineHeight: 1.4, margin: 0 }}>{t.reglasAutomaticas}</h1>
           <p style={{ ...baseStyles, fontSize: 14, color: tokens.semantic.textLighter, marginTop: 4, lineHeight: 1.4 }}>
-            Insights sobre el uso de créditos y beneficios por parte de los colaboradores
+            {tab === "assignment" ? "Reglas para distribuir créditos a colaboradores" : "Reglas para generar créditos cuando se cumplen logros"}
           </p>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          {["week", "month", "quarter", "year"].map(p => (
-            <button key={p} onClick={() => setPeriod(p)} style={{
-              ...baseStyles, padding: "6px 14px", fontSize: 12, fontWeight: period === p ? 600 : 400,
-              background: period === p ? tokens.colors.humand[500] : "#fff",
-              color: period === p ? "#fff" : tokens.semantic.textLighter,
-              border: `1px solid ${period === p ? tokens.colors.humand[500] : tokens.semantic.border}`,
-              borderRadius: tokens.radius.s, cursor: "pointer",
-            }}>
-              {{ week: "Semana", month: "Mes", quarter: "Trimestre", year: "Año" }[p]}
-            </button>
-          ))}
+        <Button icon={Plus} onClick={() => { setModalType(tab as any); setShowModal(true); }}>{t.crearRegla}</Button>
+      </div>
+
+      <Tabs tabs={[{ key: "assignment", label: t.reglasAsignacion }, { key: "generation", label: t.reglasGeneracion }]} active={tab} onChange={setTab} />
+
+      {/* Info banner for generation tab */}
+      {tab === "generation" && (
+        <div style={{ padding: 16, background: tokens.colors.purple[50], borderRadius: tokens.radius.m, marginBottom: 16, display: "flex", alignItems: "center", gap: 12 }}>
+          <Sparkles size={20} color={tokens.colors.purple[500]} />
+          <div style={{ fontSize: 13, color: tokens.colors.purple[600], lineHeight: 1.5 }}>
+            <strong>Reglas de generación</strong> otorgan créditos automáticamente cuando los colaboradores completan logros como cursos, lecciones, evaluaciones o referidos.
+          </div>
         </div>
-      </div>
+      )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 32 }}>
-        <StatCard label="Usuarios activos" value={String(data.users.filter((u:any) => u.status === 'active').length)} icon={Users} trend={`${data.employees.length} colaboradores`} trendUp color={tokens.colors.humand[500]} />
-        <StatCard label="Canjes totales" value={String(data.transactions.filter((t:any) => t.type === 'debit').length)} icon={Gift} trend={`$${fmtNum(data.totalRedeemed)} en créditos`} trendUp color={tokens.colors.green[600]} />
-        <StatCard label="Promedio canjes/usuario" value={data.employees.length > 0 ? (data.transactions.filter((t:any) => t.type === 'debit').length / data.employees.length).toFixed(1) : "0"} icon={BarChart3} trend="por colaborador" trendUp color={tokens.colors.purple[500]} />
-        <StatCard label="Créditos asignados" value={fmtNum(data.totalCredited)} icon={Star} trend={`${fmtNum(data.totalPending)} pendientes`} trendUp color={tokens.colors.yellow[500]} />
-      </div>
+      <Card noPadding>
+        <div style={{ padding: "16px 24px" }}>
+          {currentRules.length === 0 ? (
+            <div style={{ textAlign: "center" as const, padding: 40, color: tokens.semantic.textLighter }}>
+              <Zap size={32} style={{ marginBottom: 8, color: tokens.semantic.textDisabled }} />
+              <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>No hay reglas configuradas</div>
+              <Button variant="secondary" icon={Plus} onClick={() => { setModalType(tab as any); setShowModal(true); }} style={{ marginTop: 12 }}>{t.crearRegla}</Button>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {currentRules.map((rule: any) => <RuleRow key={rule.id} rule={rule} t={t} />)}
+            </div>
+          )}
+        </div>
+      </Card>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
-        <Card>
-          <h3 style={{ ...baseStyles, fontSize: 16, fontWeight: 600, margin: "0 0 20px 0", lineHeight: 1.4 }}>Tendencia de canjes semanal</h3>
-          <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={weeklyTrend}>
-              <CartesianGrid strokeDasharray="3 3" stroke={tokens.semantic.borderLight} />
-              <XAxis dataKey="week" tick={{ fontSize: 12, fill: tokens.semantic.textLighter }} />
-              <YAxis tick={{ fontSize: 12, fill: tokens.semantic.textLighter }} />
-              <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12, fontFamily: "Roboto" }} />
-              <Bar dataKey="canjes" fill={tokens.colors.humand[400]} radius={[4, 4, 0, 0]} name="Canjes" />
-            </BarChart>
-          </ResponsiveContainer>
-        </Card>
+      {/* Modal with DIFFERENT inputs based on type */}
+      {showModal && (
+        <Modal title={modalType === "assignment" ? "Nueva regla de asignación" : "Nueva regla de generación"} onClose={() => setShowModal(false)} wide>
+          <FormField label="Nombre de la regla">
+            <Input placeholder={modalType === "assignment" ? "Ej: Bonus de cumpleaños" : "Ej: Completar curso de Learning"} />
+          </FormField>
 
-        <Card>
-          <h3 style={{ ...baseStyles, fontSize: 16, fontWeight: 600, margin: "0 0 20px 0", lineHeight: 1.4 }}>Uso por departamento</h3>
-          <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={data.deptUsage} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke={tokens.semantic.borderLight} />
-              <XAxis type="number" tick={{ fontSize: 12, fill: tokens.semantic.textLighter }} domain={[0, 100]} />
-              <YAxis type="category" dataKey="dept" tick={{ fontSize: 12, fill: tokens.semantic.textLighter }} width={80} />
-              <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12, fontFamily: "Roboto" }} formatter={v => `${v}%`} />
-              <Bar dataKey="usage" radius={[0, 4, 4, 0]} name="Uso %">
-                {data.deptUsage.map((d: any, i: number) => (
-                  <Cell key={i} fill={d.usage > 75 ? tokens.colors.green[500] : d.usage > 50 ? tokens.colors.humand[400] : tokens.colors.yellow[500]} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </Card>
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-        <Card>
-          <h3 style={{ ...baseStyles, fontSize: 16, fontWeight: 600, margin: "0 0 20px 0", lineHeight: 1.4 }}>Top beneficios más canjeados</h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {topBenefits.map((b, i) => (
-              <div key={b.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 0", borderBottom: i < topBenefits.length - 1 ? `1px solid ${tokens.semantic.borderLight}` : "none" }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: tokens.semantic.textDisabled, width: 20, letterSpacing: "0.2px" }}>#{i + 1}</span>
-                <span style={{ fontSize: 20 }}>{b.image}</span>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, fontSize: 13, letterSpacing: "0.2px" }}>{b.name}</div>
-                  <div style={{ fontSize: 12, color: tokens.semantic.textLighter, letterSpacing: "0.2px" }}>{b.category}</div>
-                </div>
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ fontWeight: 600, fontSize: 14, letterSpacing: "0.2px" }}>{b.redemptions}</div>
-                  <div style={{ fontSize: 11, color: tokens.semantic.textLighter, letterSpacing: "0.2px" }}>canjes</div>
+          {modalType === "assignment" ? (
+            <>
+              {/* ASSIGNMENT-specific inputs */}
+              <FormField label="Tipo de trigger">
+                <Select options={[
+                  { value: "", label: "Seleccionar tipo..." },
+                  { value: "periodic", label: "Periódico (diario, semanal, mensual)" },
+                  { value: "birthday", label: "Evento: Cumpleaños" },
+                  { value: "anniversary", label: "Evento: Aniversario laboral" },
+                  { value: "onboarding", label: "Evento: Alta de usuario" },
+                ]} />
+              </FormField>
+              <FormField label="Periodicidad (si aplica)">
+                <Select options={[
+                  { value: "", label: "Seleccionar..." },
+                  { value: "daily", label: "Diario" }, { value: "weekly", label: "Semanal" },
+                  { value: "monthly", label: "Mensual" }, { value: "quarterly", label: "Trimestral" },
+                ]} />
+              </FormField>
+              <FormField label="Créditos a asignar"><Input type="number" placeholder="Ej: 20" /></FormField>
+              <FormField label="Aplicar a">
+                <Select options={[
+                  { value: "all", label: "Todos los colaboradores" },
+                  { value: "dept", label: "Por departamento" },
+                  { value: "group", label: "Grupo específico" },
+                ]} />
+              </FormField>
+              <FormField label="Fecha de expiración (opcional)"><Input type="date" /></FormField>
+            </>
+          ) : (
+            <>
+              {/* GENERATION-specific inputs */}
+              <FormField label="Evento que genera créditos">
+                <Select options={[
+                  { value: "", label: "Seleccionar evento..." },
+                  { value: "course_complete", label: "Completar un curso" },
+                  { value: "lesson_complete", label: "Completar una lección de Learning" },
+                  { value: "eval_approved", label: "Aprobar evaluación de desempeño" },
+                  { value: "referral_hired", label: "Referir candidato que es contratado" },
+                  { value: "survey_complete", label: "Completar encuesta interna" },
+                  { value: "custom", label: "Evento personalizado" },
+                ]} />
+              </FormField>
+              <FormField label="Créditos a otorgar por logro"><Input type="number" placeholder="Ej: 5" /></FormField>
+              <div style={{ padding: 12, background: tokens.colors.info[50], borderRadius: tokens.radius.s, marginBottom: 16 }}>
+                <div style={{ fontSize: 12, color: tokens.colors.info[700], lineHeight: 1.5 }}>
+                  <strong>Conexión con Learning:</strong> Si seleccionás "Completar un curso" o "Completar lección", los créditos se otorgan automáticamente cuando el colaborador finaliza el contenido en la plataforma de Learning.
                 </div>
               </div>
-            ))}
+              <FormField label="Límite por colaborador (opcional)">
+                <Select options={[
+                  { value: "unlimited", label: "Sin límite" },
+                  { value: "1_per_day", label: "1 vez por día" },
+                  { value: "1_per_week", label: "1 vez por semana" },
+                  { value: "1_per_month", label: "1 vez por mes" },
+                  { value: "1_total", label: "Solo 1 vez" },
+                ]} />
+              </FormField>
+              <FormField label="Máximo de créditos acumulables (opcional)">
+                <Input type="number" placeholder="Ej: 50 (dejar vacío = sin límite)" />
+              </FormField>
+            </>
+          )}
+
+          <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
+            <Button variant="secondary" onClick={() => setShowModal(false)}>{t.cancelar}</Button>
+            <Button icon={Zap} onClick={() => { toast.success(modalType === "assignment" ? "Regla de asignación creada" : "Regla de generación creada"); setShowModal(false); }}>{t.crearRegla}</Button>
           </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+
+/* ════════════════════════════════════════════
+   PAGE: BUY CREDITS
+   ════════════════════════════════════════════ */
+function BuyCreditsPage({ data, t }: { data: any; t: T }) {
+  const [amount, setAmount] = useState("");
+  const [note, setNote] = useState("");
+  const pricePerCredit = 0.10;
+  const total = amount ? Number(amount) * pricePerCredit : 0;
+  const quickAmounts = [100, 500, 1000, 5000];
+
+  return (
+    <div>
+      <div style={{ marginBottom: 32 }}>
+        <h1 style={{ ...baseStyles, fontSize: 24, fontWeight: 600, lineHeight: 1.4, margin: 0 }}>{t.comprarCreditosTitulo}</h1>
+        <p style={{ ...baseStyles, fontSize: 14, color: tokens.semantic.textLighter, marginTop: 4, lineHeight: 1.4 }}>{t.comprarCreditosDesc}</p>
+      </div>
+
+      {/* Current balance */}
+      <Card style={{ marginBottom: 24, background: `linear-gradient(135deg, ${tokens.colors.humand[50]}, ${tokens.colors.purple[50]})` }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <div style={{ fontSize: 13, color: tokens.semantic.textLighter, marginBottom: 4 }}>{t.creditosDisponibles}</div>
+            <div style={{ fontSize: 36, fontWeight: 700, color: tokens.colors.humand[600] }}>{fmtCurrency(data.totalPending)}</div>
+          </div>
+          <div style={{ textAlign: "right" as const }}>
+            <div style={{ fontSize: 13, color: tokens.semantic.textLighter, marginBottom: 4 }}>{t.creditosAsignados}</div>
+            <div style={{ fontSize: 20, fontWeight: 600 }}>{fmtCurrency(data.totalCredited)}</div>
+          </div>
+        </div>
+      </Card>
+
+      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 24 }}>
+        {/* Left: add credits form */}
+        <Card>
+          <h3 style={{ ...baseStyles, fontSize: 18, fontWeight: 600, margin: "0 0 24px 0" }}>{t.sumarCreditos}</h3>
+
+          {/* Quick select */}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: tokens.semantic.textLighter, marginBottom: 10 }}>{t.montoRapido}</div>
+            <div style={{ display: "flex", gap: 10 }}>
+              {quickAmounts.map(q => (
+                <button key={q} onClick={() => setAmount(String(q))}
+                  style={{
+                    flex: 1, padding: "14px 8px", textAlign: "center" as const,
+                    borderRadius: tokens.radius.m, cursor: "pointer",
+                    background: amount === String(q) ? tokens.colors.humand[500] : "#fff",
+                    color: amount === String(q) ? "#fff" : tokens.semantic.textDefault,
+                    borderTop: `2px solid ${amount === String(q) ? tokens.colors.humand[500] : tokens.semantic.border}`,
+                    borderRight: `2px solid ${amount === String(q) ? tokens.colors.humand[500] : tokens.semantic.border}`,
+                    borderBottom: `2px solid ${amount === String(q) ? tokens.colors.humand[500] : tokens.semantic.border}`,
+                    borderLeft: `2px solid ${amount === String(q) ? tokens.colors.humand[500] : tokens.semantic.border}`,
+                    fontFamily: "Roboto", fontWeight: 700, fontSize: 16,
+                    transition: tokens.transition.fast,
+                  }}>
+                  {fmtNum(q)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Custom amount */}
+          <FormField label={t.cantidadPersonalizada}>
+            <Input type="number" placeholder="Ej: 3000" value={amount} onChange={(e: any) => setAmount(e.target.value)} />
+          </FormField>
+          <FormField label={`${t.nota} (${t.opcional})`}>
+            <Input placeholder="Ej: Compra Q2 2026" value={note} onChange={(e: any) => setNote(e.target.value)} />
+          </FormField>
+
+          {/* Price breakdown */}
+          {amount && Number(amount) > 0 && (
+            <div style={{ padding: 16, background: tokens.colors.neutral[50], borderRadius: tokens.radius.m, marginTop: 16 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 13, color: tokens.semantic.textLighter }}>
+                <span>{fmtNum(Number(amount))} créditos × {fmtCurrency(pricePerCredit)}</span>
+                <span>{fmtCurrency(total)}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", paddingTop: 8, borderTop: `1px solid ${tokens.semantic.borderLight}`, fontSize: 16, fontWeight: 700 }}>
+                <span>Total</span>
+                <span style={{ color: tokens.colors.humand[600] }}>{fmtCurrency(total)}</span>
+              </div>
+            </div>
+          )}
+
+          <Button variant="gradient" icon={ShoppingCart} size="lg"
+            style={{ width: "100%", justifyContent: "center", marginTop: 20 }}
+            onClick={() => { if (!amount || Number(amount) <= 0) { toast.error("Ingresá una cantidad"); return; } toast.success(`${fmtNum(Number(amount))} créditos agregados a tu cuenta`); setAmount(""); setNote(""); }}>
+            {t.sumarCreditos}
+          </Button>
         </Card>
 
-        <Card>
-          <h3 style={{ ...baseStyles, fontSize: 16, fontWeight: 600, margin: "0 0 20px 0", lineHeight: 1.4 }}>Colaboradores con mayor uso</h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {topUsers.map((u, i) => (
-              <div key={u.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 0", borderBottom: i < topUsers.length - 1 ? `1px solid ${tokens.semantic.borderLight}` : "none" }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: tokens.semantic.textDisabled, width: 20, letterSpacing: "0.2px" }}>#{i + 1}</span>
-                <Avatar initials={u.avatar} size={32} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, fontSize: 13, letterSpacing: "0.2px" }}>{u.name}</div>
-                  <div style={{ fontSize: 12, color: tokens.semantic.textLighter, letterSpacing: "0.2px" }}>{u.dept}</div>
-                </div>
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ fontWeight: 600, fontSize: 14, letterSpacing: "0.2px" }}>{u.spent.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</div>
-                  <div style={{ fontSize: 11, color: tokens.semantic.textLighter, letterSpacing: "0.2px" }}>créditos usados</div>
-                </div>
-                <ProgressBar value={u.spent} max={u.credits} color={tokens.colors.humand[400]} />
+        {/* Right: summary */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <Card style={{ background: tokens.colors.humand[50] }}>
+            <h4 style={{ ...baseStyles, fontSize: 14, fontWeight: 600, margin: "0 0 12px 0" }}>{t.resumenCompra}</h4>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <span style={{ fontSize: 13, color: tokens.semantic.textLighter }}>{t.creditosLabel}</span>
+              <span style={{ fontSize: 28, fontWeight: 700, color: tokens.colors.humand[600] }}>{amount ? fmtNum(Number(amount)) : "0"}</span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 12, borderTop: `1px solid ${tokens.colors.humand[200]}` }}>
+              <span style={{ fontSize: 13, color: tokens.semantic.textLighter }}>Costo</span>
+              <span style={{ fontSize: 22, fontWeight: 700 }}>{fmtCurrency(total)}</span>
+            </div>
+          </Card>
+
+          <Card>
+            <h4 style={{ ...baseStyles, fontSize: 14, fontWeight: 600, margin: "0 0 12px 0" }}>{t.preciosReferencia}</h4>
+            {[{ qty: 100, price: 10 }, { qty: 500, price: 50 }, { qty: 1000, price: 100 }, { qty: 5000, price: 500 }].map(({ qty, price }) => (
+              <div key={qty} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${tokens.semantic.borderLight}`, fontSize: 13 }}>
+                <span style={{ color: tokens.semantic.textLighter }}>{fmtNum(qty)} créditos</span>
+                <span style={{ fontWeight: 600 }}>{fmtCurrency(price)}</span>
               </div>
             ))}
-          </div>
-        </Card>
+            <div style={{ fontSize: 11, color: tokens.semantic.textDisabled, marginTop: 8 }}>{fmtCurrency(pricePerCredit)} por crédito</div>
+          </Card>
+        </div>
       </div>
     </div>
   );
@@ -2032,9 +1456,9 @@ function AnalyticsPage({ data }: { data: any }) {
 const benefitsSubNav = [
   { key: "dashboard", label: "Dashboard" },
   { key: "individual", label: "Colaboradores" },
-  { key: "benefits", label: "Catálogo" },
-  { key: "auto", label: "Cargas automáticas" },
-  { key: "analytics", label: "Analíticas" },
+  { key: "benefits", label: "Beneficios" },
+  { key: "auto", label: "Reglas automáticas" },
+  { key: "buy", label: "Comprar créditos" },
 ];
 
 const otherNav = [
@@ -2054,22 +1478,26 @@ export default function App() {
   const [activePage, setActivePage] = useState("dashboard");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [benefitsOpen, setBenefitsOpen] = useState(true);
+  const [lang, setLang] = useState<Lang>("es");
   const data = useAdminData();
+  const t = i18n[lang];
 
   const isBenefitsPage = benefitsSubNav.some(s => s.key === activePage);
+
+  // Localized sub-nav labels
+  const localizedSubNav = [
+    { key: "dashboard", label: t.dashboard },
+    { key: "individual", label: t.colaboradores },
+    { key: "benefits", label: t.beneficios },
+    { key: "auto", label: t.reglasAutomaticas },
+    { key: "buy", label: t.comprar },
+  ];
 
   if (data.loading) {
     return (
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: tokens.semantic.bgPage, ...baseStyles }}>
-        <div style={{ textAlign: "center", animation: "fadeIn 0.5s ease-out" }}>
-          <div style={{
-            width: 56, height: 56, borderRadius: 16,
-            background: `linear-gradient(135deg, ${tokens.colors.humand[500]}, ${tokens.colors.purple[500]})`,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            color: "#fff", fontWeight: 700, fontSize: 16, margin: "0 auto 20px",
-            letterSpacing: "0.2px", animation: "pulse 1.5s ease-in-out infinite",
-            boxShadow: tokens.shadow.glow,
-          }}>hu</div>
+        <div style={{ textAlign: "center" as const, animation: "fadeIn 0.5s ease-out" }}>
+          <div style={{ width: 56, height: 56, borderRadius: 16, background: `linear-gradient(135deg, ${tokens.colors.humand[500]}, ${tokens.colors.purple[500]})`, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: 16, margin: "0 auto 20px", letterSpacing: "0.2px", animation: "pulse 1.5s ease-in-out infinite", boxShadow: tokens.shadow.glow }}>hu</div>
           <div style={{ fontSize: 18, fontWeight: 600, color: tokens.semantic.textDefault, marginBottom: 6 }}>Cargando datos...</div>
           <div style={{ fontSize: 13, color: tokens.semantic.textLighter }}>Conectando con la base de datos</div>
           <div style={{ width: 120, height: 3, borderRadius: 2, margin: "16px auto 0", background: tokens.colors.neutral[150], overflow: "hidden" }}>
@@ -2082,40 +1510,22 @@ export default function App() {
 
   const renderPage = () => {
     switch (activePage) {
-      case "dashboard": return <DashboardPage data={data} />;
-      case "bulk": return <BulkLoadPage data={data} />;
-      case "individual": return <IndividualLoadPage data={data} onRefresh={data.refresh} />;
-      case "auto": return <AutoRulesPage data={data} />;
-      case "benefits": return <BenefitsPage data={data} />;
-      case "analytics": return <AnalyticsPage data={data} />;
-      default: return <DashboardPage data={data} />;
+      case "dashboard": return <DashboardPage data={data} t={t} onNavigate={setActivePage} onRefresh={data.refresh} />;
+      case "individual": return <ColaboradoresPage data={data} t={t} onRefresh={data.refresh} />;
+      case "auto": return <AutoRulesPage data={data} t={t} />;
+      case "benefits": return <BenefitsPage data={data} t={t} />;
+      case "buy": return <BuyCreditsPage data={data} t={t} />;
+      default: return <DashboardPage data={data} t={t} onNavigate={setActivePage} onRefresh={data.refresh} />;
     }
   };
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: tokens.semantic.bgPage, ...baseStyles }}>
       {/* Sidebar */}
-      <aside style={{
-        width: sidebarCollapsed ? 72 : 260,
-        background: "rgba(255,255,255,0.8)",
-        backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
-        borderRight: `1px solid ${tokens.semantic.borderLight}`,
-        display: "flex", flexDirection: "column", transition: "width 0.25s cubic-bezier(0.4,0,0.2,1)", flexShrink: 0,
-        position: "sticky", top: 0, height: "100vh", overflowY: "auto",
-      }}>
+      <aside style={{ width: sidebarCollapsed ? 72 : 260, background: "rgba(255,255,255,0.8)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", borderRight: `1px solid ${tokens.semantic.borderLight}`, display: "flex", flexDirection: "column", transition: "width 0.25s cubic-bezier(0.4,0,0.2,1)", flexShrink: 0, position: "sticky" as const, top: 0, height: "100vh", overflowY: "auto" as const }}>
         {/* Logo */}
-        <div style={{
-          padding: sidebarCollapsed ? "20px 16px" : "20px 24px",
-          display: "flex", alignItems: "center", gap: 12, borderBottom: `1px solid ${tokens.semantic.borderLight}`,
-        }}>
-          <div style={{
-            width: 36, height: 36, borderRadius: tokens.radius.m,
-            background: `linear-gradient(135deg, ${tokens.colors.humand[500]}, ${tokens.colors.purple[500]})`,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            color: "#fff", fontWeight: 600, fontSize: 14, flexShrink: 0, letterSpacing: "0.2px",
-          }}>
-            hu
-          </div>
+        <div style={{ padding: sidebarCollapsed ? "20px 16px" : "20px 24px", display: "flex", alignItems: "center", gap: 12, borderBottom: `1px solid ${tokens.semantic.borderLight}` }}>
+          <div style={{ width: 36, height: 36, borderRadius: tokens.radius.m, background: `linear-gradient(135deg, ${tokens.colors.humand[500]}, ${tokens.colors.purple[500]})`, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 600, fontSize: 14, flexShrink: 0, letterSpacing: "0.2px" }}>hu</div>
           {!sidebarCollapsed && (
             <div>
               <div style={{ fontWeight: 600, fontSize: 16, letterSpacing: "0.2px", lineHeight: 1.4 }}>Perks</div>
@@ -2125,75 +1535,35 @@ export default function App() {
         </div>
 
         {/* Nav */}
-        <nav style={{ flex: 1, padding: "16px 12px", overflowY: "auto" }}>
-          {/* Other nav items above the benefits group */}
+        <nav style={{ flex: 1, padding: "16px 12px", overflowY: "auto" as const }}>
           {otherNav.slice(0, 6).map(item => {
             const Icon = item.icon;
             return (
-              <button key={item.key} onClick={() => {}} style={{
-                width: "100%", display: "flex", alignItems: "center", gap: 12,
-                padding: sidebarCollapsed ? "10px 0" : "10px 12px",
-                justifyContent: sidebarCollapsed ? "center" : "flex-start",
-                background: "transparent", color: tokens.semantic.textLighter,
-                border: "none", borderRadius: tokens.radius.s, cursor: "pointer",
-                fontSize: 14, fontWeight: 400, marginBottom: 2,
-                fontFamily: "Roboto", letterSpacing: "0.2px",
-                transition: "all 0.15s ease",
-              }}>
+              <button key={item.key} onClick={() => {}} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: sidebarCollapsed ? "10px 0" : "10px 12px", justifyContent: sidebarCollapsed ? "center" : "flex-start", background: "transparent", color: tokens.semantic.textLighter, border: "none", borderRadius: tokens.radius.s, cursor: "pointer", fontSize: 14, fontWeight: 400, marginBottom: 2, fontFamily: "Roboto", letterSpacing: "0.2px", transition: "all 0.15s ease" }}>
                 <Icon size={20} />
                 {!sidebarCollapsed && item.label}
               </button>
             );
           })}
 
-          {/* ── Beneficios collapsible group ── */}
-          <div style={{
-            margin: "4px 0",
-            background: benefitsOpen ? tokens.colors.neutral[50] : "transparent",
-            borderRadius: tokens.radius.m,
-            transition: "background 0.2s ease",
-          }}>
-            {/* Group header */}
-            <button onClick={() => { setBenefitsOpen(!benefitsOpen); if (!benefitsOpen && !isBenefitsPage) setActivePage("dashboard"); }} style={{
-              width: "100%", display: "flex", alignItems: "center", gap: 12,
-              padding: sidebarCollapsed ? "10px 0" : "10px 12px",
-              justifyContent: sidebarCollapsed ? "center" : "flex-start",
-              background: "transparent",
-              color: isBenefitsPage ? tokens.colors.humand[600] : tokens.semantic.textLighter,
-              border: "none", borderRadius: tokens.radius.s, cursor: "pointer",
-              fontSize: 14, fontWeight: isBenefitsPage ? 600 : 400,
-              fontFamily: "Roboto", letterSpacing: "0.2px",
-              transition: "all 0.15s ease",
-            }}>
+          {/* Beneficios collapsible group */}
+          <div style={{ margin: "4px 0", background: benefitsOpen ? tokens.colors.neutral[50] : "transparent", borderRadius: tokens.radius.m, transition: "background 0.2s ease" }}>
+            <button onClick={() => { setBenefitsOpen(!benefitsOpen); if (!benefitsOpen && !isBenefitsPage) setActivePage("dashboard"); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: sidebarCollapsed ? "10px 0" : "10px 12px", justifyContent: sidebarCollapsed ? "center" : "flex-start", background: "transparent", color: isBenefitsPage ? tokens.colors.humand[600] : tokens.semantic.textLighter, border: "none", borderRadius: tokens.radius.s, cursor: "pointer", fontSize: 14, fontWeight: isBenefitsPage ? 600 : 400, fontFamily: "Roboto", letterSpacing: "0.2px", transition: "all 0.15s ease" }}>
               <Gift size={20} />
               {!sidebarCollapsed && (
                 <>
-                  <span style={{ flex: 1, textAlign: "left" }}>Beneficios</span>
-                  <ChevronDown size={16} style={{
-                    transition: "transform 0.2s ease",
-                    transform: benefitsOpen ? "rotate(0deg)" : "rotate(-90deg)",
-                  }} />
+                  <span style={{ flex: 1, textAlign: "left" as const }}>{t.beneficios}</span>
+                  <ChevronDown size={16} style={{ transition: "transform 0.2s ease", transform: benefitsOpen ? "rotate(0deg)" : "rotate(-90deg)" }} />
                 </>
               )}
             </button>
 
-            {/* Sub-items */}
             {benefitsOpen && !sidebarCollapsed && (
               <div style={{ padding: "0 0 8px 0" }}>
-                {benefitsSubNav.map(sub => {
+                {localizedSubNav.map(sub => {
                   const isActive = activePage === sub.key;
                   return (
-                    <button key={sub.key} onClick={() => setActivePage(sub.key)} style={{
-                      width: "100%", display: "flex", alignItems: "center",
-                      padding: "8px 12px 8px 44px", textAlign: "left",
-                      background: "transparent",
-                      color: isActive ? tokens.colors.humand[600] : tokens.semantic.textLighter,
-                      border: "none", cursor: "pointer",
-                      fontSize: 14, fontWeight: isActive ? 600 : 400,
-                      fontFamily: "Roboto", letterSpacing: "0.2px",
-                      borderRadius: tokens.radius.s,
-                      transition: "all 0.15s ease",
-                    }}>
+                    <button key={sub.key} onClick={() => setActivePage(sub.key)} style={{ width: "100%", display: "flex", alignItems: "center", padding: "8px 12px 8px 44px", textAlign: "left" as const, background: "transparent", color: isActive ? tokens.colors.humand[600] : tokens.semantic.textLighter, border: "none", cursor: "pointer", fontSize: 14, fontWeight: isActive ? 600 : 400, fontFamily: "Roboto", letterSpacing: "0.2px", borderRadius: tokens.radius.s, transition: "all 0.15s ease" }}>
                       {sub.label}
                     </button>
                   );
@@ -2202,20 +1572,10 @@ export default function App() {
             )}
           </div>
 
-          {/* Remaining nav items */}
           {otherNav.slice(6).map(item => {
             const Icon = item.icon;
             return (
-              <button key={item.key} onClick={() => {}} style={{
-                width: "100%", display: "flex", alignItems: "center", gap: 12,
-                padding: sidebarCollapsed ? "10px 0" : "10px 12px",
-                justifyContent: sidebarCollapsed ? "center" : "flex-start",
-                background: "transparent", color: tokens.semantic.textLighter,
-                border: "none", borderRadius: tokens.radius.s, cursor: "pointer",
-                fontSize: 14, fontWeight: 400, marginBottom: 2,
-                fontFamily: "Roboto", letterSpacing: "0.2px",
-                transition: "all 0.15s ease",
-              }}>
+              <button key={item.key} onClick={() => {}} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: sidebarCollapsed ? "10px 0" : "10px 12px", justifyContent: sidebarCollapsed ? "center" : "flex-start", background: "transparent", color: tokens.semantic.textLighter, border: "none", borderRadius: tokens.radius.s, cursor: "pointer", fontSize: 14, fontWeight: 400, marginBottom: 2, fontFamily: "Roboto", letterSpacing: "0.2px", transition: "all 0.15s ease" }}>
                 <Icon size={20} />
                 {!sidebarCollapsed && item.label}
               </button>
@@ -2224,11 +1584,7 @@ export default function App() {
         </nav>
 
         {/* Collapse toggle */}
-        <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} style={{
-          padding: 16, background: "none", border: "none", boxShadow: `inset 0 1px 0 ${tokens.semantic.borderLight}`,
-          cursor: "pointer", color: tokens.semantic.textLighter, display: "flex",
-          alignItems: "center", justifyContent: "center", gap: 8, fontSize: 12, fontFamily: "Roboto", letterSpacing: "0.2px",
-        }}>
+        <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} style={{ padding: 16, background: "none", borderTop: `1px solid ${tokens.semantic.borderLight}`, borderRight: "none", borderBottom: "none", borderLeft: "none", cursor: "pointer", color: tokens.semantic.textLighter, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontSize: 12, fontFamily: "Roboto", letterSpacing: "0.2px" }}>
           {sidebarCollapsed ? <ChevronRight size={16} /> : <><ChevronLeft size={16} /> Colapsar</>}
         </button>
       </aside>
@@ -2236,29 +1592,25 @@ export default function App() {
       {/* Main content */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, background: tokens.semantic.bgPage }}>
         {/* Top bar */}
-        <header style={{
-          height: 56,
-          background: "rgba(255,255,255,0.8)",
-          backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          padding: "0 24px", position: "sticky", top: 0, zIndex: 10, flexShrink: 0,
-        }}>
+        <header style={{ height: 56, background: "rgba(255,255,255,0.8)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", boxShadow: "0 1px 3px rgba(0,0,0,0.04)", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 24px", position: "sticky" as const, top: 0, zIndex: 10, flexShrink: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <span style={{ fontSize: 14, color: tokens.semantic.textLighter, letterSpacing: "0.2px" }}>
               Plataforma de Beneficios Corporativos
             </span>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <button style={{ background: "none", border: "none", cursor: "pointer", color: tokens.semantic.textLighter, padding: 4 }}>
-              <HelpCircle size={20} />
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            {/* Language toggle */}
+            <button onClick={() => setLang(lang === "es" ? "en" : "es")} style={{
+              ...baseStyles, display: "flex", alignItems: "center", gap: 6,
+              background: tokens.colors.humand[50], border: `1px solid ${tokens.colors.humand[200]}`,
+              borderRadius: 999, padding: "4px 12px", cursor: "pointer", fontSize: 12, fontWeight: 600,
+              color: tokens.colors.humand[600], transition: tokens.transition.fast,
+            }}>
+              <Globe size={14} />
+              {lang === "es" ? "ES" : "EN"}
             </button>
-            <button style={{ background: "none", border: "none", cursor: "pointer", color: tokens.semantic.textLighter, padding: 4 }}>
-              <Bell size={20} />
-            </button>
-            <button style={{ background: "none", border: "none", cursor: "pointer", color: tokens.semantic.textLighter, padding: 4 }}>
-              <Globe size={20} />
-            </button>
+            <button style={{ background: "none", border: "none", cursor: "pointer", color: tokens.semantic.textLighter, padding: 4 }}><HelpCircle size={20} /></button>
+            <button style={{ background: "none", border: "none", cursor: "pointer", color: tokens.semantic.textLighter, padding: 4 }}><Bell size={20} /></button>
             <Avatar initials="FC" size={32} />
           </div>
         </header>
