@@ -214,26 +214,45 @@ export async function completeCourse(userId: string, courseId: string) {
   const { data: existing } = await supabase.from('course_completions').select('id').eq('user_id', userId).eq('course_id', courseId).single()
   if (existing) throw new Error('ALREADY_COMPLETED')
 
+  // Check for active generation rule "Curso completado"
+  const { data: genRule } = await supabase
+    .from('auto_rules')
+    .select('*')
+    .eq('type', 'generation')
+    .eq('trigger', 'Curso completado')
+    .eq('status', 'active')
+    .limit(1)
+    .single()
+
+  // Use generation rule amount if active, otherwise fall back to course reward
+  const creditsToAward = genRule ? Number(genRule.amount) : Number(course.credits_reward)
+
   // Mark as completed
   await supabase.from('course_completions').insert({
     user_id: userId,
     course_id: courseId,
-    credits_earned: course.credits_reward,
+    credits_earned: creditsToAward,
   })
 
   // Credit the wallet
   const { data: wallet } = await supabase.from('wallets').select('*').eq('user_id', userId).single()
   if (wallet) {
-    const newBalance = Math.round((wallet.balance + Number(course.credits_reward)) * 100) / 100
+    const newBalance = Math.round((wallet.balance + creditsToAward) * 100) / 100
     await supabase.from('wallets').update({ balance: newBalance, updated_at: new Date().toISOString() }).eq('id', wallet.id)
     await supabase.from('transactions').insert({
       id: `tx_${Math.random().toString(36).substring(2, 10)}`,
       wallet_id: wallet.id,
       type: 'credit',
-      amount: course.credits_reward,
+      amount: creditsToAward,
       description: `Curso completado: ${course.title}`,
     })
-    return { credits_earned: course.credits_reward, new_balance: newBalance, course_title: course.title }
+
+    // Update generation rule last_run
+    if (genRule) {
+      await supabase.from('auto_rules').update({ last_run: new Date().toISOString() }).eq('id', genRule.id)
+    }
+
+    return { credits_earned: creditsToAward, new_balance: newBalance, course_title: course.title }
   }
   throw new Error('WALLET_NOT_FOUND')
 }
