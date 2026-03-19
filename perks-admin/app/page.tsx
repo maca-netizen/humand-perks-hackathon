@@ -929,22 +929,47 @@ function BulkLoadPage({ data }: { data: any }) {
 
       {showModal && (
         <Modal title={t("newBulkLoad")} onClose={() => setShowModal(false)} wide>
-          <EmptyDrop label={t("uploadCSV")} sublabel={t("dragDropCSV")} />
-          <div style={{ marginTop: 16, padding: 12, background: tokens.colors.info[50], borderRadius: tokens.radius.s, fontSize: 12, color: tokens.colors.info[700], letterSpacing: "0.2px", lineHeight: 1.4 }}>
+          {/* Download CSV template */}
+          <div style={{ marginBottom: 20 }}>
+            <Button variant="secondary" icon={Download} size="sm" onClick={() => {
+              const csv = "email,creditos\nmaria@novatech.com,20\njuan@novatech.com,20\nana@novatech.com,15\n";
+              const blob = new Blob([csv], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a"); a.href = url; a.download = "plantilla_carga_creditos.csv"; a.click();
+              URL.revokeObjectURL(url);
+              toast.success(t("csvTemplateDownloaded"));
+            }}>{t("downloadTemplate")}</Button>
+          </div>
+          {/* Upload CSV */}
+          <div style={{ marginBottom: 16 }}>
+            <label style={{
+              display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center",
+              padding: 32, borderRadius: tokens.radius.m, cursor: "pointer",
+              borderTop: `2px dashed ${tokens.semantic.border}`, borderRight: `2px dashed ${tokens.semantic.border}`,
+              borderBottom: `2px dashed ${tokens.semantic.border}`, borderLeft: `2px dashed ${tokens.semantic.border}`,
+              background: tokens.colors.neutral[50], transition: tokens.transition.fast,
+            }}>
+              <Upload size={28} color={tokens.colors.humand[400]} style={{ marginBottom: 8 }} />
+              <span style={{ fontSize: 14, fontWeight: 600, color: tokens.semantic.textDefault }}>{t("uploadCSV")}</span>
+              <span style={{ fontSize: 12, color: tokens.semantic.textLighter, marginTop: 4 }}>{t("dragDropCSV")}</span>
+              <input type="file" accept=".csv" style={{ display: "none" }} onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) toast.success(`${t("fileSelected")}: ${file.name}`);
+              }} />
+            </label>
+          </div>
+          <div style={{ padding: 12, background: tokens.colors.info[50], borderRadius: tokens.radius.s, fontSize: 12, color: tokens.colors.info[600], lineHeight: 1.5, marginBottom: 16 }}>
             <strong>{t("csvFormatLabel")}:</strong> {t("csvFormatDesc")}
           </div>
           <FormField label={t("creditsPerUserField")}>
-            <Input type="number" placeholder="1500" />
+            <Input type="number" placeholder="20" />
           </FormField>
           <FormField label={t("loadReason")}>
-            <Input placeholder="Ej: Carga mensual marzo 2026" />
-          </FormField>
-          <FormField label={t("expirationDate")}>
-            <Input type="date" />
+            <Input placeholder={t("loadReasonPlaceholder")} />
           </FormField>
           <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
             <Button variant="secondary" onClick={() => setShowModal(false)}>{t("cancel")}</Button>
-            <Button icon={Upload} onClick={() => { toast.success("Carga masiva procesada exitosamente"); setShowModal(false); }}>{t("processLoad")}</Button>
+            <Button icon={Upload} onClick={() => { toast.success(t("bulkLoadSuccess")); setShowModal(false); }}>{t("processLoad")}</Button>
           </div>
         </Modal>
       )}
@@ -1754,10 +1779,7 @@ function BenefitsPage({ data }: { data: any }) {
             {t("benefitsManagementSubtitle")}
           </p>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <Button icon={Plus} onClick={() => setShowCatalog(true)}>Nuevo beneficio</Button>
-          <Button icon={Plus} variant="secondary" onClick={() => setShowModal(true)}>{t("newBenefit")}</Button>
-        </div>
+        <Button icon={Plus} onClick={() => setShowCatalog(true)}>{t("newBenefit")}</Button>
       </div>
 
       <div style={{ display: "flex", gap: 24 }}>
@@ -1801,15 +1823,25 @@ function BenefitsPage({ data }: { data: any }) {
           {viewMode === "grid" ? (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
               {filtered.map(b => (
-                <Card key={b.id} hoverable style={{ cursor: "pointer" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-                    <div style={{ fontSize: 40, lineHeight: 1 }}>{b.image}</div>
-                    <Badge variant={b.status === "active" ? "success" : "warning"}>
-                      {b.status === "active" ? t("benefitStatusActive") : t("benefitStatusPaused")}
-                    </Badge>
+                <Card key={b.id} hoverable style={{ cursor: "pointer", padding: 0, overflow: "hidden" }}>
+                  {/* Cover image */}
+                  <div style={{ position: "relative" as const, height: 140, overflow: "hidden" }}>
+                    {b.image_url ? (
+                      <img src={b.image_url} alt={b.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    ) : (
+                      <div style={{ width: "100%", height: "100%", background: `linear-gradient(135deg, ${tokens.colors.humand[50]}, ${tokens.colors.purple[50]})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48 }}>
+                        {b.image}
+                      </div>
+                    )}
+                    <div style={{ position: "absolute" as const, top: 10, right: 10 }}>
+                      <Badge variant={b.status === "active" ? "success" : "warning"}>
+                        {b.status === "active" ? t("benefitStatusActive") : t("benefitStatusPaused")}
+                      </Badge>
+                    </div>
                   </div>
-                  <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 4, letterSpacing: "0.2px", lineHeight: 1.4 }}>{b.name}</div>
-                  <div style={{ fontSize: 12, color: tokens.semantic.textLighter, marginBottom: 12, letterSpacing: "0.2px" }}>{b.category} · {b.provider}</div>
+                  <div style={{ padding: "16px 20px 20px" }}>
+                  <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 4, lineHeight: 1.4 }}>{b.name}</div>
+                  <div style={{ fontSize: 12, color: tokens.semantic.textLighter, marginBottom: 12 }}>{b.category} · {b.provider}</div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                       <CreditCard size={14} color={tokens.colors.humand[500]} />
@@ -1824,6 +1856,7 @@ function BenefitsPage({ data }: { data: any }) {
                     <Button variant="secondary" size="sm" icon={Edit3} style={{ flex: 1 }} onClick={() => openEdit(b)}>{t("edit")}</Button>
                     <Button variant="ghost" size="sm" icon={Eye} onClick={() => setViewBenefit(b)}>{t("view")}</Button>
                   </div>
+                  </div>{/* close padding wrapper */}
                 </Card>
               ))}
             </div>
@@ -2252,54 +2285,6 @@ function BenefitsPage({ data }: { data: any }) {
               <Button variant="secondary" onClick={() => setEditBenefit(null)}>Cancelar</Button>
               <Button icon={Check} onClick={handleSaveEdit}>Guardar cambios</Button>
             </div>
-          </div>
-        </Modal>
-      )}
-
-      {/* ── New benefit modal ── */}
-      {showModal && (
-        <Modal title={t("newBenefit")} onClose={() => setShowModal(false)} wide>
-          <FormField label={t("benefitName")}>
-            <Input placeholder="Ej: Gimnasio mensual" />
-          </FormField>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-            <FormField label={t("category")}>
-              <Select options={[
-                { value: "", label: "Seleccionar..." },
-                { value: "wellness", label: "Bienestar" },
-                { value: "education", label: "Educación" },
-                { value: "food", label: "Gastronomía" },
-                { value: "entertainment", label: "Entretenimiento" },
-                { value: "shopping", label: "Shopping" },
-                { value: "mobility", label: "Movilidad" },
-                { value: "timeoff", label: "Tiempo libre" },
-              ]} />
-            </FormField>
-            <FormField label={t("provider")}>
-              <Input placeholder="Ej: SmartFit" />
-            </FormField>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-            <FormField label={t("creditCost")}>
-              <Input type="number" placeholder="500" />
-            </FormField>
-            <FormField label={t("availableStock")}>
-              <Input type="number" placeholder="Ilimitado si se deja vacío" />
-            </FormField>
-          </div>
-          <FormField label={t("description")}>
-            <textarea placeholder="Describí el beneficio..." style={{
-              ...baseStyles, width: "100%", padding: "10px 12px", minHeight: 80,
-              border: `1px solid ${tokens.semantic.border}`, borderRadius: tokens.radius.s,
-              fontSize: 14, lineHeight: 1.4, outline: "none", resize: "vertical", boxSizing: "border-box",
-            }} />
-          </FormField>
-          <FormField label={t("imageOrEmoji")}>
-            <Input placeholder="Ej: 🏋️ o URL de imagen" />
-          </FormField>
-          <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
-            <Button variant="secondary" onClick={() => setShowModal(false)}>{t("cancel")}</Button>
-            <Button icon={Plus}>{t("createBenefit")}</Button>
           </div>
         </Modal>
       )}
