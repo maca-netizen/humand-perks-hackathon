@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { Coffee, ShoppingBag, Utensils, Ticket, CreditCard, QrCode, ChevronLeft, ChevronRight } from "lucide-react"
+import { useLanguage } from "@/contexts/LanguageContext"
 
 const transactions = [
   {
@@ -74,17 +75,18 @@ const categoryConfig = {
   deposit: { icon: CreditCard, color: "#3D5A80" },
 }
 
-const statusConfig = {
-  active: { label: "Activo", bg: "#F0FDF4", color: "#22C55E" },
-  used: { label: "Usado", bg: "#F1F3F7", color: "#718096" },
-  expired: { label: "Vencido", bg: "#FEF2F2", color: "#EF4444" },
-  completed: { label: "Completado", bg: "#F0FDF4", color: "#22C55E" },
-}
-
 type FilterType = "all" | "redemptions" | "credits"
 
 export default function HistoryPage() {
+  const { t } = useLanguage()
   const [filter, setFilter] = useState<FilterType>("all")
+
+  const statusConfig = {
+    active: { label: t("statusActive"), bg: "#F0FDF4", color: "#22C55E" },
+    used: { label: t("statusUsed"), bg: "#F1F3F7", color: "#718096" },
+    expired: { label: t("statusExpired"), bg: "#FEF2F2", color: "#EF4444" },
+    completed: { label: t("statusCompleted"), bg: "#F0FDF4", color: "#22C55E" },
+  }
 
   const filteredTransactions = transactions.filter(tx => {
     if (filter === "all") return true
@@ -100,23 +102,23 @@ export default function HistoryPage() {
         <Link href="/perks" className="p-1">
           <ChevronLeft className="h-6 w-6 text-[#2D3748]" />
         </Link>
-        <h1 className="text-[18px] font-semibold text-[#2D3748]">Historial</h1>
+        <h1 className="text-[18px] font-semibold text-[#2D3748]">{t("history")}</h1>
       </header>
-      
+
       <main className="max-w-lg mx-auto px-5 py-4 pb-28">
-        {/* Filter Pills - Humand yellow active style */}
+        {/* Filter Pills */}
         <div className="flex gap-2 mb-5 -mx-5 px-5 overflow-x-auto scrollbar-hide">
           {([
-            { id: "all", label: "Todos" },
-            { id: "redemptions", label: "Canjes" },
-            { id: "credits", label: "Creditos" }
+            { id: "all", label: t("all_filter") },
+            { id: "redemptions", label: t("redemptions") },
+            { id: "credits", label: t("creditsFilter") }
           ] as { id: FilterType; label: string }[]).map((f) => (
             <button
               key={f.id}
               onClick={() => setFilter(f.id)}
               className={`whitespace-nowrap px-4 py-2 rounded-full text-[13px] font-medium transition-colors ${
-                filter === f.id 
-                  ? "bg-[#FEF3C7] text-[#92400E] border border-[#FCD34D]" 
+                filter === f.id
+                  ? "bg-[#FEF3C7] text-[#92400E] border border-[#FCD34D]"
                   : "bg-white border border-[#E8ECF1] text-[#2D3748]"
               }`}
             >
@@ -166,7 +168,7 @@ export default function HistoryPage() {
                       {tx.status === "active" && tx.code && (
                         <button className="flex items-center gap-1 text-[12px] font-medium text-[#3D5A80]">
                           <QrCode className="h-3.5 w-3.5" />
-                          Ver codigo
+                          {t("viewCode")}
                         </button>
                       )}
                     </div>
@@ -181,7 +183,7 @@ export default function HistoryPage() {
 
         {filteredTransactions.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-[#718096]">No se encontraron transacciones.</p>
+            <p className="text-[#718096]">{t("noTransactionsFound")}</p>
           </div>
         )}
       </main>

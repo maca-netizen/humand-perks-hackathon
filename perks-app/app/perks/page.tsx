@@ -4,8 +4,10 @@ import { useState, useEffect } from "react"
 import { ChevronLeft, ChevronRight, Wallet, Clock, CreditCard, Check, Copy } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { getWallet, getBenefits, redeemBenefit } from "@/lib/supabase"
+import { useLanguage } from "@/contexts/LanguageContext"
 
-const categories = ["Todos", "Salud", "Educacion", "Bienestar", "Gastronomia", "Entretenimiento"]
+const CATEGORY_VALUES = ["Todos", "Salud", "Educacion", "Bienestar", "Gastronomia", "Entretenimiento"]
+const CATEGORY_LABEL_KEYS = ["all", "health", "education", "wellness", "gastronomy", "entertainment"] as const
 
 type Benefit = { id: string; name: string; category: string; cost: number; image_url: string }
 type Transaction = { id: string; description: string; amount: number; type: string; created_at: string; benefits?: { name: string } | null }
@@ -14,6 +16,8 @@ type Screen = "tabs" | "confirm" | "success"
 
 export default function PerksApp() {
   const router = useRouter()
+  const { t, language } = useLanguage()
+  const categories = CATEGORY_VALUES.map((value, i) => ({ value, label: t(CATEGORY_LABEL_KEYS[i]) }))
   const [activeTab, setActiveTab] = useState<Tab>("wallet")
   const [screen, setScreen] = useState<Screen>("tabs")
   const [selectedBenefit, setSelectedBenefit] = useState<Benefit | null>(null)
@@ -78,14 +82,14 @@ export default function PerksApp() {
   }
 
   const tabItems: { key: Tab; label: string }[] = [
-    { key: "wallet", label: "Mi Wallet" },
-    { key: "beneficios", label: "Beneficios" },
-    { key: "historial", label: "Historial" },
+    { key: "wallet", label: t("myWallet") },
+    { key: "beneficios", label: t("benefits") },
+    { key: "historial", label: t("history") },
   ]
 
   if (loading) return (
     <div className="min-h-screen bg-[#F2F3F7] flex items-center justify-center">
-      <div className="text-[#8E8E93] text-[15px]">Cargando...</div>
+      <div className="text-[#8E8E93] text-[15px]">{t("loading")}</div>
     </div>
   )
 
@@ -113,12 +117,12 @@ export default function PerksApp() {
             </div>
 
             <h2 className="text-[22px] font-bold text-[#1A1A2E] mb-1 text-balance text-center">
-              {"Beneficio activado!"}
+              {t("benefitActivated")}
             </h2>
             <p className="text-[15px] text-[#8E8E93] mb-8">{selectedBenefit.name}</p>
 
             <div className="w-full bg-white rounded-2xl p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] mb-4">
-              <p className="text-[13px] text-[#8E8E93] mb-2">Codigo de voucher</p>
+              <p className="text-[13px] text-[#8E8E93] mb-2">{t("voucherCode")}</p>
               <div className="flex items-center justify-between bg-[#F2F3F7] rounded-xl px-4 py-3 mb-5">
                 <span className="text-[18px] font-mono font-bold text-[#1A1A2E] tracking-wider">{voucherCode}</span>
                 <button onClick={handleCopyCode} className="text-[#4B5EAA] active:scale-90 transition-transform">
@@ -157,15 +161,15 @@ export default function PerksApp() {
               </div>
 
               <div className="flex justify-between text-[13px]">
-                <span className="text-[#8E8E93]">Vence</span>
+                <span className="text-[#8E8E93]">{t("expires")}</span>
                 <span className="text-[#1A1A2E] font-medium">18 Abr 2026</span>
               </div>
             </div>
 
             <div className="w-full bg-white rounded-2xl px-5 py-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)] mb-8">
               <div className="flex items-center justify-between">
-                <span className="text-[14px] text-[#8E8E93]">Saldo restante</span>
-                <span className="text-[18px] font-bold text-[#4B5EAA]">{balance} creditos</span>
+                <span className="text-[14px] text-[#8E8E93]">{t("remainingBalance")}</span>
+                <span className="text-[18px] font-bold text-[#4B5EAA]">{balance} {t("credits")}</span>
               </div>
             </div>
 
@@ -173,7 +177,7 @@ export default function PerksApp() {
               onClick={() => { setScreen("tabs"); setActiveTab("wallet"); }}
               className="w-full h-[50px] bg-[#4B5EAA] text-white rounded-2xl text-[16px] font-semibold active:scale-[0.98] transition-transform"
             >
-              Volver
+              {t("back")}
             </button>
           </div>
         </div>
@@ -191,34 +195,34 @@ export default function PerksApp() {
         <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setScreen("tabs")} />
         <div className="relative w-full max-w-[420px] bg-white rounded-t-3xl px-6 pt-5 pb-8">
           <div className="w-10 h-1 bg-[#E5E5EA] rounded-full mx-auto mb-5" />
-          <h3 className="text-[20px] font-bold text-[#1A1A2E] mb-1">Confirmar canje</h3>
+          <h3 className="text-[20px] font-bold text-[#1A1A2E] mb-1">{t("confirmRedemption")}</h3>
           <p className="text-[14px] text-[#8E8E93] mb-5">
-            {"Vas a canjear "}
+            {t("aboutToRedeem") + " "}
             <span className="font-semibold text-[#1A1A2E]">{selectedBenefit.name}</span>
-            {" por "}
-            <span className="font-semibold text-[#1A1A2E]">{selectedBenefit.cost} creditos</span>.
+            {" " + t("forCredits") + " "}
+            <span className="font-semibold text-[#1A1A2E]">{selectedBenefit.cost} {t("credits")}</span>.
           </p>
 
           <div className="bg-[#F2F3F7] rounded-2xl p-4 mb-5">
             <div className="flex justify-between mb-3">
-              <span className="text-[14px] text-[#8E8E93]">Saldo actual</span>
-              <span className="text-[14px] font-semibold text-[#1A1A2E]">{balance} creditos</span>
+              <span className="text-[14px] text-[#8E8E93]">{t("currentBalance")}</span>
+              <span className="text-[14px] font-semibold text-[#1A1A2E]">{balance} {t("credits")}</span>
             </div>
             <div className="flex justify-between mb-3">
-              <span className="text-[14px] text-[#8E8E93]">Costo</span>
-              <span className="text-[14px] font-semibold text-[#E8B230]">-{selectedBenefit.cost} creditos</span>
+              <span className="text-[14px] text-[#8E8E93]">{t("cost")}</span>
+              <span className="text-[14px] font-semibold text-[#E8B230]">-{selectedBenefit.cost} {t("credits")}</span>
             </div>
             <div className="h-px bg-[#E5E5EA] my-2" />
             <div className="flex justify-between pt-1">
-              <span className="text-[14px] text-[#8E8E93]">Saldo restante</span>
+              <span className="text-[14px] text-[#8E8E93]">{t("remainingBalance")}</span>
               <span className={`text-[15px] font-bold ${canAfford ? "text-[#34C759]" : "text-[#FF3B30]"}`}>
-                {balance - selectedBenefit.cost} creditos
+                {balance - selectedBenefit.cost} {t("credits")}
               </span>
             </div>
           </div>
 
           {!canAfford && (
-            <p className="text-[13px] text-[#FF3B30] mb-4 text-center">No tenes creditos suficientes.</p>
+            <p className="text-[13px] text-[#FF3B30] mb-4 text-center">{t("insufficientCredits")}</p>
           )}
 
           <div className="flex gap-3">
@@ -226,14 +230,14 @@ export default function PerksApp() {
               onClick={() => setScreen("tabs")}
               className="flex-1 h-[50px] border-2 border-[#E5E5EA] rounded-2xl text-[15px] font-semibold text-[#1A1A2E] active:bg-[#F2F3F7] transition-colors"
             >
-              Cancelar
+              {t("cancel")}
             </button>
             <button
               onClick={confirmRedeem}
               disabled={!canAfford}
               className="flex-1 h-[50px] bg-[#4B5EAA] text-white rounded-2xl text-[15px] font-semibold active:scale-[0.98] transition-transform disabled:opacity-40 disabled:active:scale-100"
             >
-              Confirmar
+              {t("confirm")}
             </button>
           </div>
         </div>
@@ -293,11 +297,11 @@ export default function PerksApp() {
                     <Wallet size={24} color="#4B5EAA" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13px] text-[#8E8E93] mb-0.5">Mi saldo</p>
+                    <p className="text-[13px] text-[#8E8E93] mb-0.5">{t("myBalance")}</p>
                     <p className="text-[30px] font-bold text-[#1A1A2E] leading-none tracking-tight">{balance}.00</p>
                   </div>
                   <div className="bg-[#F2F3F7] rounded-full px-3 py-1.5 shrink-0">
-                    <span className="text-[12px] font-semibold text-[#4B5EAA]">Creditos: {balance}</span>
+                    <span className="text-[12px] font-semibold text-[#4B5EAA]">{t("credits")}: {balance}</span>
                   </div>
                 </div>
               </div>
@@ -309,8 +313,8 @@ export default function PerksApp() {
                     <Clock size={18} color="#E8B230" />
                   </div>
                   <div>
-                    <p className="text-[13px] font-semibold text-[#1A1A2E]">Tus creditos vencen el {new Date(expiresAt).toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })}</p>
-                    <p className="text-[11px] text-[#8E8E93]">Usalos antes de que expiren</p>
+                    <p className="text-[13px] font-semibold text-[#1A1A2E]">{t("creditsExpire")} {new Date(expiresAt).toLocaleDateString(language === 'en' ? 'en-US' : 'es-AR', { day: 'numeric', month: 'long' })}</p>
+                    <p className="text-[11px] text-[#8E8E93]">{t("useBeforeExpiry")}</p>
                   </div>
                 </div>
               )}
@@ -321,15 +325,15 @@ export default function PerksApp() {
                 className={`bg-white rounded-2xl p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex items-center gap-4 border active:bg-[#FAFAFA] transition-colors text-left ${balance > 0 ? 'border-[#E8B230]/30' : 'border-[#E5E5EA]'}`}
               >
                 <div className="flex-1">
-                  <p className="text-[15px] font-semibold text-[#1A1A2E]">{balance > 0 ? 'Beneficios disponibles' : 'Sin creditos disponibles'}</p>
-                  <p className="text-[13px] text-[#8E8E93] mt-0.5">{balance > 0 ? 'Tenes creditos para usar' : 'Completa cursos para ganar creditos'}</p>
+                  <p className="text-[15px] font-semibold text-[#1A1A2E]">{balance > 0 ? t("benefitsAvailable") : t("noCreditsAvailable")}</p>
+                  <p className="text-[13px] text-[#8E8E93] mt-0.5">{balance > 0 ? t("youHaveCredits") : t("completeCoursesForCredits")}</p>
                 </div>
                 <ChevronRight size={20} color="#E8B230" />
               </button>
 
               {/* Transactions */}
               <div>
-                <h3 className="text-[16px] font-semibold text-[#1A1A2E] mb-3 px-1">Ultimos movimientos</h3>
+                <h3 className="text-[16px] font-semibold text-[#1A1A2E] mb-3 px-1">{t("recentMovements")}</h3>
                 <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] divide-y divide-[#F2F3F7]">
                   {transactions.slice(0, 4).map((tx) => (
                     <div key={tx.id} className="flex items-center justify-between px-4 py-3.5">
@@ -366,16 +370,16 @@ export default function PerksApp() {
               <div className="flex gap-2 px-4 overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden">
                 {categories.map((cat) => (
                   <button
-                    key={cat}
-                    onClick={() => setSelectedCategory(cat)}
+                    key={cat.value}
+                    onClick={() => setSelectedCategory(cat.value)}
                     className="shrink-0 px-4 py-[9px] rounded-full text-[13px] font-medium transition-all"
                     style={{
-                      backgroundColor: selectedCategory === cat ? "#4B5EAA" : "white",
-                      color: selectedCategory === cat ? "white" : "#1A1A2E",
-                      boxShadow: selectedCategory !== cat ? "0 1px 4px rgba(0,0,0,0.06)" : "none",
+                      backgroundColor: selectedCategory === cat.value ? "#4B5EAA" : "white",
+                      color: selectedCategory === cat.value ? "white" : "#1A1A2E",
+                      boxShadow: selectedCategory !== cat.value ? "0 1px 4px rgba(0,0,0,0.06)" : "none",
                     }}
                   >
-                    {cat}
+                    {cat.label}
                   </button>
                 ))}
               </div>
@@ -395,14 +399,14 @@ export default function PerksApp() {
                     <div className="p-3 flex flex-col gap-2">
                       <p className="text-[14px] font-semibold text-[#1A1A2E]">{benefit.name}</p>
                       <span className="inline-block self-start bg-[#EDEDFC] text-[#4B5EAA] text-[12px] font-semibold px-2.5 py-1 rounded-full">
-                        {benefit.cost} creditos
+                        {benefit.cost} {t("credits")}
                       </span>
                       <button
                         onClick={() => handleRedeem(benefit)}
                         disabled={balance < benefit.cost}
                         className="w-full h-[36px] bg-[#E8B230] text-white rounded-xl text-[13px] font-semibold active:scale-[0.97] transition-all disabled:opacity-40"
                       >
-                        Canjear
+                        {t("redeem")}
                       </button>
                     </div>
                   </div>
