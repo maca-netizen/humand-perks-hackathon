@@ -1317,7 +1317,8 @@ function BenefitsPage({ data }: { data: any }) {
   const allDepts = [...new Set(data.users.map((u: any) => u.dept).filter(Boolean))] as string[];
   const employeeUsers = data.users.filter((u: any) => u.role === "employee" || !u.role);
 
-  const filtered = data.benefits.filter((b: any) => {
+  const activeBenefits = data.benefits.filter((b: any) => b.status === "active");
+  const filtered = activeBenefits.filter((b: any) => {
     const matchSearch = b.name.toLowerCase().includes(search.toLowerCase()) ||
       (b.category || "").toLowerCase().includes(search.toLowerCase());
     const matchCategory = selectedCategory === "todas" || normCat(b.category || "") === normCat(selectedCategory);
@@ -1362,9 +1363,7 @@ function BenefitsPage({ data }: { data: any }) {
 
   const handlePublishFromCatalog = async (item: any) => {
     try {
-      const id = `ben_${Math.random().toString(36).substring(2, 10)}`;
-      await supabase.from("benefits").insert({
-        id,
+      const { error } = await supabase.from("benefits").insert({
         name: item.name,
         category: item.category,
         merchant: item.provider,
@@ -1373,22 +1372,41 @@ function BenefitsPage({ data }: { data: any }) {
         image_url: null,
         active: true,
       });
+      if (error) { console.error("Insert error:", error); toast.error("Error al publicar: " + error.message); return; }
       toast.success(`"${item.name}" publicado exitosamente`);
       data.refresh();
-    } catch { toast.error("Error al publicar beneficio"); }
+    } catch (e) { console.error(e); toast.error("Error al publicar beneficio"); }
   };
 
   const handleToggleStatus = async (b: any) => {
     const newActive = b.status !== "active";
-    await supabase.from("benefits").update({ active: newActive }).eq("id", b.id);
+    const { error } = await supabase.from("benefits").update({ active: newActive }).eq("id", b.id);
+    if (error) { toast.error("Error: " + error.message); return; }
     toast.success(newActive ? `"${b.name}" activado` : `"${b.name}" pausado`);
     data.refresh();
   };
 
-  const handleDelete = async (b: any) => {
-    if (!confirm(`¿Eliminar el beneficio "${b.name}"?`)) return;
-    await supabase.from("benefits").delete().eq("id", b.id);
-    toast.success(`"${b.name}" eliminado`);
+  const [deleteConfirm, setDeleteConfirm] = useState<any>(null);
+  const handleDelete = (b: any) => {
+    setEditBenefit(null);
+    setDeleteConfirm(b);
+  };
+  const confirmDelete = async () => {
+    if (!deleteConfirm) return;
+    // Try hard delete first; if FK constraint blocks it, soft-delete (deactivate)
+    const { error } = await supabase.from("benefits").delete().eq("id", deleteConfirm.id);
+    if (error && error.code === "23503") {
+      // Has transactions — soft delete
+      await supabase.from("benefits").update({ active: false }).eq("id", deleteConfirm.id);
+      toast.success(`"${deleteConfirm.name}" desactivado del catálogo`);
+    } else if (error) {
+      toast.error("Error al eliminar: " + error.message);
+      return;
+    } else {
+      toast.success(`"${deleteConfirm.name}" eliminado del catálogo`);
+    }
+    setDeleteConfirm(null);
+    setEditBenefit(null);
     data.refresh();
   };
 
@@ -1413,8 +1431,8 @@ function BenefitsPage({ data }: { data: any }) {
           {BENEFIT_CATEGORIES.map(cat => {
             const isActive = selectedCategory === cat.key;
             const count = cat.key === "todas"
-              ? data.benefits.length
-              : data.benefits.filter((b: any) => normCat(b.category || "") === normCat(cat.key)).length;
+              ? activeBenefits.length
+              : activeBenefits.filter((b: any) => normCat(b.category || "") === normCat(cat.key)).length;
             return (
               <button key={cat.key} onClick={() => setSelectedCategory(cat.key)} style={{
                 width: "100%", display: "flex", alignItems: "center", gap: 10,
@@ -1891,11 +1909,36 @@ function BenefitsPage({ data }: { data: any }) {
           </div>
 
           <div style={{ display: "flex", gap: 12, justifyContent: "space-between", marginTop: 24, alignItems: "center" }}>
-            <Button variant="danger" size="sm" icon={Trash2} onClick={() => { handleDelete(editBenefit); setEditBenefit(null); }}>Eliminar</Button>
+            <Button variant="danger" size="sm" icon={Trash2} onClick={() => handleDelete(editBenefit)}>Eliminar</Button>
             <div style={{ display: "flex", gap: 12 }}>
               <Button variant="secondary" onClick={() => setEditBenefit(null)}>Cancelar</Button>
               <Button icon={Check} onClick={handleSaveEdit}>Guardar cambios</Button>
             </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* ── Delete confirmation modal ── */}
+      {deleteConfirm && (
+        <Modal title="Confirmar eliminación" onClose={() => setDeleteConfirm(null)}>
+          <div style={{ textAlign: "center", padding: "8px 0 20px" }}>
+            <div style={{
+              width: 56, height: 56, borderRadius: "50%", margin: "0 auto 16px",
+              background: tokens.colors.red[100],
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <Trash2 size={24} color={tokens.colors.red[500]} />
+            </div>
+            <p style={{ ...baseStyles, fontSize: 14, lineHeight: 1.5, margin: 0 }}>
+              ¿Estás seguro de que querés eliminar <strong>{deleteConfirm.name}</strong> del catálogo?
+            </p>
+            <p style={{ ...baseStyles, fontSize: 13, color: tokens.semantic.textLighter, marginTop: 8, lineHeight: 1.4 }}>
+              Esta acción no se puede deshacer. Los colaboradores ya no podrán canjear este beneficio.
+            </p>
+          </div>
+          <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+            <Button variant="secondary" onClick={() => setDeleteConfirm(null)}>Cancelar</Button>
+            <Button variant="danger" icon={Trash2} onClick={confirmDelete}>Sí, eliminar</Button>
           </div>
         </Modal>
       )}

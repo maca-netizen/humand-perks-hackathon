@@ -12,7 +12,29 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es">
       <body>
         {children}
-        <Toaster position="top-right" richColors closeButton />
+        <Toaster
+          position="top-right"
+          closeButton
+          duration={4000}
+          style={{ zIndex: 9999 }}
+          toastOptions={{
+            style: {
+              background: "#303036",
+              color: "#ffffff",
+              border: "none",
+              borderBottom: "3px solid #4ed364",
+              borderRadius: "12px",
+              boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
+              fontFamily: "'Roboto', sans-serif",
+              fontSize: "14px",
+              fontWeight: 500,
+              letterSpacing: "0.2px",
+              padding: "14px 16px",
+              gap: "10px",
+              minWidth: "320px",
+            },
+          }}
+        />
       </body>
     </html>
   )
