@@ -2,7 +2,7 @@
 
 // Safe number formatter — avoids hydration mismatch between server/client
 function fmtNum(n: number): string { return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }
-function fmtCurrency(n: number): string { return "$" + fmtNum(n) }
+function fmtCurrency(n: number): string { return fmtNum(n) }
 
 import { useState, useMemo, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
@@ -627,17 +627,6 @@ function FilteredPieChart({ data, dateFrom, dateTo }: { data: any; dateFrom?: st
   return (
     <Card style={{ marginBottom: 32 }}>
       <h3 style={{ ...baseStyles, fontSize: 16, fontWeight: 600, margin: "0 0 16px 0", lineHeight: 1.4 }}>Canjes por categoría</h3>
-      <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
-        <select value={selectedDept} onChange={e => setSelectedDept(e.target.value)} style={selectStyle}>
-          <option value="all">Todos los departamentos</option>
-          {departments.map(d => <option key={d} value={d}>{d}</option>)}
-        </select>
-        <select value={selectedGender} onChange={e => setSelectedGender(e.target.value)} style={selectStyle}>
-          <option value="all">Todos los géneros</option>
-          <option value="Femenino">Femenino</option>
-          <option value="Masculino">Masculino</option>
-        </select>
-      </div>
       {pieData.length > 0 ? (
         <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
           <div style={{ flex: "0 0 280px" }}>
@@ -834,7 +823,7 @@ function DashboardPage({ data }: { data: any }) {
             {uniqueActivityUsers.map(u => <option key={u} value={u}>{u}</option>)}
           </select>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 0, maxHeight: 400, overflowY: "auto" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 0, maxHeight: 320, overflowY: "auto", paddingRight: 4 }}>
           {filteredActivity.length > 0 ? filteredActivity.map((a: any, i: number) => (
             <div key={i} style={{
               display: "flex", alignItems: "center", gap: 12, padding: "12px 0",
@@ -2344,9 +2333,8 @@ function BenefitsPage({ data }: { data: any }) {
 }
 
 
-/* ════════════════════════════════════════════
-   PAGE: ANALYTICS
-   ════════════════════════════════════════════ */
+/* AnalyticsPage removed — integrated into dashboard */
+
 function AnalyticsPage({ data }: { data: any }) {
   const { t } = useLanguage();
   const [period, setPeriod] = useState("month");
