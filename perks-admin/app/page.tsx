@@ -14,7 +14,8 @@ import {
   DollarSign, ArrowUpRight, ArrowDownRight, Filter, Download,
   Eye, MoreVertical, Bell, Globe, HelpCircle, Star, Repeat,
   FileText, AlertCircle, CheckCircle, ChevronLeft, Home,
-  Layers, LayoutDashboard, Package, PieChart, UserCheck, Sparkles, PartyPopper
+  Layers, LayoutDashboard, Package, PieChart, UserCheck, Sparkles, PartyPopper,
+  ShoppingCart, Wallet
 } from "lucide-react";
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
@@ -312,11 +313,12 @@ function Button({ children, variant = "primary", size = "md", icon: Icon, onClic
     secondary: { bg: "#fff", color: tokens.colors.humand[500], border: `1px solid ${tokens.colors.humand[300]}` },
     ghost: { bg: "transparent", color: tokens.semantic.textLighter, border: "none" },
     danger: { bg: `linear-gradient(135deg, ${tokens.colors.red[500]}, ${tokens.colors.red[600]})`, color: "#fff", border: "none" },
+    gradient: { bg: `linear-gradient(135deg, ${tokens.colors.humand[500]}, ${tokens.colors.purple[500]})`, color: "#fff", border: "none" },
   };
-  const v = variants[variant];
-  const s = sizes[size];
+  const v = variants[variant] || variants.primary;
+  const s = sizes[size] || sizes.md;
   const hoverStyle = hovered ? (
-    variant === "primary" || variant === "danger"
+    variant === "primary" || variant === "danger" || variant === "gradient"
       ? { transform: "translateY(-1px)", boxShadow: tokens.shadow.glow }
       : variant === "secondary"
         ? { boxShadow: tokens.shadow.dp2, border: `1px solid ${tokens.colors.humand[400]}` }
@@ -2252,6 +2254,128 @@ function AnalyticsPage({ data }: { data: any }) {
 
 
 /* ════════════════════════════════════════════
+   PAGE: BUY CREDITS
+   ════════════════════════════════════════════ */
+function BuyCreditsPage({ data }: { data: any }) {
+  const [amount, setAmount] = useState("");
+  const [note, setNote] = useState("");
+  const pricePerCredit = 0.10;
+  const total = amount ? Number(amount) * pricePerCredit : 0;
+  const quickAmounts = [100, 500, 1000, 5000];
+
+  return (
+    <div>
+      <div style={{ marginBottom: 32 }}>
+        <h1 style={{ ...baseStyles, fontSize: 24, fontWeight: 600, lineHeight: 1.4, margin: 0 }}>Comprar créditos</h1>
+        <p style={{ ...baseStyles, fontSize: 14, color: tokens.semantic.textLighter, marginTop: 4, lineHeight: 1.4 }}>
+          Sumá créditos a tu cuenta para distribuir entre colaboradores
+        </p>
+      </div>
+
+      {/* Current balance */}
+      <Card style={{ marginBottom: 24, background: `linear-gradient(135deg, ${tokens.colors.humand[50]}, ${tokens.colors.purple[50]})` }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <div style={{ fontSize: 13, color: tokens.semantic.textLighter, marginBottom: 4 }}>Créditos disponibles para asignar</div>
+            <div style={{ fontSize: 36, fontWeight: 700, color: tokens.colors.humand[600] }}>{fmtCurrency(data.totalPending)}</div>
+          </div>
+          <div style={{ textAlign: "right" as const }}>
+            <div style={{ fontSize: 13, color: tokens.semantic.textLighter, marginBottom: 4 }}>Créditos asignados</div>
+            <div style={{ fontSize: 20, fontWeight: 600 }}>{fmtCurrency(data.totalCredited)}</div>
+          </div>
+        </div>
+      </Card>
+
+      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 24 }}>
+        {/* Left: add credits form */}
+        <Card>
+          <h3 style={{ ...baseStyles, fontSize: 18, fontWeight: 600, margin: "0 0 24px 0" }}>Sumar créditos</h3>
+
+          {/* Quick select */}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: tokens.semantic.textLighter, marginBottom: 10 }}>Monto rápido</div>
+            <div style={{ display: "flex", gap: 10 }}>
+              {quickAmounts.map(q => (
+                <button key={q} onClick={() => setAmount(String(q))}
+                  style={{
+                    flex: 1, padding: "14px 8px", textAlign: "center" as const,
+                    borderRadius: tokens.radius.m, cursor: "pointer",
+                    background: amount === String(q) ? tokens.colors.humand[500] : "#fff",
+                    color: amount === String(q) ? "#fff" : tokens.semantic.textDefault,
+                    borderTop: `2px solid ${amount === String(q) ? tokens.colors.humand[500] : tokens.semantic.border}`,
+                    borderRight: `2px solid ${amount === String(q) ? tokens.colors.humand[500] : tokens.semantic.border}`,
+                    borderBottom: `2px solid ${amount === String(q) ? tokens.colors.humand[500] : tokens.semantic.border}`,
+                    borderLeft: `2px solid ${amount === String(q) ? tokens.colors.humand[500] : tokens.semantic.border}`,
+                    fontFamily: "Roboto", fontWeight: 700, fontSize: 16,
+                    transition: tokens.transition.fast,
+                  }}>
+                  {fmtNum(q)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Custom amount */}
+          <FormField label="Cantidad personalizada de créditos">
+            <Input type="number" placeholder="Ej: 3000" value={amount} onChange={(e: any) => setAmount(e.target.value)} />
+          </FormField>
+          <FormField label="Nota (opcional)">
+            <Input placeholder="Ej: Compra Q2 2026" value={note} onChange={(e: any) => setNote(e.target.value)} />
+          </FormField>
+
+          {/* Price breakdown */}
+          {amount && Number(amount) > 0 && (
+            <div style={{ padding: 16, background: tokens.colors.neutral[50], borderRadius: tokens.radius.m, marginTop: 16 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 13, color: tokens.semantic.textLighter }}>
+                <span>{fmtNum(Number(amount))} créditos × {fmtCurrency(pricePerCredit)}</span>
+                <span>{fmtCurrency(total)}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", paddingTop: 8, borderTop: `1px solid ${tokens.semantic.borderLight}`, fontSize: 16, fontWeight: 700 }}>
+                <span>Total</span>
+                <span style={{ color: tokens.colors.humand[600] }}>{fmtCurrency(total)}</span>
+              </div>
+            </div>
+          )}
+
+          <Button variant="gradient" icon={ShoppingCart} size="lg"
+            style={{ width: "100%", justifyContent: "center", marginTop: 20 }}
+            onClick={() => { if (!amount || Number(amount) <= 0) { toast.error("Ingresá una cantidad"); return; } toast.success(`${fmtNum(Number(amount))} créditos agregados a tu cuenta`); setAmount(""); setNote(""); }}>
+            Sumar créditos
+          </Button>
+        </Card>
+
+        {/* Right: summary */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <Card style={{ background: tokens.colors.humand[50] }}>
+            <h4 style={{ ...baseStyles, fontSize: 14, fontWeight: 600, margin: "0 0 12px 0" }}>Resumen de compra</h4>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <span style={{ fontSize: 13, color: tokens.semantic.textLighter }}>Créditos</span>
+              <span style={{ fontSize: 28, fontWeight: 700, color: tokens.colors.humand[600] }}>{amount ? fmtNum(Number(amount)) : "0"}</span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 12, borderTop: `1px solid ${tokens.colors.humand[200]}` }}>
+              <span style={{ fontSize: 13, color: tokens.semantic.textLighter }}>Costo</span>
+              <span style={{ fontSize: 22, fontWeight: 700 }}>{fmtCurrency(total)}</span>
+            </div>
+          </Card>
+
+          <Card>
+            <h4 style={{ ...baseStyles, fontSize: 14, fontWeight: 600, margin: "0 0 12px 0" }}>Precios de referencia</h4>
+            {[{ qty: 100, price: 10 }, { qty: 500, price: 50 }, { qty: 1000, price: 100 }, { qty: 5000, price: 500 }].map(({ qty, price }) => (
+              <div key={qty} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${tokens.semantic.borderLight}`, fontSize: 13 }}>
+                <span style={{ color: tokens.semantic.textLighter }}>{fmtNum(qty)} créditos</span>
+                <span style={{ fontWeight: 600 }}>{fmtCurrency(price)}</span>
+              </div>
+            ))}
+            <div style={{ fontSize: 11, color: tokens.semantic.textDisabled, marginTop: 8 }}>{fmtCurrency(pricePerCredit)} por crédito</div>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+/* ════════════════════════════════════════════
    SIDEBAR & APP SHELL
    ════════════════════════════════════════════ */
 const benefitsSubNav = [
@@ -2259,6 +2383,7 @@ const benefitsSubNav = [
   { key: "individual", label: "Colaboradores" },
   { key: "benefits", label: "Catálogo" },
   { key: "auto", label: "Cargas automáticas" },
+  { key: "buy", label: "Comprar créditos" },
   { key: "analytics", label: "Analíticas" },
 ];
 
@@ -2310,8 +2435,9 @@ export default function App() {
       case "dashboard": return <DashboardPage data={data} />;
       case "bulk": return <BulkLoadPage data={data} />;
       case "individual": return <IndividualLoadPage data={data} onRefresh={data.refresh} />;
-      case "auto": return <AutoRulesPage data={data} />;
+      case "auto": return <AutoRulesPage data={data} onRefresh={data.refresh} />;
       case "benefits": return <BenefitsPage data={data} />;
+      case "buy": return <BuyCreditsPage data={data} />;
       case "analytics": return <AnalyticsPage data={data} />;
       default: return <DashboardPage data={data} />;
     }
