@@ -30,39 +30,39 @@ import {
    ════════════════════════════════════════════ */
 const tokens = {
   colors: {
-    humand: { 50:"#f1f4fd",100:"#dee5fb",200:"#c5d4f8",300:"#9db8f3",400:"#6f93eb",500:"#496be3",600:"#3851d8",700:"#2f3fc6",800:"#2c35a1",900:"#29317f",950:"#1d204e" },
-    neutral: { 50:"#f5f6f8",100:"#eeeef1",150:"#E9E9ED",200:"#dfe0e6",300:"#cbcdd6",400:"#b5b6c4",500:"#aaaaba",600:"#8d8c9f",700:"#79788a",800:"#636271",900:"#53525d",950:"#303036" },
-    green: { 50:"#f5fdf6",100:"#e6fbe9",200:"#cff6d5",300:"#abedb6",400:"#7bdd8b",500:"#4ed364",600:"#28c040",700:"#249637",800:"#227831" },
-    red: { 50:"#fef2f2",100:"#fde3e3",200:"#fccccc",300:"#f8a9a9",400:"#f27777",500:"#e74444",600:"#d42e2e",700:"#b22323" },
-    yellow: { 50:"#fdfaec",100:"#fcf7ce",200:"#fbeb9d",300:"#f8da65",400:"#f4c83f",500:"#f0b623",600:"#de920c",700:"#b1690e" },
-    info: { 50:"#f8fdfe",100:"#ecfafc",200:"#ddf5f9",300:"#c2edf4",400:"#a1dfeb",500:"#6fd1e7",600:"#46badd" },
-    purple: { 50:"#f4f2ff",100:"#e9e8ff",200:"#d6d4ff",300:"#b9b1ff",400:"#9785ff",500:"#886bff",600:"#6330f7" },
-    teal: { 50:"#f2fbf8",100:"#d5f2e9",400:"#4bb69f",500:"#35a48e",600:"#267b6c" },
+    humand: { 50:"#EDEDFC",100:"#D5D5F5",200:"#B8B8EB",300:"#8E8EE8",400:"#6B79D0",500:"#4B5EAA",600:"#3D4E94",700:"#2F3E7E",800:"#243168",900:"#1A2452",950:"#0F163A" },
+    neutral: { 50:"#F2F3F7",100:"#E5E5EA",150:"#D8D8DE",200:"#CBCBD2",300:"#AEAEB4",400:"#9898A0",500:"#8E8E93",600:"#6E6E73",700:"#58585D",800:"#3A3A3F",900:"#2C2C31",950:"#1A1A2E" },
+    green: { 50:"#E8FAE6",100:"#D1F5CE",200:"#A3EBA0",300:"#6FDB6A",400:"#4BC76F",500:"#34C759",600:"#2BA84A",700:"#1F893B",800:"#176D2F" },
+    red: { 50:"#FEF2F2",100:"#FDE3E3",200:"#FCCCCC",300:"#F8A9A9",400:"#F27777",500:"#E53E3E",600:"#D42E2E",700:"#B22323" },
+    yellow: { 50:"#FFF8E1",100:"#FFF0C2",200:"#FFE08A",300:"#FFD175",400:"#F4C340",500:"#E8B230",600:"#CC9A1D",700:"#A67D14" },
+    info: { 50:"#EDF9FE",100:"#D5F1FC",200:"#B0E4F9",300:"#7DD4F5",400:"#5AC8FA",500:"#33A7FF",600:"#2B8FDB" },
+    purple: { 50:"#F5F0FF",100:"#E8DFFE",200:"#D4C2FD",300:"#B99AFB",400:"#AF52DE",500:"#9633CC",600:"#7B28A8" },
+    teal: { 50:"#F0FAF7",100:"#D5F2E9",400:"#4BB69F",500:"#35A48E",600:"#267B6C" },
   },
   semantic: {
-    textDefault: "#303036",
-    textLighter: "#636271",
-    textDisabled: "#aaaaba",
-    brand400: "#6f93eb",
-    bgPage: "#f5f6f8",
-    bgCard: "#ffffff",
-    bgTableHeader: "#eff2ff",
-    textTableHeader: "#213478",
-    border: "#dfe0e6",
-    borderLight: "#eeeef1",
+    textDefault: "#1A1A2E",
+    textLighter: "#8E8E93",
+    textDisabled: "#AEAEB4",
+    brand400: "#6B79D0",
+    bgPage: "#F2F3F7",
+    bgCard: "#FFFFFF",
+    bgTableHeader: "#EDEDFC",
+    textTableHeader: "#4B5EAA",
+    border: "#E5E5EA",
+    borderLight: "#F2F3F7",
   },
   shadow: {
-    dp2: "0 1px 3px rgba(0,0,0,0.06)",
-    dp4: "-1px 4px 8px 0px rgba(233,233,244,1)",
-    dp8: "-1px 8px 16px 0px rgba(170,170,186,0.45)",
-    dp12: "-2px 12px 32px rgba(48,48,54,0.18)",
-    glow: "0 4px 14px rgba(73,107,227,0.35)",
+    dp2: "0 1px 2px rgba(0,0,0,0.03)",
+    dp4: "0 1px 4px rgba(0,0,0,0.04)",
+    dp8: "0 4px 12px rgba(0,0,0,0.08)",
+    dp12: "0 8px 24px rgba(0,0,0,0.12)",
+    glow: "0 4px 14px rgba(75,94,170,0.25)",
   },
-  radius: { s: 4, m: 8, l: 16 },
+  radius: { s: 8, m: 12, l: 16, xl: 20 },
   spacing: { xs: 4, sm: 8, md: 16, lg: 24, xl: 32, xxl: 40 },
   transition: {
-    fast: "all 0.15s cubic-bezier(0.4,0,0.2,1)",
-    medium: "all 0.25s cubic-bezier(0.4,0,0.2,1)",
+    fast: "all 0.2s ease",
+    medium: "all 0.25s ease",
   },
 };
 
@@ -262,8 +262,8 @@ function useAdminData() {
    SHARED COMPONENTS
    ════════════════════════════════════════════ */
 const baseStyles = {
-  fontFamily: "'Roboto', sans-serif",
-  letterSpacing: "0.2px",
+  fontFamily: "'Geist', 'Geist Fallback', system-ui, sans-serif",
+  letterSpacing: "0px",
   color: tokens.semantic.textDefault,
 };
 
@@ -294,9 +294,9 @@ function Badge({ children, variant = "default" }) {
   const v = variants[variant] || variants.default;
   return (
     <span style={{
-      display: "inline-flex", alignItems: "center", padding: "2px 10px",
+      display: "inline-flex", alignItems: "center", padding: "4px 12px",
       borderRadius: 999, fontSize: 12, fontWeight: 600,
-      background: v.bg, color: v.color, letterSpacing: "0.2px", lineHeight: 1.4,
+      background: v.bg, color: v.color, letterSpacing: "0px", lineHeight: 1.4,
     }}>
       {children}
     </span>
@@ -306,9 +306,9 @@ function Badge({ children, variant = "default" }) {
 function Button({ children, variant = "primary", size = "md", icon: Icon, onClick, style: extraStyle }) {
   const [hovered, setHovered] = useState(false);
   const sizes = {
-    sm: { padding: "6px 12px", fontSize: 12 },
-    md: { padding: "8px 16px", fontSize: 14 },
-    lg: { padding: "12px 24px", fontSize: 16 },
+    sm: { padding: "6px 16px", fontSize: 13 },
+    md: { padding: "10px 20px", fontSize: 14 },
+    lg: { padding: "14px 28px", fontSize: 15 },
   };
   const variants = {
     primary: { bg: `linear-gradient(135deg, ${tokens.colors.humand[500]}, ${tokens.colors.humand[600]})`, color: "#fff", border: "none" },
@@ -364,17 +364,17 @@ function Card({ children, style: extraStyle, noPadding, hoverable }: any) {
 
 function StatCard({ label, value, icon: Icon, trend, trendUp, color = tokens.colors.humand[500] }) {
   return (
-    <Card hoverable style={{ display: "flex", alignItems: "flex-start", gap: 16, boxShadow: `inset 3px 0 0 ${color}, ${tokens.shadow.dp4}` }}>
+    <Card hoverable style={{ display: "flex", alignItems: "flex-start", gap: 20 }}>
       <div style={{
-        width: 52, height: 52, borderRadius: tokens.radius.m,
-        background: `radial-gradient(circle at top left, ${color}20, ${color}08)`,
+        width: 56, height: 56, borderRadius: tokens.radius.l,
+        background: `${color}18`,
         display: "flex", alignItems: "center", justifyContent: "center",
       }}>
         <Icon size={26} color={color} />
       </div>
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 12, color: tokens.semantic.textLighter, lineHeight: 1.4, letterSpacing: "0.2px", marginBottom: 4 }}>{label}</div>
-        <div style={{ fontSize: 28, fontWeight: 700, lineHeight: 1.3, letterSpacing: "-0.2px" }}>{value}</div>
+        <div style={{ fontSize: 13, color: tokens.semantic.textLighter, lineHeight: 1.4, marginBottom: 4 }}>{label}</div>
+        <div style={{ fontSize: 28, fontWeight: 700, lineHeight: 1.2, letterSpacing: "-0.5px" }}>{value}</div>
         {trend && (
           <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 6, fontSize: 12, color: trendUp ? tokens.colors.green[600] : tokens.colors.red[500], letterSpacing: "0.2px" }}>
             {trendUp ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
@@ -389,15 +389,15 @@ function StatCard({ label, value, icon: Icon, trend, trendUp, color = tokens.col
 function SearchInput({ value, onChange, placeholder = "Buscar..." }) {
   return (
     <div style={{ position: "relative", flex: 1, maxWidth: 360 }}>
-      <Search size={16} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: tokens.semantic.textDisabled }} />
+      <Search size={16} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: tokens.semantic.textDisabled }} />
       <input
         type="text" value={value} onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
         style={{
-          ...baseStyles, width: "100%", padding: "8px 12px 8px 36px",
+          ...baseStyles, width: "100%", padding: "10px 16px 10px 40px",
           border: `1px solid ${tokens.semantic.border}`, borderRadius: tokens.radius.m,
           fontSize: 14, lineHeight: 1.4, outline: "none", background: "#fff",
-          boxSizing: "border-box",
+          boxSizing: "border-box" as const,
         }}
       />
     </div>
@@ -413,13 +413,13 @@ function Table({ columns, data }) {
           <tr>
             {columns.map((col, i) => (
               <th key={i} style={{
-                padding: "12px 16px", textAlign: "left", fontWeight: 700, fontSize: 11,
-                textTransform: "uppercase" as const, letterSpacing: "0.5px",
+                padding: "14px 20px", textAlign: "left", fontWeight: 600, fontSize: 12,
+                letterSpacing: "0px",
                 background: tokens.semantic.bgTableHeader, color: tokens.semantic.textTableHeader,
-                borderBottom: `1px solid ${tokens.semantic.borderLight}`,
+                borderBottom: `1px solid ${tokens.semantic.border}`,
                 lineHeight: 1.4,
-                ...(i === 0 ? { borderRadius: "8px 0 0 0" } : {}),
-                ...(i === columns.length - 1 ? { borderRadius: "0 8px 0 0" } : {}),
+                ...(i === 0 ? { borderRadius: "12px 0 0 0" } : {}),
+                ...(i === columns.length - 1 ? { borderRadius: "0 12px 0 0" } : {}),
               }}>
                 {col.header}
               </th>
@@ -438,7 +438,7 @@ function Table({ columns, data }) {
                 transition: tokens.transition.fast,
               }}>
               {columns.map((col, ci) => (
-                <td key={ci} style={{ padding: "12px 16px", color: tokens.semantic.textDefault, letterSpacing: "0.2px" }}>
+                <td key={ci} style={{ padding: "14px 20px", color: tokens.semantic.textDefault }}>
                   {col.render ? col.render(row) : row[col.key]}
                 </td>
               ))}
@@ -483,8 +483,8 @@ function Modal({ title, onClose, children, wide }) {
         animation: "fadeInUp 0.25s ease-out",
       }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-          <h2 style={{ ...baseStyles, fontSize: 18, fontWeight: 600, lineHeight: 1.4, margin: 0 }}>{title}</h2>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: tokens.semantic.textLighter, padding: 4 }}>
+          <h2 style={{ ...baseStyles, fontSize: 20, fontWeight: 700, lineHeight: 1.3, margin: 0 }}>{title}</h2>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: tokens.semantic.textLighter, padding: 8, borderRadius: "50%" }}>
             <X size={20} />
           </button>
         </div>
@@ -508,9 +508,9 @@ function FormField({ label, children }) {
 function Input({ ...props }) {
   return (
     <input {...props} style={{
-      ...baseStyles, width: "100%", padding: "10px 12px",
-      border: `1px solid ${tokens.semantic.border}`, borderRadius: tokens.radius.s,
-      fontSize: 14, lineHeight: 1.4, outline: "none", boxSizing: "border-box",
+      ...baseStyles, width: "100%", padding: "12px 16px",
+      border: `1px solid ${tokens.semantic.border}`, borderRadius: tokens.radius.m,
+      fontSize: 14, lineHeight: 1.4, outline: "none", boxSizing: "border-box" as const,
       ...props.style,
     }} />
   );
@@ -519,10 +519,10 @@ function Input({ ...props }) {
 function Select({ options, ...props }) {
   return (
     <select {...props} style={{
-      ...baseStyles, width: "100%", padding: "10px 12px",
-      border: `1px solid ${tokens.semantic.border}`, borderRadius: tokens.radius.s,
+      ...baseStyles, width: "100%", padding: "12px 16px",
+      border: `1px solid ${tokens.semantic.border}`, borderRadius: tokens.radius.m,
       fontSize: 14, lineHeight: 1.4, outline: "none", background: "#fff",
-      boxSizing: "border-box", ...props.style,
+      boxSizing: "border-box" as const, ...props.style,
     }}>
       {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
     </select>
@@ -545,8 +545,8 @@ function EmptyDrop({ label, sublabel }: { label: string, sublabel: string }) {
 function ProgressBar({ value, max, color = tokens.colors.humand[500] }) {
   const pct = Math.min((value / max) * 100, 100);
   return (
-    <div style={{ width: "100%", height: 6, background: tokens.colors.neutral[100], borderRadius: 3 }}>
-      <div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: 3, transition: "width 0.3s ease" }} />
+    <div style={{ width: "100%", height: 8, background: tokens.colors.neutral[50], borderRadius: 4 }}>
+      <div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: 4, transition: "width 0.3s ease" }} />
     </div>
   );
 }
@@ -2837,14 +2837,13 @@ export default function App() {
             </button>
             {/* Admin badge */}
             <span style={{
-              display: "inline-flex", alignItems: "center", padding: "4px 14px",
-              borderRadius: 999, fontSize: 13, fontWeight: 600,
+              display: "inline-flex", alignItems: "center", padding: "5px 16px",
+              borderRadius: 20, fontSize: 13, fontWeight: 600,
               borderTop: `1.5px solid ${tokens.colors.humand[500]}`,
               borderRight: `1.5px solid ${tokens.colors.humand[500]}`,
               borderBottom: `1.5px solid ${tokens.colors.humand[500]}`,
               borderLeft: `1.5px solid ${tokens.colors.humand[500]}`,
               color: tokens.colors.humand[600], background: "transparent",
-              letterSpacing: "0.2px",
             }}>
               Admin
             </span>
@@ -2867,7 +2866,7 @@ export default function App() {
 
         {/* Page content */}
         <main style={{ flex: 1, padding: 32, minHeight: "calc(100vh - 56px)" }}>
-          <div key={activePage} style={{ maxWidth: 1200, animation: "fadeInUp 0.25s ease-out" }}>
+          <div key={activePage} style={{ maxWidth: 1280, animation: "fadeInUp 0.25s ease-out" }}>
             {renderPage()}
           </div>
         </main>
