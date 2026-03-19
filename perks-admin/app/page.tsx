@@ -2475,6 +2475,7 @@ function AnalyticsPage({ data }: { data: any }) {
    PAGE: BUY CREDITS
    ════════════════════════════════════════════ */
 function BuyCreditsPage({ data, onRefresh }: { data: any; onRefresh: () => void }) {
+  const { t } = useLanguage();
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [purchasing, setPurchasing] = useState(false);
