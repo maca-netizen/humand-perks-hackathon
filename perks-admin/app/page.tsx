@@ -1,8 +1,8 @@
 "use client"
 
 // Safe number formatter — avoids hydration mismatch between server/client
-function fmtNum(n: number): string { return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }
-function fmtCurrency(n: number): string { return fmtNum(n) }
+function fmtNum(n: number): string { return Math.round(n || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }
+function fmtCurrency(n: number): string { return fmtNum(n || 0) }
 
 import { useState, useMemo, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
