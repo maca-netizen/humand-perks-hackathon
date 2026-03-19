@@ -1609,24 +1609,37 @@ function AutoRulesPage({ data, onRefresh }: { data: any; onRefresh: () => void }
    ════════════════════════════════════════════ */
 /* Predefined benefit catalog that admins can publish */
 const BENEFIT_CATALOG = [
-  { name: "Gimnasio SmartFit", category: "salud", provider: "SmartFit", cost: 8, description: "Acceso mensual a cualquier sede SmartFit", image: "🏋️" },
-  { name: "Sesión de nutrición", category: "salud", provider: "NutriPlan", cost: 5, description: "Consulta personalizada con nutricionista", image: "🥗" },
-  { name: "Chequeo médico anual", category: "salud", provider: "MedCheck", cost: 12, description: "Chequeo médico preventivo completo", image: "🩺" },
-  { name: "Clase de yoga", category: "bienestar", provider: "ZenFlow", cost: 3, description: "Clase grupal de yoga y meditación", image: "🧘" },
-  { name: "Día de spa", category: "bienestar", provider: "RelaxSpa", cost: 10, description: "Jornada de relajación y masajes", image: "💆" },
-  { name: "Sesión de terapia", category: "bienestar", provider: "MindWell", cost: 6, description: "Sesión individual con psicólogo", image: "🧠" },
-  { name: "Almuerzo gourmet", category: "gastronomía", provider: "FoodBox", cost: 4, description: "Almuerzo saludable delivery en la oficina", image: "🍕" },
-  { name: "Coffee break premium", category: "gastronomía", provider: "CaféSelect", cost: 2, description: "Café de especialidad y snacks", image: "☕" },
-  { name: "Cena para dos", category: "gastronomía", provider: "RestóClub", cost: 15, description: "Cena en restaurantes seleccionados", image: "🍽️" },
-  { name: "Curso de inglés", category: "educación", provider: "LangPro", cost: 7, description: "Mes de clases de inglés online", image: "📚" },
-  { name: "Curso Udemy", category: "educación", provider: "Udemy", cost: 5, description: "Acceso a un curso en Udemy Business", image: "🎓" },
-  { name: "Certificación profesional", category: "educación", provider: "Coursera", cost: 20, description: "Certificación en Coursera o similar", image: "📜" },
-  { name: "Entrada de cine", category: "entretenimiento", provider: "Cinemark", cost: 3, description: "Entrada para cualquier función", image: "🎬" },
-  { name: "Streaming mensual", category: "entretenimiento", provider: "Multi", cost: 4, description: "Netflix, Spotify o Disney+ por un mes", image: "📺" },
-  { name: "Escape room", category: "entretenimiento", provider: "EscapeAR", cost: 6, description: "Experiencia de escape room para equipo", image: "🔐" },
-  { name: "Gift card shopping", category: "shopping", provider: "MercadoLibre", cost: 10, description: "Gift card canjeable en MercadoLibre", image: "🛍️" },
-  { name: "Día libre", category: "bienestar", provider: "Interno", cost: 15, description: "Un día libre adicional para uso personal", image: "🏖️" },
-  { name: "Home office kit", category: "bienestar", provider: "TechStore", cost: 12, description: "Kit de accesorios para home office", image: "💻" },
+  { name: "Gimnasio SmartFit", category: "salud", provider: "SmartFit", cost: 8, description: "Acceso mensual a cualquier sede SmartFit", image: "🏋️", image_url: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&h=200&fit=crop" },
+  { name: "Sesión de nutrición", category: "salud", provider: "NutriPlan", cost: 5, description: "Consulta personalizada con nutricionista", image: "🥗", image_url: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400&h=200&fit=crop" },
+  { name: "Chequeo médico anual", category: "salud", provider: "MedCheck", cost: 12, description: "Chequeo médico preventivo completo", image: "🩺", image_url: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&h=200&fit=crop" },
+  { name: "Clase de yoga", category: "bienestar", provider: "ZenFlow", cost: 3, description: "Clase grupal de yoga y meditación", image: "🧘", image_url: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=200&fit=crop" },
+  { name: "Día de spa", category: "bienestar", provider: "RelaxSpa", cost: 10, description: "Jornada de relajación y masajes", image: "💆", image_url: "https://images.unsplash.com/photo-1540555700478-4be289fbec6d?w=400&h=200&fit=crop" },
+  { name: "Sesión de terapia", category: "bienestar", provider: "MindWell", cost: 6, description: "Sesión individual con psicólogo", image: "🧠", image_url: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=400&h=200&fit=crop" },
+  { name: "Almuerzo gourmet", category: "gastronomía", provider: "FoodBox", cost: 4, description: "Almuerzo saludable delivery en la oficina", image: "🍕", image_url: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&h=200&fit=crop" },
+  { name: "Coffee break premium", category: "gastronomía", provider: "CaféSelect", cost: 2, description: "Café de especialidad y snacks", image: "☕", image_url: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&h=200&fit=crop" },
+  { name: "Cena para dos", category: "gastronomía", provider: "RestóClub", cost: 15, description: "Cena en restaurantes seleccionados", image: "🍽️", image_url: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&h=200&fit=crop" },
+  { name: "Curso de inglés", category: "educación", provider: "LangPro", cost: 7, description: "Mes de clases de inglés online", image: "📚", image_url: "https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=400&h=200&fit=crop" },
+  { name: "Curso Udemy", category: "educación", provider: "Udemy", cost: 5, description: "Acceso a un curso en Udemy Business", image: "🎓", image_url: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=200&fit=crop" },
+  { name: "Certificación profesional", category: "educación", provider: "Coursera", cost: 20, description: "Certificación en Coursera o similar", image: "📜", image_url: "https://images.unsplash.com/photo-1523050854058-8df90110c8f1?w=400&h=200&fit=crop" },
+  { name: "Entrada de cine", category: "entretenimiento", provider: "Cinemark", cost: 3, description: "Entrada para cualquier función", image: "🎬", image_url: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=400&h=200&fit=crop" },
+  { name: "Streaming mensual", category: "entretenimiento", provider: "Multi", cost: 4, description: "Netflix, Spotify o Disney+ por un mes", image: "📺", image_url: "https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?w=400&h=200&fit=crop" },
+  { name: "Escape room", category: "entretenimiento", provider: "EscapeAR", cost: 6, description: "Experiencia de escape room para equipo", image: "🔐", image_url: "https://images.unsplash.com/photo-1590674899484-d5640e854abe?w=400&h=200&fit=crop" },
+  { name: "Gift card shopping", category: "shopping", provider: "MercadoLibre", cost: 10, description: "Gift card canjeable en MercadoLibre", image: "🛍️", image_url: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&h=200&fit=crop" },
+  { name: "Día libre", category: "bienestar", provider: "Interno", cost: 15, description: "Un día libre adicional para uso personal", image: "🏖️", image_url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=200&fit=crop" },
+  { name: "Home office kit", category: "bienestar", provider: "TechStore", cost: 12, description: "Kit de accesorios para home office", image: "💻", image_url: "https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=400&h=200&fit=crop" },
+  { name: "Clases de cocina", category: "gastronomía", provider: "CookMaster", cost: 6, description: "Clase grupal de cocina con chef profesional", image: "👨‍🍳", image_url: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=400&h=200&fit=crop" },
+  { name: "Masaje descontracturante", category: "salud", provider: "RelaxPro", cost: 7, description: "Sesión de masajes de 45 minutos", image: "💆‍♂️", image_url: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=400&h=200&fit=crop" },
+  { name: "Suscripción audiolibros", category: "educación", provider: "Audible", cost: 4, description: "Un mes de acceso ilimitado a audiolibros", image: "🎧", image_url: "https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&h=200&fit=crop" },
+  { name: "Clase de pintura", category: "entretenimiento", provider: "ArtStudio", cost: 5, description: "Sesión de arte con materiales incluidos", image: "🎨", image_url: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=400&h=200&fit=crop" },
+  { name: "Transporte corporativo", category: "movilidad", provider: "Cabify", cost: 8, description: "Crédito para viajes en Cabify Business", image: "🚗", image_url: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&h=200&fit=crop" },
+  { name: "Guardería infantil", category: "bienestar", provider: "KidsFirst", cost: 18, description: "Día de guardería para hijos de colaboradores", image: "👶", image_url: "https://images.unsplash.com/photo-1587654780291-39c9404d7dd0?w=400&h=200&fit=crop" },
+  { name: "Seguro de mascotas", category: "bienestar", provider: "PetCare", cost: 6, description: "Cobertura mensual de veterinaria para mascotas", image: "🐾", image_url: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&h=200&fit=crop" },
+  { name: "Pilates reformer", category: "salud", provider: "BodyBalance", cost: 9, description: "Pack de 4 clases de pilates reformer", image: "🤸", image_url: "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&h=200&fit=crop" },
+  { name: "Taller de fotografía", category: "educación", provider: "PhotoSchool", cost: 5, description: "Workshop intensivo de fotografía digital", image: "📷", image_url: "https://images.unsplash.com/photo-1471341971476-ae15ff5dd4ea?w=400&h=200&fit=crop" },
+  { name: "Box de snacks saludables", category: "gastronomía", provider: "SnackBox", cost: 3, description: "Box mensual de snacks saludables al escritorio", image: "🥜", image_url: "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=400&h=200&fit=crop" },
+  { name: "Entrada a museo", category: "entretenimiento", provider: "CulturaBA", cost: 2, description: "Entrada a museos y exposiciones de la ciudad", image: "🏛️", image_url: "https://images.unsplash.com/photo-1554907984-15263bfd63bd?w=400&h=200&fit=crop" },
+  { name: "Asesoría financiera", category: "educación", provider: "FinanzasOK", cost: 8, description: "Sesión personalizada de planificación financiera", image: "💰", image_url: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&h=200&fit=crop" },
+  { name: "Día de team building", category: "entretenimiento", provider: "TeamUp", cost: 12, description: "Actividad grupal de team building outdoor", image: "🏕️", image_url: "https://images.unsplash.com/photo-1528605248644-14dd04022da1?w=400&h=200&fit=crop" },
 ];
 
 const BENEFIT_CATEGORIES = [
@@ -1637,6 +1650,7 @@ const BENEFIT_CATEGORIES = [
   { key: "educación", label: "Educación", icon: "📚" },
   { key: "entretenimiento", label: "Entretenimiento", icon: "🎬" },
   { key: "shopping", label: "Shopping", icon: "🛍️" },
+  { key: "movilidad", label: "Movilidad", icon: "🚗" },
 ];
 
 function BenefitsPage({ data }: { data: any }) {
@@ -1715,7 +1729,7 @@ function BenefitsPage({ data }: { data: any }) {
         merchant: item.provider,
         cost: item.cost,
         description: item.description,
-        image_url: null,
+        image_url: item.image_url || null,
         active: true,
       });
       if (error) { console.error("Insert error:", error); toast.error("Error al publicar: " + error.message); return; }
@@ -1765,10 +1779,7 @@ function BenefitsPage({ data }: { data: any }) {
             {t("benefitsManagementSubtitle")}
           </p>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <Button icon={Plus} onClick={() => setShowCatalog(true)}>Nuevo beneficio</Button>
-          <Button icon={Plus} variant="secondary" onClick={() => setShowModal(true)}>{t("newBenefit")}</Button>
-        </div>
+        <Button icon={Plus} onClick={() => setShowCatalog(true)}>{t("newBenefit")}</Button>
       </div>
 
       <div style={{ display: "flex", gap: 24 }}>
@@ -1812,13 +1823,23 @@ function BenefitsPage({ data }: { data: any }) {
           {viewMode === "grid" ? (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
               {filtered.map(b => (
-                <Card key={b.id} hoverable style={{ cursor: "pointer" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-                    <div style={{ fontSize: 40, lineHeight: 1 }}>{b.image}</div>
-                    <Badge variant={b.status === "active" ? "success" : "warning"}>
-                      {b.status === "active" ? t("benefitStatusActive") : t("benefitStatusPaused")}
-                    </Badge>
+                <Card key={b.id} hoverable style={{ cursor: "pointer", padding: 0, overflow: "hidden" }}>
+                  {/* Cover image */}
+                  <div style={{ position: "relative" as const, height: 140, overflow: "hidden" }}>
+                    {b.image_url ? (
+                      <img src={b.image_url} alt={b.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    ) : (
+                      <div style={{ width: "100%", height: "100%", background: `linear-gradient(135deg, ${tokens.colors.humand[100]}, ${tokens.colors.purple[100]})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48 }}>
+                        {b.image}
+                      </div>
+                    )}
+                    <div style={{ position: "absolute" as const, top: 10, right: 10 }}>
+                      <Badge variant={b.status === "active" ? "success" : "warning"}>
+                        {b.status === "active" ? t("benefitStatusActive") : t("benefitStatusPaused")}
+                      </Badge>
+                    </div>
                   </div>
+                  <div style={{ padding: "16px 20px 20px" }}>
                   <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 4, letterSpacing: "0.2px", lineHeight: 1.4 }}>{b.name}</div>
                   <div style={{ fontSize: 12, color: tokens.semantic.textLighter, marginBottom: 12, letterSpacing: "0.2px" }}>{b.category} · {b.provider}</div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -1835,6 +1856,7 @@ function BenefitsPage({ data }: { data: any }) {
                     <Button variant="secondary" size="sm" icon={Edit3} style={{ flex: 1 }} onClick={() => openEdit(b)}>{t("edit")}</Button>
                     <Button variant="ghost" size="sm" icon={Eye} onClick={() => setViewBenefit(b)}>{t("view")}</Button>
                   </div>
+                  </div>{/* close padding wrapper */}
                 </Card>
               ))}
             </div>
@@ -2263,54 +2285,6 @@ function BenefitsPage({ data }: { data: any }) {
               <Button variant="secondary" onClick={() => setEditBenefit(null)}>Cancelar</Button>
               <Button icon={Check} onClick={handleSaveEdit}>Guardar cambios</Button>
             </div>
-          </div>
-        </Modal>
-      )}
-
-      {/* ── New benefit modal ── */}
-      {showModal && (
-        <Modal title={t("newBenefit")} onClose={() => setShowModal(false)} wide>
-          <FormField label={t("benefitName")}>
-            <Input placeholder="Ej: Gimnasio mensual" />
-          </FormField>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-            <FormField label={t("category")}>
-              <Select options={[
-                { value: "", label: "Seleccionar..." },
-                { value: "wellness", label: "Bienestar" },
-                { value: "education", label: "Educación" },
-                { value: "food", label: "Gastronomía" },
-                { value: "entertainment", label: "Entretenimiento" },
-                { value: "shopping", label: "Shopping" },
-                { value: "mobility", label: "Movilidad" },
-                { value: "timeoff", label: "Tiempo libre" },
-              ]} />
-            </FormField>
-            <FormField label={t("provider")}>
-              <Input placeholder="Ej: SmartFit" />
-            </FormField>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-            <FormField label={t("creditCost")}>
-              <Input type="number" placeholder="500" />
-            </FormField>
-            <FormField label={t("availableStock")}>
-              <Input type="number" placeholder="Ilimitado si se deja vacío" />
-            </FormField>
-          </div>
-          <FormField label={t("description")}>
-            <textarea placeholder="Describí el beneficio..." style={{
-              ...baseStyles, width: "100%", padding: "10px 12px", minHeight: 80,
-              border: `1px solid ${tokens.semantic.border}`, borderRadius: tokens.radius.s,
-              fontSize: 14, lineHeight: 1.4, outline: "none", resize: "vertical", boxSizing: "border-box",
-            }} />
-          </FormField>
-          <FormField label={t("imageOrEmoji")}>
-            <Input placeholder="Ej: 🏋️ o URL de imagen" />
-          </FormField>
-          <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
-            <Button variant="secondary" onClick={() => setShowModal(false)}>{t("cancel")}</Button>
-            <Button icon={Plus}>{t("createBenefit")}</Button>
           </div>
         </Modal>
       )}
