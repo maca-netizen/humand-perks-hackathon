@@ -6,7 +6,7 @@ import {
   DollarSign, ArrowUpRight, ArrowDownRight, Filter, Download,
   Eye, MoreVertical, Bell, Globe, HelpCircle, Star, Repeat,
   FileText, AlertCircle, CheckCircle, ChevronLeft, Home,
-  Layers, LayoutDashboard, Package, PieChart, UserCheck, Sparkles
+  Layers, LayoutDashboard, Package, PieChart, UserCheck, Sparkles, PartyPopper
 } from "lucide-react";
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
@@ -741,7 +741,7 @@ function RuleTypeIcon({ type, size = 28 }) {
   const icons = {
     repeat: <Repeat size={size} color={color} />,
     cake: <Gift size={size} color={color} />,
-    award: <Award size={size} color={color} />,
+    award: <PartyPopper size={size} color={color} />,
     userplus: <UserPlus size={size} color={color} />,
   };
   return icons[type] || <Zap size={size} color={color} />;
