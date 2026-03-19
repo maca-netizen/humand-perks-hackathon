@@ -1,0 +1,16 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "perks-admin",
+      "runtimeExecutable": "/Users/pilarandres/.local/node/bin/node",
+      "runtimeArgs": ["node_modules/.bin/next", "dev", "-p", "3003"],
+      "port": 3003,
+      "autoPort": false,
+      "cwd": "/Users/pilarandres/Documents/GitHub/humand-perks-hackathon/perks-admin",
+      "env": {
+        "PATH": "/Users/pilarandres/.local/node/bin:/usr/bin:/bin"
+      }
+    }
+  ]
+}

@@ -551,9 +551,203 @@ function ProgressBar({ value, max, color = tokens.colors.humand[500] }) {
 /* ════════════════════════════════════════════
    PAGE: DASHBOARD
    ════════════════════════════════════════════ */
+function FilteredPieChart({ data, dateFrom, dateTo }: { data: any; dateFrom?: string; dateTo?: string }) {
+  const { benefits, transactions, users, wallets } = data;
+  const debits = useMemo(() => {
+    let d = transactions.filter((t: any) => t.type === "debit");
+    if (dateFrom) d = d.filter((t: any) => new Date(t.created_at) >= new Date(dateFrom));
+    if (dateTo) d = d.filter((t: any) => new Date(t.created_at) <= new Date(dateTo + "T23:59:59"));
+    return d;
+  }, [transactions, dateFrom, dateTo]);
+
+  // Get unique categories and departments for filters
+  const categories = [...new Set(benefits.map((b: any) => b.category).filter(Boolean))].sort() as string[];
+  const departments = [...new Set(users.filter((u: any) => u.role === "employee").map((u: any) => u.dept).filter(Boolean))].sort() as string[];
+
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedDept, setSelectedDept] = useState("all");
+  const [selectedGender, setSelectedGender] = useState("all");
+  const [selectedAge, setSelectedAge] = useState("all");
+
+  // Derive gender and age from user id (deterministic simulation)
+  const userMeta = useMemo(() => {
+    const meta: Record<string, { gender: string; ageRange: string }> = {};
+    users.forEach((u: any) => {
+      const hash = (u.id || "").split("").reduce((a: number, c: string) => a + c.charCodeAt(0), 0);
+      const gender = hash % 2 === 0 ? "Femenino" : "Masculino";
+      const ageRanges = ["18-25", "26-35", "36-45", "46-55", "56+"];
+      const ageRange = ageRanges[hash % ageRanges.length];
+      meta[u.id] = { gender, ageRange };
+    });
+    return meta;
+  }, [users]);
+
+  const ageRanges = ["18-25", "26-35", "36-45", "46-55", "56+"];
+
+  // Filter debits based on selected filters
+  const filteredDebits = useMemo(() => {
+    let filtered = debits;
+    if (selectedCategory !== "all") {
+      const benefitIds = benefits.filter((b: any) => b.category === selectedCategory).map((b: any) => b.id);
+      filtered = filtered.filter((t: any) => benefitIds.includes(t.benefit_id));
+    }
+    if (selectedDept !== "all") {
+      const deptUserIds = users.filter((u: any) => u.dept === selectedDept).map((u: any) => u.id);
+      const deptWalletIds = wallets.filter((w: any) => deptUserIds.includes(w.user_id)).map((w: any) => w.id);
+      filtered = filtered.filter((t: any) => deptWalletIds.includes(t.wallet_id));
+    }
+    if (selectedGender !== "all") {
+      const genderUserIds = users.filter((u: any) => userMeta[u.id]?.gender === selectedGender).map((u: any) => u.id);
+      const genderWalletIds = wallets.filter((w: any) => genderUserIds.includes(w.user_id)).map((w: any) => w.id);
+      filtered = filtered.filter((t: any) => genderWalletIds.includes(t.wallet_id));
+    }
+    if (selectedAge !== "all") {
+      const ageUserIds = users.filter((u: any) => userMeta[u.id]?.ageRange === selectedAge).map((u: any) => u.id);
+      const ageWalletIds = wallets.filter((w: any) => ageUserIds.includes(w.user_id)).map((w: any) => w.id);
+      filtered = filtered.filter((t: any) => ageWalletIds.includes(t.wallet_id));
+    }
+    return filtered;
+  }, [debits, selectedCategory, selectedDept, selectedGender, selectedAge, benefits, users, wallets, userMeta]);
+
+  // Build pie data from filtered debits
+  const pieData = useMemo(() => {
+    const counts: Record<string, number> = {};
+    filteredDebits.forEach((t: any) => {
+      const benefit = benefits.find((b: any) => b.id === t.benefit_id);
+      if (benefit) {
+        const cat = benefit.category || "Otro";
+        counts[cat] = (counts[cat] || 0) + 1;
+      }
+    });
+    const total = filteredDebits.length || 1;
+    return Object.entries(counts).map(([name, count]) => ({
+      name: name.charAt(0).toUpperCase() + name.slice(1),
+      value: Math.round((count / total) * 100),
+      color: categoryColors[name.toLowerCase()] || tokens.colors.neutral[400],
+    }));
+  }, [filteredDebits, benefits]);
+
+  const selectStyle = {
+    ...baseStyles,
+    padding: "6px 10px", borderRadius: tokens.radius.s, border: `1px solid ${tokens.semantic.border}`,
+    fontSize: 13, background: "#fff", cursor: "pointer", minWidth: "auto", whiteSpace: "nowrap" as const,
+  };
+
+  const totalFiltered = filteredDebits.length;
+
+  return (
+    <Card style={{ marginBottom: 32 }}>
+      <h3 style={{ ...baseStyles, fontSize: 16, fontWeight: 600, margin: "0 0 16px 0", lineHeight: 1.4 }}>Canjes por categoría</h3>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 20 }}>
+        <select value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)} style={selectStyle}>
+          <option value="all">Todas las categorías</option>
+          {categories.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+        </select>
+        <select value={selectedDept} onChange={e => setSelectedDept(e.target.value)} style={selectStyle}>
+          <option value="all">Todos los departamentos</option>
+          {departments.map(d => <option key={d} value={d}>{d}</option>)}
+        </select>
+        <select value={selectedGender} onChange={e => setSelectedGender(e.target.value)} style={selectStyle}>
+          <option value="all">Todos los géneros</option>
+          <option value="Femenino">Femenino</option>
+          <option value="Masculino">Masculino</option>
+        </select>
+        <select value={selectedAge} onChange={e => setSelectedAge(e.target.value)} style={selectStyle}>
+          <option value="all">Todos los rangos etarios</option>
+          {ageRanges.map(r => <option key={r} value={r}>{r} años</option>)}
+        </select>
+      </div>
+      {pieData.length > 0 ? (
+        <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
+          <div style={{ flex: "0 0 280px" }}>
+            <ResponsiveContainer width="100%" height={250}>
+              <RePieChart>
+                <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={3} dataKey="value">
+                  {pieData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                </Pie>
+                <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12, fontFamily: "Roboto" }} />
+              </RePieChart>
+            </ResponsiveContainer>
+          </div>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
+            {pieData.map((c, i) => {
+              const count = filteredDebits.filter((t: any) => {
+                const b = benefits.find((b: any) => b.id === t.benefit_id);
+                return b && (b.category || "Otro").charAt(0).toUpperCase() + (b.category || "Otro").slice(1) === c.name;
+              }).length;
+              return (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 13, letterSpacing: "0.2px" }}>
+                  <div style={{ width: 10, height: 10, borderRadius: "50%", background: c.color, flexShrink: 0 }} />
+                  <span style={{ flex: 1, color: tokens.semantic.textDefault }}>{c.name}</span>
+                  <span style={{ color: tokens.semantic.textLighter, fontSize: 12 }}>{count} canjes</span>
+                  <span style={{ fontWeight: 600, minWidth: 40, textAlign: "right" }}>{c.value}%</span>
+                </div>
+              );
+            })}
+            <div style={{ marginTop: 8, paddingTop: 12, borderTop: `1px solid ${tokens.semantic.borderLight}`, fontSize: 12, color: tokens.semantic.textLighter }}>
+              Total: <span style={{ fontWeight: 600, color: tokens.semantic.textDefault }}>{totalFiltered} canjes</span>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div style={{ textAlign: "center", padding: 40, color: tokens.semantic.textLighter, fontSize: 13 }}>
+          Sin datos para los filtros seleccionados
+        </div>
+      )}
+    </Card>
+  );
+}
+
 function DashboardPage({ data }: { data: any }) {
-  const { totalCredited, totalRedeemed, totalPending, employees, categoryData, deptUsage, recentActivity, monthlyCredits } = data;
+  const { totalCredited, totalRedeemed, totalPending, employees, recentActivity } = data;
   const rate = totalCredited > 0 ? Math.round((totalRedeemed / totalCredited) * 100) : 0;
+
+  // Date range filter state
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+
+  // Filter transactions by date range
+  const filteredTransactions = useMemo(() => {
+    let txs = data.transactions as any[];
+    if (dateFrom) txs = txs.filter((t: any) => new Date(t.created_at) >= new Date(dateFrom));
+    if (dateTo) txs = txs.filter((t: any) => new Date(t.created_at) <= new Date(dateTo + "T23:59:59"));
+    return txs;
+  }, [data.transactions, dateFrom, dateTo]);
+
+  // Recalculate monthly chart data from filtered transactions
+  const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+  const filteredMonthlyCredits = useMemo(() => {
+    const monthMap: Record<string, { cargados: number; canjeados: number }> = {};
+    filteredTransactions.forEach((t: any) => {
+      const d = new Date(t.created_at);
+      const key = monthNames[d.getMonth()];
+      if (!monthMap[key]) monthMap[key] = { cargados: 0, canjeados: 0 };
+      if (t.type === "credit") monthMap[key].cargados += Number(t.amount);
+      else monthMap[key].canjeados += Number(t.amount);
+    });
+    const result = Object.entries(monthMap).map(([month, v]) => ({ month, ...v }));
+    return result.length > 0 ? result : [{ month: "—", cargados: 0, canjeados: 0 }];
+  }, [filteredTransactions]);
+
+  // Activity filter by user
+  const [activityUser, setActivityUser] = useState("all");
+  const uniqueActivityUsers = [...new Set(recentActivity.map((a: any) => a.user))].sort() as string[];
+  const filteredActivity = activityUser === "all"
+    ? recentActivity
+    : recentActivity.filter((a: any) => a.user === activityUser);
+
+  const dateInputStyle = {
+    ...baseStyles,
+    padding: "6px 10px", borderRadius: tokens.radius.s, border: `1px solid ${tokens.semantic.border}`,
+    fontSize: 13, background: "#fff", cursor: "pointer",
+  };
+
+  const selectStyle = {
+    ...baseStyles,
+    padding: "6px 10px", borderRadius: tokens.radius.s, border: `1px solid ${tokens.semantic.border}`,
+    fontSize: 13, background: "#fff", cursor: "pointer", minWidth: "auto", whiteSpace: "nowrap" as const,
+  };
+
   return (
     <div>
       <div style={{ marginBottom: 32 }}>
@@ -565,108 +759,94 @@ function DashboardPage({ data }: { data: any }) {
 
       {/* KPI Cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 32 }}>
-        <StatCard label="Créditos pendientes" value={fmtCurrency(totalPending)} icon={DollarSign} trend="Disponibles para canjear" trendUp color={tokens.colors.purple[500]} />
-        <StatCard label="Créditos totales asignados" value={fmtCurrency(totalCredited)} icon={CreditCard} trend={`${employees.length} colaboradores`} trendUp color={tokens.colors.humand[500]} />
-        <StatCard label="Créditos canjeados" value={fmtCurrency(totalRedeemed)} icon={Gift} trend={`${data.transactions.filter((t:any) => t.type === 'debit').length} canjes`} trendUp color={tokens.colors.green[600]} />
+        <StatCard label="Créditos acreditados" value={fmtCurrency(totalCredited)} icon={DollarSign} trend="Total ingresado a la plataforma" trendUp color={tokens.colors.purple[500]} />
+        <StatCard label="Créditos asignados a empleados" value={fmtCurrency(totalPending + totalRedeemed)} icon={Users} trend={`${employees.length} colaboradores`} trendUp color={tokens.colors.humand[500]} />
+        <StatCard label="Créditos canjeados por empleados" value={fmtCurrency(totalRedeemed)} icon={Gift} trend={`${data.transactions.filter((t:any) => t.type === 'debit').length} canjes`} trendUp color={tokens.colors.green[600]} />
         <StatCard label="Tasa de canje" value={`${rate}%`} icon={TrendingUp} trend="del total asignado" trendUp={rate > 50} color={tokens.colors.teal[500]} />
       </div>
 
-      {/* Charts Row */}
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16, marginBottom: 32 }}>
-        <Card>
-          <h3 style={{ ...baseStyles, fontSize: 16, fontWeight: 600, margin: "0 0 20px 0", lineHeight: 1.4 }}>Créditos cargados vs canjeados</h3>
-          <ResponsiveContainer width="100%" height={280}>
-            <AreaChart data={monthlyCredits}>
-              <defs>
-                <linearGradient id="gradLoaded" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={tokens.colors.humand[400]} stopOpacity={0.2} />
-                  <stop offset="95%" stopColor={tokens.colors.humand[400]} stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="gradRedeemed" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={tokens.colors.green[500]} stopOpacity={0.2} />
-                  <stop offset="95%" stopColor={tokens.colors.green[500]} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke={tokens.semantic.borderLight} />
-              <XAxis dataKey="month" tick={{ fontSize: 12, fill: tokens.semantic.textLighter }} />
-              <YAxis tick={{ fontSize: 12, fill: tokens.semantic.textLighter }} />
-              <Tooltip contentStyle={{ borderRadius: 8, border: `1px solid ${tokens.semantic.border}`, fontSize: 13, fontFamily: "Roboto" }} />
-              <Area type="monotone" dataKey="cargados" stroke={tokens.colors.humand[500]} fill="url(#gradLoaded)" strokeWidth={2} name="Cargados" />
-              <Area type="monotone" dataKey="canjeados" stroke={tokens.colors.green[500]} fill="url(#gradRedeemed)" strokeWidth={2} name="Canjeados" />
-              <Legend wrapperStyle={{ fontSize: 12, fontFamily: "Roboto" }} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </Card>
-
-        <Card>
-          <h3 style={{ ...baseStyles, fontSize: 16, fontWeight: 600, margin: "0 0 20px 0", lineHeight: 1.4 }}>Canjes por categoría</h3>
-          <ResponsiveContainer width="100%" height={200}>
-            <RePieChart>
-              <Pie data={categoryData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
-                {categoryData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
-              </Pie>
-              <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12, fontFamily: "Roboto" }} />
-            </RePieChart>
-          </ResponsiveContainer>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {categoryData.map((c, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, letterSpacing: "0.2px" }}>
-                <div style={{ width: 8, height: 8, borderRadius: "50%", background: c.color, flexShrink: 0 }} />
-                <span style={{ flex: 1, color: tokens.semantic.textDefault }}>{c.name}</span>
-                <span style={{ fontWeight: 600 }}>{c.value}%</span>
-              </div>
-            ))}
+      {/* Area Chart — Full Width with Date Range */}
+      <Card style={{ marginBottom: 32 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
+          <h3 style={{ ...baseStyles, fontSize: 16, fontWeight: 600, margin: 0, lineHeight: 1.4 }}>Créditos cargados vs canjeados</h3>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ ...baseStyles, fontSize: 12, color: tokens.semantic.textLighter }}>Desde</span>
+            <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} style={dateInputStyle} />
+            <span style={{ ...baseStyles, fontSize: 12, color: tokens.semantic.textLighter }}>Hasta</span>
+            <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} style={dateInputStyle} />
+            {(dateFrom || dateTo) && (
+              <button onClick={() => { setDateFrom(""); setDateTo(""); }} style={{ ...baseStyles, fontSize: 11, color: tokens.colors.red[500], background: "none", border: "none", cursor: "pointer", padding: "4px 8px" }}>
+                Limpiar
+              </button>
+            )}
           </div>
-        </Card>
-      </div>
+        </div>
+        <ResponsiveContainer width="100%" height={300}>
+          <AreaChart data={filteredMonthlyCredits}>
+            <defs>
+              <linearGradient id="gradLoaded" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={tokens.colors.humand[400]} stopOpacity={0.2} />
+                <stop offset="95%" stopColor={tokens.colors.humand[400]} stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="gradRedeemed" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={tokens.colors.green[500]} stopOpacity={0.2} />
+                <stop offset="95%" stopColor={tokens.colors.green[500]} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke={tokens.semantic.borderLight} />
+            <XAxis dataKey="month" tick={{ fontSize: 12, fill: tokens.semantic.textLighter }} />
+            <YAxis tick={{ fontSize: 12, fill: tokens.semantic.textLighter }} />
+            <Tooltip contentStyle={{ borderRadius: 8, border: `1px solid ${tokens.semantic.border}`, fontSize: 13, fontFamily: "Roboto" }} />
+            <Area type="monotone" dataKey="cargados" stroke={tokens.colors.humand[500]} fill="url(#gradLoaded)" strokeWidth={2} name="Cargados" />
+            <Area type="monotone" dataKey="canjeados" stroke={tokens.colors.green[500]} fill="url(#gradRedeemed)" strokeWidth={2} name="Canjeados" />
+            <Legend wrapperStyle={{ fontSize: 12, fontFamily: "Roboto" }} />
+          </AreaChart>
+        </ResponsiveContainer>
+      </Card>
 
-      {/* Usage by department + Recent Activity */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-        <Card>
-          <h3 style={{ ...baseStyles, fontSize: 16, fontWeight: 600, margin: "0 0 20px 0", lineHeight: 1.4 }}>Uso por departamento</h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {deptUsage.map((d, i) => (
-              <div key={i}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: 13, letterSpacing: "0.2px" }}>
-                  <span style={{ color: tokens.semantic.textDefault }}>{d.dept}</span>
-                  <span style={{ fontWeight: 600, color: tokens.semantic.textDefault }}>{d.usage}%</span>
-                </div>
-                <ProgressBar value={d.usage} max={100} color={d.usage > 75 ? tokens.colors.green[500] : d.usage > 50 ? tokens.colors.humand[400] : tokens.colors.yellow[500]} />
-              </div>
-            ))}
-          </div>
-        </Card>
+      {/* Pie Chart — Full Width with Filters + Date Range */}
+      <FilteredPieChart data={data} dateFrom={dateFrom} dateTo={dateTo} />
 
-        <Card>
-          <h3 style={{ ...baseStyles, fontSize: 16, fontWeight: 600, margin: "0 0 20px 0", lineHeight: 1.4 }}>Actividad reciente</h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-            {recentActivity.map((a, i) => (
-              <div key={i} style={{
-                display: "flex", alignItems: "center", gap: 12, padding: "12px 0",
-                borderBottom: i < recentActivity.length - 1 ? `1px solid ${tokens.semantic.borderLight}` : "none",
+      {/* Recent Activity — Full Width */}
+      <Card>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <h3 style={{ ...baseStyles, fontSize: 16, fontWeight: 600, margin: 0, lineHeight: 1.4 }}>Actividad reciente</h3>
+          <select value={activityUser} onChange={e => setActivityUser(e.target.value)} style={selectStyle}>
+            <option value="all">Todos los usuarios</option>
+            {uniqueActivityUsers.map(u => <option key={u} value={u}>{u}</option>)}
+          </select>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+          {filteredActivity.length > 0 ? filteredActivity.map((a: any, i: number) => (
+            <div key={i} style={{
+              display: "flex", alignItems: "center", gap: 12, padding: "12px 0",
+              borderBottom: i < filteredActivity.length - 1 ? `1px solid ${tokens.semantic.borderLight}` : "none",
+            }}>
+              <div style={{
+                width: 32, height: 32, borderRadius: "50%",
+                background: a.type === "credit" ? tokens.colors.green[100] : tokens.colors.humand[100],
+                display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
               }}>
-                <div style={{
-                  width: 32, height: 32, borderRadius: "50%",
-                  background: a.type === "credit" ? tokens.colors.green[100] : tokens.colors.humand[100],
-                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-                }}>
-                  {a.type === "credit" ? <ArrowUpRight size={16} color={tokens.colors.green[600]} /> : <Gift size={16} color={tokens.colors.humand[500]} />}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: "0.2px", lineHeight: 1.4 }}>{a.user}</div>
-                  <div style={{ fontSize: 12, color: tokens.semantic.textLighter, letterSpacing: "0.2px", lineHeight: 1.4 }}>{a.action}</div>
-                </div>
-                <div style={{ textAlign: "right", flexShrink: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: a.credits > 0 ? tokens.colors.green[600] : tokens.colors.red[500], letterSpacing: "0.2px" }}>
-                    {a.credits > 0 ? "+" : ""}{a.credits.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                  </div>
-                  <div style={{ fontSize: 11, color: tokens.semantic.textDisabled, letterSpacing: "0.2px" }}>{a.time}</div>
-                </div>
+                {a.type === "credit" ? <ArrowUpRight size={16} color={tokens.colors.green[600]} /> : <Gift size={16} color={tokens.colors.humand[500]} />}
               </div>
-            ))}
-          </div>
-        </Card>
-      </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: "0.2px", lineHeight: 1.4 }}>{a.user}</div>
+                <div style={{ fontSize: 12, color: tokens.semantic.textLighter, letterSpacing: "0.2px", lineHeight: 1.4 }}>{a.action}</div>
+              </div>
+              <div style={{ textAlign: "right", flexShrink: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: a.credits > 0 ? tokens.colors.green[600] : tokens.colors.red[500], letterSpacing: "0.2px" }}>
+                  {a.credits > 0 ? "+" : ""}{a.credits.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                </div>
+                <div style={{ fontSize: 11, color: tokens.semantic.textDisabled, letterSpacing: "0.2px" }}>{a.time}</div>
+              </div>
+            </div>
+          )) : (
+            <div style={{ textAlign: "center", padding: 24, color: tokens.semantic.textLighter, fontSize: 13 }}>
+              Sin actividad para este usuario
+            </div>
+          )}
+        </div>
+      </Card>
     </div>
   );
 }
