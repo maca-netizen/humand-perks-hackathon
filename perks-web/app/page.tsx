@@ -63,7 +63,7 @@ export default function HumandApp() {
     { key: "benefits", name: t("benefits"), icon: Gift },
   ], [language])
 
-  const USER_ID = "u_maria01"
+  const USER_ID = "b423f21e-9fa6-4046-906d-7e691e5e5cb6" // María García
 
   useEffect(() => {
     async function load() {
