@@ -568,33 +568,23 @@ function FilteredPieChart({ data, dateFrom, dateTo }: { data: any; dateFrom?: st
   const categories = [...new Set(benefits.map((b: any) => b.category).filter(Boolean))].sort() as string[];
   const departments = [...new Set(users.filter((u: any) => u.role === "employee").map((u: any) => u.dept).filter(Boolean))].sort() as string[];
 
-  const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedDept, setSelectedDept] = useState("all");
   const [selectedGender, setSelectedGender] = useState("all");
-  const [selectedAge, setSelectedAge] = useState("all");
 
-  // Derive gender and age from user id (deterministic simulation)
+  // Derive gender from user id (deterministic simulation)
   const userMeta = useMemo(() => {
-    const meta: Record<string, { gender: string; ageRange: string }> = {};
+    const meta: Record<string, { gender: string }> = {};
     users.forEach((u: any) => {
       const hash = (u.id || "").split("").reduce((a: number, c: string) => a + c.charCodeAt(0), 0);
       const gender = hash % 2 === 0 ? "Femenino" : "Masculino";
-      const ageRanges = ["18-25", "26-35", "36-45", "46-55", "56+"];
-      const ageRange = ageRanges[hash % ageRanges.length];
-      meta[u.id] = { gender, ageRange };
+      meta[u.id] = { gender };
     });
     return meta;
   }, [users]);
 
-  const ageRanges = ["18-25", "26-35", "36-45", "46-55", "56+"];
-
   // Filter debits based on selected filters
   const filteredDebits = useMemo(() => {
     let filtered = debits;
-    if (selectedCategory !== "all") {
-      const benefitIds = benefits.filter((b: any) => b.category === selectedCategory).map((b: any) => b.id);
-      filtered = filtered.filter((t: any) => benefitIds.includes(t.benefit_id));
-    }
     if (selectedDept !== "all") {
       const deptUserIds = users.filter((u: any) => u.dept === selectedDept).map((u: any) => u.id);
       const deptWalletIds = wallets.filter((w: any) => deptUserIds.includes(w.user_id)).map((w: any) => w.id);
@@ -605,13 +595,8 @@ function FilteredPieChart({ data, dateFrom, dateTo }: { data: any; dateFrom?: st
       const genderWalletIds = wallets.filter((w: any) => genderUserIds.includes(w.user_id)).map((w: any) => w.id);
       filtered = filtered.filter((t: any) => genderWalletIds.includes(t.wallet_id));
     }
-    if (selectedAge !== "all") {
-      const ageUserIds = users.filter((u: any) => userMeta[u.id]?.ageRange === selectedAge).map((u: any) => u.id);
-      const ageWalletIds = wallets.filter((w: any) => ageUserIds.includes(w.user_id)).map((w: any) => w.id);
-      filtered = filtered.filter((t: any) => ageWalletIds.includes(t.wallet_id));
-    }
     return filtered;
-  }, [debits, selectedCategory, selectedDept, selectedGender, selectedAge, benefits, users, wallets, userMeta]);
+  }, [debits, selectedDept, selectedGender, benefits, users, wallets, userMeta]);
 
   // Build pie data from filtered debits
   const pieData = useMemo(() => {
@@ -642,11 +627,7 @@ function FilteredPieChart({ data, dateFrom, dateTo }: { data: any; dateFrom?: st
   return (
     <Card style={{ marginBottom: 32 }}>
       <h3 style={{ ...baseStyles, fontSize: 16, fontWeight: 600, margin: "0 0 16px 0", lineHeight: 1.4 }}>Canjes por categoría</h3>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 20 }}>
-        <select value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)} style={selectStyle}>
-          <option value="all">Todas las categorías</option>
-          {categories.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
-        </select>
+      <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
         <select value={selectedDept} onChange={e => setSelectedDept(e.target.value)} style={selectStyle}>
           <option value="all">Todos los departamentos</option>
           {departments.map(d => <option key={d} value={d}>{d}</option>)}
@@ -655,10 +636,6 @@ function FilteredPieChart({ data, dateFrom, dateTo }: { data: any; dateFrom?: st
           <option value="all">Todos los géneros</option>
           <option value="Femenino">Femenino</option>
           <option value="Masculino">Masculino</option>
-        </select>
-        <select value={selectedAge} onChange={e => setSelectedAge(e.target.value)} style={selectStyle}>
-          <option value="all">Todos los rangos etarios</option>
-          {ageRanges.map(r => <option key={r} value={r}>{r} años</option>)}
         </select>
       </div>
       {pieData.length > 0 ? (
@@ -703,8 +680,44 @@ function FilteredPieChart({ data, dateFrom, dateTo }: { data: any; dateFrom?: st
 }
 
 function DashboardPage({ data }: { data: any }) {
-  const { totalCredited, totalRedeemed, totalPending, employees, recentActivity } = data;
-  const rate = totalCredited > 0 ? Math.round((totalRedeemed / totalCredited) * 100) : 0;
+  const { employees, recentActivity } = data;
+
+  // Monthly comparison: this month vs previous month
+  const now = new Date();
+  const thisMonth = now.getMonth();
+  const thisYear = now.getFullYear();
+  const prevMonth = thisMonth === 0 ? 11 : thisMonth - 1;
+  const prevYear = thisMonth === 0 ? thisYear - 1 : thisYear;
+
+  const txThisMonth = data.transactions.filter((t: any) => {
+    const d = new Date(t.created_at);
+    return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+  });
+  const txPrevMonth = data.transactions.filter((t: any) => {
+    const d = new Date(t.created_at);
+    return d.getMonth() === prevMonth && d.getFullYear() === prevYear;
+  });
+
+  const thisMonthCredited = txThisMonth.filter((t: any) => t.type === "credit").reduce((s: number, t: any) => s + Number(t.amount), 0);
+  const prevMonthCredited = txPrevMonth.filter((t: any) => t.type === "credit").reduce((s: number, t: any) => s + Number(t.amount), 0);
+  const thisMonthRedeemed = txThisMonth.filter((t: any) => t.type === "debit").reduce((s: number, t: any) => s + Number(t.amount), 0);
+  const prevMonthRedeemed = txPrevMonth.filter((t: any) => t.type === "debit").reduce((s: number, t: any) => s + Number(t.amount), 0);
+  const thisMonthAssigned = thisMonthCredited;
+  const prevMonthAssigned = prevMonthCredited;
+  const thisMonthRate = thisMonthCredited > 0 ? Math.round((thisMonthRedeemed / thisMonthCredited) * 100) : 0;
+  const prevMonthRate = prevMonthCredited > 0 ? Math.round((prevMonthRedeemed / prevMonthCredited) * 100) : 0;
+
+  function pctChange(curr: number, prev: number): string {
+    if (prev === 0) return curr > 0 ? "+100% vs mes anterior" : "Sin cambios vs mes anterior";
+    const pct = Math.round(((curr - prev) / prev) * 100);
+    return `${pct >= 0 ? "+" : ""}${pct}% vs mes anterior`;
+  }
+
+  const creditedTrend = pctChange(thisMonthCredited, prevMonthCredited);
+  const assignedTrend = pctChange(thisMonthAssigned, prevMonthAssigned);
+  const redeemedTrend = pctChange(thisMonthRedeemed, prevMonthRedeemed);
+  const rateDiff = thisMonthRate - prevMonthRate;
+  const rateTrend = `${rateDiff >= 0 ? "+" : ""}${rateDiff}pp vs mes anterior`;
 
   // Date range filter state
   const [dateFrom, setDateFrom] = useState("");
@@ -763,10 +776,10 @@ function DashboardPage({ data }: { data: any }) {
 
       {/* KPI Cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 32 }}>
-        <StatCard label="Créditos acreditados" value={fmtCurrency(totalCredited)} icon={DollarSign} trend="Total ingresado a la plataforma" trendUp color={tokens.colors.purple[500]} />
-        <StatCard label="Créditos asignados a empleados" value={fmtCurrency(totalPending + totalRedeemed)} icon={Users} trend={`${employees.length} colaboradores`} trendUp color={tokens.colors.humand[500]} />
-        <StatCard label="Créditos canjeados por empleados" value={fmtCurrency(totalRedeemed)} icon={Gift} trend={`${data.transactions.filter((t:any) => t.type === 'debit').length} canjes`} trendUp color={tokens.colors.green[600]} />
-        <StatCard label="Tasa de canje" value={`${rate}%`} icon={TrendingUp} trend="del total asignado" trendUp={rate > 50} color={tokens.colors.teal[500]} />
+        <StatCard label="Créditos acreditados" value={fmtNum(thisMonthCredited)} icon={DollarSign} trend={creditedTrend} trendUp={thisMonthCredited >= prevMonthCredited} color={tokens.colors.purple[500]} />
+        <StatCard label="Créditos asignados a empleados" value={fmtNum(thisMonthAssigned)} icon={Users} trend={assignedTrend} trendUp={thisMonthAssigned >= prevMonthAssigned} color={tokens.colors.humand[500]} />
+        <StatCard label="Créditos canjeados por empleados" value={fmtNum(thisMonthRedeemed)} icon={Gift} trend={redeemedTrend} trendUp={thisMonthRedeemed >= prevMonthRedeemed} color={tokens.colors.green[600]} />
+        <StatCard label="Tasa de canje" value={`${thisMonthRate}%`} icon={TrendingUp} trend={rateTrend} trendUp={thisMonthRate >= prevMonthRate} color={tokens.colors.teal[500]} />
       </div>
 
       {/* Area Chart — Full Width with Date Range */}
@@ -820,7 +833,7 @@ function DashboardPage({ data }: { data: any }) {
             {uniqueActivityUsers.map(u => <option key={u} value={u}>{u}</option>)}
           </select>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 0, maxHeight: 400, overflowY: "auto" }}>
           {filteredActivity.length > 0 ? filteredActivity.map((a: any, i: number) => (
             <div key={i} style={{
               display: "flex", alignItems: "center", gap: 12, padding: "12px 0",
@@ -2449,7 +2462,6 @@ export default function App() {
     { key: "individual", label: t("employees") },
     { key: "benefits", label: t("benefits") },
     { key: "auto", label: t("autoLoads") },
-    { key: "analytics", label: t("analytics") },
   ], [language]);
 
   const otherNav = useMemo(() => [
@@ -2501,7 +2513,6 @@ export default function App() {
       case "auto": return <AutoRulesPage data={data} onRefresh={data.refresh} />;
       case "benefits": return <BenefitsPage data={data} />;
       case "buy": return <BuyCreditsPage data={data} />;
-      case "analytics": return <AnalyticsPage data={data} />;
       default: return <DashboardPage data={data} />;
     }
   };
