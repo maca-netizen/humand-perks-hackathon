@@ -317,7 +317,7 @@ function Button({ children, variant = "primary", size = "md", icon: Icon, onClic
     variant === "primary" || variant === "danger"
       ? { transform: "translateY(-1px)", boxShadow: tokens.shadow.glow }
       : variant === "secondary"
-        ? { boxShadow: tokens.shadow.dp2, borderColor: tokens.colors.humand[400] }
+        ? { boxShadow: tokens.shadow.dp2, border: `1px solid ${tokens.colors.humand[400]}` }
         : { background: tokens.colors.neutral[100] }
   ) : {};
   return (
@@ -345,10 +345,8 @@ function Card({ children, style: extraStyle, noPadding, hoverable }: any) {
         background: tokens.semantic.bgCard,
         borderRadius: tokens.radius.l,
         boxShadow: hovered ? tokens.shadow.dp8 : tokens.shadow.dp4,
-        borderTop: `1px solid ${hovered ? tokens.colors.humand[200] : "transparent"}`,
-        borderRight: `1px solid ${hovered ? tokens.colors.humand[200] : "transparent"}`,
-        borderBottom: `1px solid ${hovered ? tokens.colors.humand[200] : "transparent"}`,
-        borderLeft: `1px solid ${hovered ? tokens.colors.humand[200] : "transparent"}`,
+        outline: hovered ? `1px solid ${tokens.colors.humand[200]}` : "1px solid transparent",
+        outlineOffset: -1,
         padding: noPadding ? 0 : 24,
         transition: tokens.transition.medium,
         ...extraStyle,
@@ -360,7 +358,7 @@ function Card({ children, style: extraStyle, noPadding, hoverable }: any) {
 
 function StatCard({ label, value, icon: Icon, trend, trendUp, color = tokens.colors.humand[500] }) {
   return (
-    <Card hoverable style={{ display: "flex", alignItems: "flex-start", gap: 16, borderLeft: `3px solid ${color}` }}>
+    <Card hoverable style={{ display: "flex", alignItems: "flex-start", gap: 16, boxShadow: `inset 3px 0 0 ${color}, ${tokens.shadow.dp4}` }}>
       <div style={{
         width: 52, height: 52, borderRadius: tokens.radius.m,
         background: `radial-gradient(circle at top left, ${color}20, ${color}08)`,
@@ -454,7 +452,7 @@ function Tabs({ tabs, active, onChange }) {
           ...baseStyles, padding: "12px 20px", fontSize: 14, fontWeight: active === t.key ? 600 : 400,
           color: active === t.key ? tokens.colors.humand[500] : tokens.semantic.textLighter,
           background: "transparent", border: "none", cursor: "pointer",
-          borderBottom: active === t.key ? `2px solid ${tokens.colors.humand[500]}` : "2px solid transparent",
+          boxShadow: active === t.key ? `inset 0 -2px 0 ${tokens.colors.humand[500]}` : "none",
           marginBottom: -2, transition: "all 0.15s ease", letterSpacing: "0.2px",
         }}>
           {t.label}
@@ -985,8 +983,8 @@ function AutoRulesPage({ data }: { data: any }) {
                 transition: "box-shadow 0.15s ease, border-color 0.15s ease",
                 position: "relative",
               }}
-              onMouseEnter={e => { e.currentTarget.style.boxShadow = tokens.shadow.dp4; e.currentTarget.style.borderColor = tokens.colors.humand[300]; }}
-              onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.borderColor = tokens.semantic.border; }}
+              onMouseEnter={e => { e.currentTarget.style.boxShadow = tokens.shadow.dp4; e.currentTarget.style.border = `1px solid ${tokens.colors.humand[300]}`; }}
+              onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.border = `1px solid ${tokens.semantic.border}`; }}
               >
                 {/* Header: icon + menu */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
@@ -1263,15 +1261,134 @@ function AutoRulesPage({ data }: { data: any }) {
 /* ════════════════════════════════════════════
    PAGE: BENEFITS MANAGEMENT
    ════════════════════════════════════════════ */
+/* Predefined benefit catalog that admins can publish */
+const BENEFIT_CATALOG = [
+  { name: "Gimnasio SmartFit", category: "salud", provider: "SmartFit", cost: 8, description: "Acceso mensual a cualquier sede SmartFit", image: "🏋️" },
+  { name: "Sesión de nutrición", category: "salud", provider: "NutriPlan", cost: 5, description: "Consulta personalizada con nutricionista", image: "🥗" },
+  { name: "Chequeo médico anual", category: "salud", provider: "MedCheck", cost: 12, description: "Chequeo médico preventivo completo", image: "🩺" },
+  { name: "Clase de yoga", category: "bienestar", provider: "ZenFlow", cost: 3, description: "Clase grupal de yoga y meditación", image: "🧘" },
+  { name: "Día de spa", category: "bienestar", provider: "RelaxSpa", cost: 10, description: "Jornada de relajación y masajes", image: "💆" },
+  { name: "Sesión de terapia", category: "bienestar", provider: "MindWell", cost: 6, description: "Sesión individual con psicólogo", image: "🧠" },
+  { name: "Almuerzo gourmet", category: "gastronomía", provider: "FoodBox", cost: 4, description: "Almuerzo saludable delivery en la oficina", image: "🍕" },
+  { name: "Coffee break premium", category: "gastronomía", provider: "CaféSelect", cost: 2, description: "Café de especialidad y snacks", image: "☕" },
+  { name: "Cena para dos", category: "gastronomía", provider: "RestóClub", cost: 15, description: "Cena en restaurantes seleccionados", image: "🍽️" },
+  { name: "Curso de inglés", category: "educación", provider: "LangPro", cost: 7, description: "Mes de clases de inglés online", image: "📚" },
+  { name: "Curso Udemy", category: "educación", provider: "Udemy", cost: 5, description: "Acceso a un curso en Udemy Business", image: "🎓" },
+  { name: "Certificación profesional", category: "educación", provider: "Coursera", cost: 20, description: "Certificación en Coursera o similar", image: "📜" },
+  { name: "Entrada de cine", category: "entretenimiento", provider: "Cinemark", cost: 3, description: "Entrada para cualquier función", image: "🎬" },
+  { name: "Streaming mensual", category: "entretenimiento", provider: "Multi", cost: 4, description: "Netflix, Spotify o Disney+ por un mes", image: "📺" },
+  { name: "Escape room", category: "entretenimiento", provider: "EscapeAR", cost: 6, description: "Experiencia de escape room para equipo", image: "🔐" },
+  { name: "Gift card shopping", category: "shopping", provider: "MercadoLibre", cost: 10, description: "Gift card canjeable en MercadoLibre", image: "🛍️" },
+  { name: "Día libre", category: "bienestar", provider: "Interno", cost: 15, description: "Un día libre adicional para uso personal", image: "🏖️" },
+  { name: "Home office kit", category: "bienestar", provider: "TechStore", cost: 12, description: "Kit de accesorios para home office", image: "💻" },
+];
+
+const BENEFIT_CATEGORIES = [
+  { key: "todas", label: "Todas", icon: "🎁" },
+  { key: "salud", label: "Salud", icon: "🏋️" },
+  { key: "bienestar", label: "Bienestar", icon: "🧘" },
+  { key: "gastronomía", label: "Gastronomía", icon: "🍕" },
+  { key: "educación", label: "Educación", icon: "📚" },
+  { key: "entretenimiento", label: "Entretenimiento", icon: "🎬" },
+  { key: "shopping", label: "Shopping", icon: "🛍️" },
+];
+
 function BenefitsPage({ data }: { data: any }) {
   const [search, setSearch] = useState("");
-  const [showModal, setShowModal] = useState(false);
+  const [showCatalog, setShowCatalog] = useState(false);
   const [viewMode, setViewMode] = useState("grid");
+  const [selectedCategory, setSelectedCategory] = useState("todas");
+  const [editBenefit, setEditBenefit] = useState<any>(null);
+  const [viewBenefit, setViewBenefit] = useState<any>(null);
+  const [catalogCategory, setCatalogCategory] = useState("todas");
+  const [catalogSearch, setCatalogSearch] = useState("");
+  // Edit form state
+  const [editName, setEditName] = useState("");
+  const [editCost, setEditCost] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editSegments, setEditSegments] = useState<string[]>([]);
+  const [editSegmentType, setEditSegmentType] = useState<"all" | "individual" | "group">("all");
+  const [editActive, setEditActive] = useState(true);
+  const [segDropdownOpen, setSegDropdownOpen] = useState(false);
+  const [segIndividualSearch, setSegIndividualSearch] = useState("");
 
-  const filtered = data.benefits.filter((b: any) =>
-    b.name.toLowerCase().includes(search.toLowerCase()) ||
-    (b.category || "").toLowerCase().includes(search.toLowerCase())
-  );
+  const allDepts = [...new Set(data.users.map((u: any) => u.dept).filter(Boolean))] as string[];
+  const employeeUsers = data.users.filter((u: any) => u.role === "employee" || !u.role);
+
+  const filtered = data.benefits.filter((b: any) => {
+    const matchSearch = b.name.toLowerCase().includes(search.toLowerCase()) ||
+      (b.category || "").toLowerCase().includes(search.toLowerCase());
+    const matchCategory = selectedCategory === "todas" || (b.category || "").toLowerCase() === selectedCategory.toLowerCase();
+    return matchSearch && matchCategory;
+  });
+
+  const catalogFiltered = BENEFIT_CATALOG.filter(b => {
+    const alreadyPublished = data.benefits.some((pub: any) => pub.name.toLowerCase() === b.name.toLowerCase());
+    const matchSearch = b.name.toLowerCase().includes(catalogSearch.toLowerCase()) || b.provider.toLowerCase().includes(catalogSearch.toLowerCase());
+    const matchCat = catalogCategory === "todas" || b.category === catalogCategory.replace("í", "i").replace("ó", "o");
+    return !alreadyPublished && matchSearch && matchCat;
+  });
+
+  const openEdit = (b: any) => {
+    setEditBenefit(b);
+    setEditName(b.name);
+    setEditCost(String(b.credits || b.cost));
+    setEditDescription(b.description || "");
+    const segs = b.segments || [];
+    setEditSegments(segs);
+    setEditSegmentType(segs.length === 0 ? "all" : (allDepts.some(d => segs.includes(d)) ? "group" : "individual"));
+    setEditActive(b.status === "active");
+    setSegDropdownOpen(false);
+    setSegIndividualSearch("");
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editBenefit) return;
+    try {
+      await supabase.from("benefits").update({
+        name: editName,
+        cost: Number(editCost),
+        description: editDescription,
+        active: editActive,
+        segments: editSegments.length > 0 ? editSegments : null,
+      }).eq("id", editBenefit.id);
+      toast.success(`Beneficio "${editName}" actualizado`);
+      setEditBenefit(null);
+      data.refresh();
+    } catch { toast.error("Error al guardar"); }
+  };
+
+  const handlePublishFromCatalog = async (item: any) => {
+    try {
+      const id = `ben_${Math.random().toString(36).substring(2, 10)}`;
+      await supabase.from("benefits").insert({
+        id,
+        name: item.name,
+        category: item.category,
+        merchant: item.provider,
+        cost: item.cost,
+        description: item.description,
+        image_url: null,
+        active: true,
+      });
+      toast.success(`"${item.name}" publicado exitosamente`);
+      data.refresh();
+    } catch { toast.error("Error al publicar beneficio"); }
+  };
+
+  const handleToggleStatus = async (b: any) => {
+    const newActive = b.status !== "active";
+    await supabase.from("benefits").update({ active: newActive }).eq("id", b.id);
+    toast.success(newActive ? `"${b.name}" activado` : `"${b.name}" pausado`);
+    data.refresh();
+  };
+
+  const handleDelete = async (b: any) => {
+    if (!confirm(`¿Eliminar el beneficio "${b.name}"?`)) return;
+    await supabase.from("benefits").delete().eq("id", b.id);
+    toast.success(`"${b.name}" eliminado`);
+    data.refresh();
+  };
 
   return (
     <div>
@@ -1282,123 +1399,501 @@ function BenefitsPage({ data }: { data: any }) {
             Administrá el catálogo de beneficios disponibles para canjear
           </p>
         </div>
-        <Button icon={Plus} onClick={() => setShowModal(true)}>Nuevo beneficio</Button>
+        <Button icon={Plus} onClick={() => setShowCatalog(true)}>Nuevo beneficio</Button>
       </div>
 
-      <div style={{ display: "flex", gap: 12, marginBottom: 24, alignItems: "center" }}>
-        <SearchInput value={search} onChange={setSearch} placeholder="Buscar beneficios..." />
-        <Button variant={viewMode === "grid" ? "primary" : "secondary"} size="sm" icon={Layers} onClick={() => setViewMode("grid")} />
-        <Button variant={viewMode === "list" ? "primary" : "secondary"} size="sm" icon={FileText} onClick={() => setViewMode("list")} />
-      </div>
-
-      {viewMode === "grid" ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
-          {filtered.map(b => (
-            <Card key={b.id} hoverable style={{ cursor: "pointer" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-                <div style={{ fontSize: 40, lineHeight: 1 }}>{b.image}</div>
-                <Badge variant={b.status === "active" ? "success" : "warning"}>
-                  {b.status === "active" ? "Activo" : "Pausado"}
-                </Badge>
-              </div>
-              <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 4, letterSpacing: "0.2px", lineHeight: 1.4 }}>{b.name}</div>
-              <div style={{ fontSize: 12, color: tokens.semantic.textLighter, marginBottom: 12, letterSpacing: "0.2px" }}>{b.category} · {b.provider}</div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  <CreditCard size={14} color={tokens.colors.humand[500]} />
-                  <span style={{ fontWeight: 600, fontSize: 14, color: tokens.colors.humand[600], letterSpacing: "0.2px" }}>{b.credits}</span>
-                  <span style={{ fontSize: 12, color: tokens.semantic.textLighter, letterSpacing: "0.2px" }}>créditos</span>
-                </div>
-                <div style={{ fontSize: 12, color: tokens.semantic.textLighter, letterSpacing: "0.2px" }}>
-                  {b.redemptions} canjes
-                </div>
-              </div>
-              <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
-                <Button variant="secondary" size="sm" icon={Edit3} style={{ flex: 1 }}>Editar</Button>
-                <Button variant="ghost" size="sm" icon={Eye}>Ver</Button>
-              </div>
-            </Card>
-          ))}
+      <div style={{ display: "flex", gap: 24 }}>
+        {/* Category sidebar */}
+        <div style={{ width: 220, flexShrink: 0 }}>
+          <div style={{ ...baseStyles, fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.5px", color: tokens.semantic.textLighter, marginBottom: 12, padding: "0 12px" }}>
+            Categorías
+          </div>
+          {BENEFIT_CATEGORIES.map(cat => {
+            const isActive = selectedCategory === cat.key;
+            const count = cat.key === "todas"
+              ? data.benefits.length
+              : data.benefits.filter((b: any) => (b.category || "").toLowerCase() === cat.key.replace("í", "i").replace("ó", "o")).length;
+            return (
+              <button key={cat.key} onClick={() => setSelectedCategory(cat.key)} style={{
+                width: "100%", display: "flex", alignItems: "center", gap: 10,
+                padding: "10px 12px", textAlign: "left",
+                background: isActive ? tokens.colors.humand[50] : "transparent",
+                color: isActive ? tokens.colors.humand[600] : tokens.semantic.textDefault,
+                border: "none", cursor: "pointer", borderRadius: tokens.radius.m,
+                fontSize: 14, fontWeight: isActive ? 600 : 400,
+                fontFamily: "Roboto", letterSpacing: "0.2px",
+                transition: "all 0.15s ease", marginBottom: 2,
+              }}>
+                <span style={{ fontSize: 18 }}>{cat.icon}</span>
+                <span style={{ flex: 1 }}>{cat.label}</span>
+                <span style={{ fontSize: 12, color: tokens.semantic.textDisabled, fontWeight: 400 }}>{count}</span>
+              </button>
+            );
+          })}
         </div>
-      ) : (
-        <Card noPadding>
-          <div style={{ padding: "16px 24px" }}>
-            <Table
-              columns={[
-                { header: "Beneficio", key: "name", render: r => (
-                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <span style={{ fontSize: 24 }}>{r.image}</span>
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: 13, letterSpacing: "0.2px" }}>{r.name}</div>
-                      <div style={{ fontSize: 12, color: tokens.semantic.textLighter, letterSpacing: "0.2px" }}>{r.provider}</div>
+
+        {/* Main content */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: "flex", gap: 12, marginBottom: 24, alignItems: "center" }}>
+            <SearchInput value={search} onChange={setSearch} placeholder="Buscar beneficios..." />
+            <Button variant={viewMode === "grid" ? "primary" : "secondary"} size="sm" icon={Layers} onClick={() => setViewMode("grid")} />
+            <Button variant={viewMode === "list" ? "primary" : "secondary"} size="sm" icon={FileText} onClick={() => setViewMode("list")} />
+          </div>
+
+          {viewMode === "grid" ? (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+              {filtered.map(b => (
+                <Card key={b.id} hoverable style={{ cursor: "pointer" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+                    <div style={{ fontSize: 40, lineHeight: 1 }}>{b.image}</div>
+                    <Badge variant={b.status === "active" ? "success" : "warning"}>
+                      {b.status === "active" ? "Activo" : "Pausado"}
+                    </Badge>
+                  </div>
+                  <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 4, letterSpacing: "0.2px", lineHeight: 1.4 }}>{b.name}</div>
+                  <div style={{ fontSize: 12, color: tokens.semantic.textLighter, marginBottom: 12, letterSpacing: "0.2px" }}>{b.category} · {b.provider}</div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <CreditCard size={14} color={tokens.colors.humand[500]} />
+                      <span style={{ fontWeight: 600, fontSize: 14, color: tokens.colors.humand[600], letterSpacing: "0.2px" }}>{b.credits}</span>
+                      <span style={{ fontSize: 12, color: tokens.semantic.textLighter, letterSpacing: "0.2px" }}>créditos</span>
+                    </div>
+                    <div style={{ fontSize: 12, color: tokens.semantic.textLighter, letterSpacing: "0.2px" }}>
+                      {b.redemptions} canjes
                     </div>
                   </div>
-                )},
-                { header: "Categoría", key: "category", render: r => <Badge>{r.category}</Badge> },
-                { header: "Créditos", key: "credits", render: r => <span style={{ fontWeight: 600 }}>{r.credits}</span> },
-                { header: "Canjes", key: "redemptions" },
-                { header: "Estado", key: "status", render: r => (
-                  <Badge variant={r.status === "active" ? "success" : "warning"}>
-                    {r.status === "active" ? "Activo" : "Pausado"}
-                  </Badge>
-                )},
-                { header: "Acciones", key: "actions", render: () => (
-                  <div style={{ display: "flex", gap: 4 }}>
-                    <Button variant="ghost" size="sm" icon={Edit3} />
-                    <Button variant="ghost" size="sm" icon={Trash2} />
+                  <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+                    <Button variant="secondary" size="sm" icon={Edit3} style={{ flex: 1 }} onClick={() => openEdit(b)}>Editar</Button>
+                    <Button variant="ghost" size="sm" icon={Eye} onClick={() => setViewBenefit(b)}>Ver</Button>
                   </div>
-                )},
-              ]}
-              data={filtered}
-            />
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card noPadding>
+              <div style={{ padding: "16px 24px" }}>
+                <Table
+                  columns={[
+                    { header: "Beneficio", key: "name", render: r => (
+                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                        <span style={{ fontSize: 24 }}>{r.image}</span>
+                        <div>
+                          <div style={{ fontWeight: 600, fontSize: 13, letterSpacing: "0.2px" }}>{r.name}</div>
+                          <div style={{ fontSize: 12, color: tokens.semantic.textLighter, letterSpacing: "0.2px" }}>{r.provider}</div>
+                        </div>
+                      </div>
+                    )},
+                    { header: "Categoría", key: "category", render: r => <Badge>{r.category}</Badge> },
+                    { header: "Créditos", key: "credits", render: r => <span style={{ fontWeight: 600 }}>{r.credits}</span> },
+                    { header: "Canjes", key: "redemptions" },
+                    { header: "Estado", key: "status", render: r => (
+                      <Badge variant={r.status === "active" ? "success" : "warning"}>
+                        {r.status === "active" ? "Activo" : "Pausado"}
+                      </Badge>
+                    )},
+                    { header: "Acciones", key: "actions", render: r => (
+                      <div style={{ display: "flex", gap: 4 }}>
+                        <Button variant="ghost" size="sm" icon={Edit3} onClick={() => openEdit(r)} />
+                        <Button variant="ghost" size="sm" icon={Eye} onClick={() => setViewBenefit(r)} />
+                        <Button variant="ghost" size="sm" icon={Trash2} onClick={() => handleDelete(r)} />
+                      </div>
+                    )},
+                  ]}
+                  data={filtered}
+                />
+              </div>
+            </Card>
+          )}
+        </div>
+      </div>
+
+      {/* ── Catalog picker modal ── */}
+      {showCatalog && (
+        <Modal title="Publicar beneficio del catálogo" onClose={() => { setShowCatalog(false); setCatalogSearch(""); setCatalogCategory("todas"); }} wide>
+          <p style={{ ...baseStyles, fontSize: 13, color: tokens.semantic.textLighter, marginBottom: 16, marginTop: -8, lineHeight: 1.4 }}>
+            Seleccioná un beneficio predefinido para publicarlo en tu organización
+          </p>
+          <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+            <SearchInput value={catalogSearch} onChange={setCatalogSearch} placeholder="Buscar en catálogo..." />
           </div>
-        </Card>
+          <div style={{ display: "flex", gap: 6, marginBottom: 20, flexWrap: "wrap" as const }}>
+            {BENEFIT_CATEGORIES.map(cat => (
+              <button key={cat.key} onClick={() => setCatalogCategory(cat.key)} style={{
+                ...baseStyles, padding: "6px 14px", fontSize: 12, fontWeight: catalogCategory === cat.key ? 600 : 400,
+                background: catalogCategory === cat.key ? tokens.colors.humand[500] : "#fff",
+                color: catalogCategory === cat.key ? "#fff" : tokens.semantic.textLighter,
+                border: `1px solid ${catalogCategory === cat.key ? tokens.colors.humand[500] : tokens.semantic.border}`,
+                borderRadius: 999, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4,
+              }}>
+                <span>{cat.icon}</span> {cat.label}
+              </button>
+            ))}
+          </div>
+          <div style={{ maxHeight: 400, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8 }}>
+            {catalogFiltered.length === 0 ? (
+              <div style={{ padding: 32, textAlign: "center", color: tokens.semantic.textDisabled, fontSize: 13 }}>
+                No hay beneficios disponibles en esta categoría
+              </div>
+            ) : catalogFiltered.map((item, i) => (
+              <div key={i} style={{
+                display: "flex", alignItems: "center", gap: 12, padding: "12px 16px",
+                border: `1px solid ${tokens.semantic.border}`, borderRadius: tokens.radius.m,
+                transition: tokens.transition.fast,
+              }}>
+                <span style={{ fontSize: 28 }}>{item.image}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, fontSize: 14, letterSpacing: "0.2px" }}>{item.name}</div>
+                  <div style={{ fontSize: 12, color: tokens.semantic.textLighter, letterSpacing: "0.2px" }}>
+                    {item.provider} · {item.category} · {item.cost} créditos
+                  </div>
+                  <div style={{ fontSize: 12, color: tokens.semantic.textDisabled, marginTop: 2, letterSpacing: "0.2px" }}>{item.description}</div>
+                </div>
+                <Button variant="secondary" size="sm" icon={Plus} onClick={() => handlePublishFromCatalog(item)}>Publicar</Button>
+              </div>
+            ))}
+          </div>
+        </Modal>
       )}
 
-      {showModal && (
-        <Modal title="Nuevo beneficio" onClose={() => setShowModal(false)} wide>
-          <FormField label="Nombre del beneficio">
-            <Input placeholder="Ej: Gimnasio mensual" />
-          </FormField>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-            <FormField label="Categoría">
-              <Select options={[
-                { value: "", label: "Seleccionar..." },
-                { value: "wellness", label: "Bienestar" },
-                { value: "education", label: "Educación" },
-                { value: "food", label: "Gastronomía" },
-                { value: "entertainment", label: "Entretenimiento" },
-                { value: "shopping", label: "Shopping" },
-                { value: "mobility", label: "Movilidad" },
-                { value: "timeoff", label: "Tiempo libre" },
-              ]} />
-            </FormField>
-            <FormField label="Proveedor">
-              <Input placeholder="Ej: SmartFit" />
-            </FormField>
+      {/* ── View benefit detail modal ── */}
+      {viewBenefit && (
+        <Modal title={viewBenefit.name} onClose={() => setViewBenefit(null)}>
+          <div style={{ textAlign: "center", marginBottom: 20 }}>
+            <span style={{ fontSize: 56 }}>{viewBenefit.image}</span>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-            <FormField label="Costo en créditos">
-              <Input type="number" placeholder="Ej: 500" />
-            </FormField>
-            <FormField label="Stock disponible (opcional)">
-              <Input type="number" placeholder="Ilimitado si se deja vacío" />
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${tokens.semantic.borderLight}` }}>
+              <span style={{ fontSize: 13, color: tokens.semantic.textLighter }}>Categoría</span>
+              <Badge>{viewBenefit.category}</Badge>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${tokens.semantic.borderLight}` }}>
+              <span style={{ fontSize: 13, color: tokens.semantic.textLighter }}>Proveedor</span>
+              <span style={{ fontSize: 13, fontWeight: 600 }}>{viewBenefit.provider || "—"}</span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${tokens.semantic.borderLight}` }}>
+              <span style={{ fontSize: 13, color: tokens.semantic.textLighter }}>Costo</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: tokens.colors.humand[600] }}>{viewBenefit.credits} créditos</span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${tokens.semantic.borderLight}` }}>
+              <span style={{ fontSize: 13, color: tokens.semantic.textLighter }}>Canjes realizados</span>
+              <span style={{ fontSize: 13, fontWeight: 600 }}>{viewBenefit.redemptions}</span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${tokens.semantic.borderLight}` }}>
+              <span style={{ fontSize: 13, color: tokens.semantic.textLighter }}>Estado</span>
+              <Badge variant={viewBenefit.status === "active" ? "success" : "warning"}>
+                {viewBenefit.status === "active" ? "Activo" : "Pausado"}
+              </Badge>
+            </div>
+            {viewBenefit.description && (
+              <div style={{ padding: "8px 0" }}>
+                <span style={{ fontSize: 13, color: tokens.semantic.textLighter, display: "block", marginBottom: 4 }}>Descripción</span>
+                <span style={{ fontSize: 13 }}>{viewBenefit.description}</span>
+              </div>
+            )}
+          </div>
+          <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
+            <Button variant="secondary" onClick={() => { setViewBenefit(null); openEdit(viewBenefit); }}>Editar</Button>
+            <Button variant={viewBenefit.status === "active" ? "ghost" : "primary"} onClick={() => { handleToggleStatus(viewBenefit); setViewBenefit(null); }}>
+              {viewBenefit.status === "active" ? "Pausar" : "Activar"}
+            </Button>
+          </div>
+        </Modal>
+      )}
+
+      {/* ── Edit benefit modal with segmentation ── */}
+      {editBenefit && (
+        <Modal title={`Editar: ${editBenefit.name}`} onClose={() => setEditBenefit(null)} wide>
+          <FormField label="Nombre del beneficio">
+            <Input value={editName} onChange={(e: any) => setEditName(e.target.value)} />
+          </FormField>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 16 }}>
+            <FormField label="Estado">
+              <Select value={editActive ? "active" : "paused"} onChange={(e: any) => setEditActive(e.target.value === "active")} options={[
+                { value: "active", label: "Activo" },
+                { value: "paused", label: "Pausado" },
+              ]} />
             </FormField>
           </div>
           <FormField label="Descripción">
-            <textarea placeholder="Describí el beneficio..." style={{
+            <textarea value={editDescription} onChange={(e: any) => setEditDescription(e.target.value)} style={{
               ...baseStyles, width: "100%", padding: "10px 12px", minHeight: 80,
               border: `1px solid ${tokens.semantic.border}`, borderRadius: tokens.radius.s,
-              fontSize: 14, lineHeight: 1.4, outline: "none", resize: "vertical",
-              boxSizing: "border-box",
+              fontSize: 14, lineHeight: 1.4, outline: "none", resize: "vertical", boxSizing: "border-box",
             }} />
           </FormField>
-          <FormField label="Imagen o emoji representativo">
-            <Input placeholder="Ej: 🏋️ o URL de imagen" />
-          </FormField>
-          <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
-            <Button variant="secondary" onClick={() => setShowModal(false)}>Cancelar</Button>
-            <Button icon={Plus} onClick={() => { toast.success("Beneficio creado exitosamente"); setShowModal(false); }}>Crear beneficio</Button>
+
+          {/* Segmentation section — Colaboradores */}
+          <div style={{ marginTop: 8, background: tokens.colors.neutral[50], borderRadius: tokens.radius.l, padding: 24 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
+              <div>
+                <h3 style={{ ...baseStyles, fontSize: 18, fontWeight: 700, margin: 0, lineHeight: 1.4 }}>Colaboradores</h3>
+                <p style={{ ...baseStyles, fontSize: 13, color: tokens.semantic.textLighter, marginTop: 4, lineHeight: 1.4 }}>
+                  Seleccioná colaboradores a los que se les asignará este beneficio.
+                </p>
+              </div>
+              <span style={{
+                padding: "6px 16px", borderRadius: 999, fontSize: 12, fontWeight: 600,
+                border: `1.5px solid ${tokens.colors.humand[300]}`, color: tokens.colors.humand[700],
+                background: "#fff", whiteSpace: "nowrap" as const,
+              }}>
+                Alcance: {editSegmentType === "all"
+                  ? `${employeeUsers.length} colaboradores`
+                  : editSegmentType === "individual"
+                    ? `${editSegments.length} colaborador${editSegments.length !== 1 ? "es" : ""}`
+                    : `${editSegments.length} grupo${editSegments.length !== 1 ? "s" : ""}`
+                }
+              </span>
+            </div>
+
+            {/* Active criteria cards */}
+            {editSegmentType !== "all" && (
+              <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
+                {editSegmentType === "individual" && editSegments.length > 0 && (
+                  <div style={{
+                    display: "flex", alignItems: "center", gap: 14, padding: "16px 20px",
+                    background: "#fff", borderRadius: tokens.radius.m,
+                    border: `1px solid ${tokens.semantic.border}`,
+                  }}>
+                    <div style={{
+                      width: 40, height: 40, borderRadius: tokens.radius.m,
+                      background: tokens.colors.neutral[100],
+                      display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                    }}>
+                      <Users size={20} color={tokens.semantic.textLighter} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ ...baseStyles, fontWeight: 600, fontSize: 14 }}>Selección individual de colaboradores</div>
+                      <div style={{ ...baseStyles, fontSize: 12, color: tokens.semantic.textLighter, marginTop: 2 }}>
+                        {editSegments.length} colaborador{editSegments.length !== 1 ? "es" : ""} alcanzado{editSegments.length !== 1 ? "s" : ""} por este criterio.
+                      </div>
+                    </div>
+                    <button onClick={() => { setEditSegments([]); setEditSegmentType("all"); }} style={{
+                      background: "none", border: "none", cursor: "pointer", color: tokens.semantic.textLighter, padding: 4,
+                    }}>
+                      <MoreVertical size={18} />
+                    </button>
+                  </div>
+                )}
+                {editSegmentType === "group" && editSegments.length > 0 && (
+                  <div style={{
+                    display: "flex", alignItems: "center", gap: 14, padding: "16px 20px",
+                    background: "#fff", borderRadius: tokens.radius.m,
+                    border: `1px solid ${tokens.semantic.border}`,
+                  }}>
+                    <div style={{
+                      width: 40, height: 40, borderRadius: tokens.radius.m,
+                      background: tokens.colors.neutral[100],
+                      display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                    }}>
+                      <Layers size={20} color={tokens.semantic.textLighter} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ ...baseStyles, fontWeight: 600, fontSize: 14 }}>Grupos de segmentación</div>
+                      <div style={{ ...baseStyles, fontSize: 12, color: tokens.semantic.textLighter, marginTop: 2 }}>
+                        {editSegments.join(", ")}
+                      </div>
+                    </div>
+                    <button onClick={() => { setEditSegments([]); setEditSegmentType("all"); }} style={{
+                      background: "none", border: "none", cursor: "pointer", color: tokens.semantic.textLighter, padding: 4,
+                    }}>
+                      <MoreVertical size={18} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Dropdown: Sumar criterio de selección */}
+            <div style={{ marginTop: 16, position: "relative" }}>
+              <button onClick={() => setSegDropdownOpen(!segDropdownOpen)} style={{
+                ...baseStyles, width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+                padding: "14px 20px", background: "#fff", border: `1.5px solid ${segDropdownOpen ? tokens.colors.humand[400] : tokens.semantic.border}`,
+                borderRadius: tokens.radius.m, cursor: "pointer", fontSize: 14,
+                color: tokens.semantic.textLighter, transition: tokens.transition.fast,
+              }}>
+                Sumar criterio de selección
+                <ChevronDown size={18} style={{ transition: "transform 0.2s", transform: segDropdownOpen ? "rotate(180deg)" : "rotate(0)" }} />
+              </button>
+
+              {segDropdownOpen && (
+                <div style={{
+                  marginTop: 8, background: "#fff", borderRadius: tokens.radius.m,
+                  border: `1px solid ${tokens.semantic.border}`, boxShadow: tokens.shadow.dp4,
+                  overflow: "hidden",
+                }}>
+                  {/* Option: Individual selection */}
+                  <button onClick={() => { setSegDropdownOpen(false); setEditSegmentType("individual"); }} style={{
+                    ...baseStyles, width: "100%", display: "flex", alignItems: "center", gap: 14,
+                    padding: "16px 20px", background: "transparent", border: "none",
+                    borderBottom: `1px solid ${tokens.semantic.borderLight}`,
+                    cursor: "pointer", textAlign: "left", transition: tokens.transition.fast,
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = tokens.colors.neutral[50]; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
+                  >
+                    <div style={{
+                      width: 40, height: 40, borderRadius: tokens.radius.m,
+                      background: tokens.colors.neutral[100],
+                      display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                    }}>
+                      <Users size={20} color={tokens.semantic.textLighter} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 2 }}>Selección individual de colaboradores</div>
+                      <div style={{ fontSize: 12, color: tokens.semantic.textLighter, lineHeight: 1.4 }}>
+                        Elegí colaboradores específicos que podrán acceder a este beneficio.
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Option: Segmentation groups */}
+                  <button onClick={() => { setSegDropdownOpen(false); setEditSegmentType("group"); }} style={{
+                    ...baseStyles, width: "100%", display: "flex", alignItems: "center", gap: 14,
+                    padding: "16px 20px", background: "transparent", border: "none",
+                    borderBottom: `1px solid ${tokens.semantic.borderLight}`,
+                    cursor: "pointer", textAlign: "left", transition: tokens.transition.fast,
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = tokens.colors.neutral[50]; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
+                  >
+                    <div style={{
+                      width: 40, height: 40, borderRadius: tokens.radius.m,
+                      background: tokens.colors.neutral[100],
+                      display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                    }}>
+                      <Layers size={20} color={tokens.semantic.textLighter} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 2 }}>Grupos de segmentación</div>
+                      <div style={{ fontSize: 12, color: tokens.semantic.textLighter, lineHeight: 1.4 }}>
+                        Creá segmentos en base a distintos grupos que actualizarán su base de colaboradores automáticamente.
+                      </div>
+                    </div>
+                    <Badge variant="info">Asignación automática</Badge>
+                  </button>
+
+                  {/* Option: All */}
+                  <button onClick={() => { setSegDropdownOpen(false); setEditSegmentType("all"); setEditSegments([]); }} style={{
+                    ...baseStyles, width: "100%", display: "flex", alignItems: "center", gap: 14,
+                    padding: "16px 20px", background: "transparent", border: "none",
+                    cursor: "pointer", textAlign: "left", transition: tokens.transition.fast,
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = tokens.colors.neutral[50]; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
+                  >
+                    <div style={{
+                      width: 40, height: 40, borderRadius: tokens.radius.m,
+                      background: tokens.colors.neutral[100],
+                      display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                    }}>
+                      <Globe size={20} color={tokens.semantic.textLighter} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 2 }}>Todos los colaboradores de la comunidad</div>
+                      <div style={{ fontSize: 12, color: tokens.semantic.textLighter, lineHeight: 1.4 }}>
+                        Seleccioná a todos los colaboradores, este criterio se actualizará automáticamente e incluirá a los nuevos ingresos.
+                      </div>
+                    </div>
+                    <Badge variant="info">Asignación automática</Badge>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Individual user picker (shown when type=individual) */}
+            {editSegmentType === "individual" && (
+              <div style={{ marginTop: 16 }}>
+                <div style={{ position: "relative", marginBottom: 12 }}>
+                  <Search size={16} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: tokens.semantic.textDisabled }} />
+                  <input
+                    type="text" value={segIndividualSearch} onChange={e => setSegIndividualSearch(e.target.value)}
+                    placeholder="Buscar colaborador por nombre o email..."
+                    style={{
+                      ...baseStyles, width: "100%", padding: "10px 12px 10px 36px",
+                      border: `1px solid ${tokens.semantic.border}`, borderRadius: tokens.radius.m,
+                      fontSize: 13, outline: "none", background: "#fff", boxSizing: "border-box",
+                    }}
+                  />
+                </div>
+                <div style={{ maxHeight: 200, overflowY: "auto", display: "flex", flexDirection: "column", gap: 4 }}>
+                  {employeeUsers
+                    .filter((u: any) =>
+                      u.name.toLowerCase().includes(segIndividualSearch.toLowerCase()) ||
+                      (u.email || "").toLowerCase().includes(segIndividualSearch.toLowerCase())
+                    )
+                    .map((u: any) => {
+                      const isSelected = editSegments.includes(u.id);
+                      return (
+                        <button key={u.id} onClick={() => {
+                          setEditSegments(prev => isSelected ? prev.filter(id => id !== u.id) : [...prev, u.id]);
+                        }} style={{
+                          ...baseStyles, width: "100%", display: "flex", alignItems: "center", gap: 10,
+                          padding: "8px 12px", background: isSelected ? tokens.colors.humand[50] : "#fff",
+                          border: `1px solid ${isSelected ? tokens.colors.humand[300] : tokens.semantic.borderLight}`,
+                          borderRadius: tokens.radius.s, cursor: "pointer", textAlign: "left",
+                          transition: tokens.transition.fast,
+                        }}>
+                          <div style={{
+                            width: 20, height: 20, borderRadius: 4, flexShrink: 0,
+                            border: `2px solid ${isSelected ? tokens.colors.humand[500] : tokens.semantic.border}`,
+                            background: isSelected ? tokens.colors.humand[500] : "#fff",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                          }}>
+                            {isSelected && <Check size={12} color="#fff" />}
+                          </div>
+                          <Avatar initials={getInitials(u.name)} size={28} />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 13, fontWeight: 500, letterSpacing: "0.2px" }}>{u.name}</div>
+                            <div style={{ fontSize: 11, color: tokens.semantic.textLighter }}>{u.email} · {u.dept}</div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                </div>
+              </div>
+            )}
+
+            {/* Group/department picker (shown when type=group) */}
+            {editSegmentType === "group" && (
+              <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 4 }}>
+                {allDepts.map(dept => {
+                  const isSelected = editSegments.includes(dept);
+                  const deptCount = employeeUsers.filter((u: any) => u.dept === dept).length;
+                  return (
+                    <button key={dept} onClick={() => {
+                      setEditSegments(prev => isSelected ? prev.filter(d => d !== dept) : [...prev, dept]);
+                    }} style={{
+                      ...baseStyles, width: "100%", display: "flex", alignItems: "center", gap: 10,
+                      padding: "12px 16px", background: isSelected ? tokens.colors.humand[50] : "#fff",
+                      border: `1px solid ${isSelected ? tokens.colors.humand[300] : tokens.semantic.borderLight}`,
+                      borderRadius: tokens.radius.s, cursor: "pointer", textAlign: "left",
+                      transition: tokens.transition.fast,
+                    }}>
+                      <div style={{
+                        width: 20, height: 20, borderRadius: 4, flexShrink: 0,
+                        border: `2px solid ${isSelected ? tokens.colors.humand[500] : tokens.semantic.border}`,
+                        background: isSelected ? tokens.colors.humand[500] : "#fff",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                      }}>
+                        {isSelected && <Check size={12} color="#fff" />}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 14, fontWeight: 500 }}>{dept}</div>
+                      </div>
+                      <span style={{ fontSize: 12, color: tokens.semantic.textDisabled }}>{deptCount} colaboradores</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div style={{ display: "flex", gap: 12, justifyContent: "space-between", marginTop: 24, alignItems: "center" }}>
+            <Button variant="danger" size="sm" icon={Trash2} onClick={() => { handleDelete(editBenefit); setEditBenefit(null); }}>Eliminar</Button>
+            <div style={{ display: "flex", gap: 12 }}>
+              <Button variant="secondary" onClick={() => setEditBenefit(null)}>Cancelar</Button>
+              <Button icon={Check} onClick={handleSaveEdit}>Guardar cambios</Button>
+            </div>
           </div>
         </Modal>
       )}
@@ -1537,7 +2032,7 @@ function AnalyticsPage({ data }: { data: any }) {
 const benefitsSubNav = [
   { key: "dashboard", label: "Dashboard" },
   { key: "individual", label: "Colaboradores" },
-  { key: "benefits", label: "Beneficios" },
+  { key: "benefits", label: "Catálogo" },
   { key: "auto", label: "Cargas automáticas" },
   { key: "analytics", label: "Analíticas" },
 ];
@@ -1730,7 +2225,7 @@ export default function App() {
 
         {/* Collapse toggle */}
         <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} style={{
-          padding: 16, background: "none", border: "none", borderTop: `1px solid ${tokens.semantic.borderLight}`,
+          padding: 16, background: "none", border: "none", boxShadow: `inset 0 1px 0 ${tokens.semantic.borderLight}`,
           cursor: "pointer", color: tokens.semantic.textLighter, display: "flex",
           alignItems: "center", justifyContent: "center", gap: 8, fontSize: 12, fontFamily: "Roboto", letterSpacing: "0.2px",
         }}>
