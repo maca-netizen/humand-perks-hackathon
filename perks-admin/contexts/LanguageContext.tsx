@@ -137,6 +137,11 @@ const translations = {
     fileSelected: "File selected",
     loadReasonPlaceholder: "E.g.: Monthly load March 2026",
     bulkLoadSuccess: "Bulk load processed successfully",
+    creditsAvailable: "Credits available to assign",
+    creditsAssigned: "Credits assigned",
+    creditsAssignedVsRedeemed: "Credits assigned vs redeemed",
+    assigned: "Assigned",
+    redeemed: "Redeemed",
     cancel: "Cancel",
     // Individual load / Employees
     employeesSubtitle: "Manage your employees' credits individually or in bulk",
@@ -313,6 +318,11 @@ const translations = {
     fileSelected: "Archivo seleccionado",
     loadReasonPlaceholder: "Ej: Carga mensual marzo 2026",
     bulkLoadSuccess: "Carga masiva procesada exitosamente",
+    creditsAvailable: "Créditos disponibles para asignar",
+    creditsAssigned: "Créditos asignados",
+    creditsAssignedVsRedeemed: "Créditos asignados vs canjeados",
+    assigned: "Asignados",
+    redeemed: "Canjeados",
     cancel: "Cancelar",
     // Individual load / Employees
     employeesSubtitle: "Gestioná créditos de tus colaboradores de forma individual o masiva",

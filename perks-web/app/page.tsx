@@ -607,7 +607,7 @@ export default function HumandApp() {
   // ===== CONFIRM MODAL =====
   const ConfirmModal = () => {
     if (perksScreen !== "confirm" || !selectedBenefit) return null
-    const canAfford = balance >= selectedBenefit.price
+    const canAfford = balance >= selectedBenefit.cost
 
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -626,7 +626,7 @@ export default function HumandApp() {
             {" "}
             {t("for")}
             {" "}
-            <span className="font-semibold text-[#1A1A2E]">{selectedBenefit.price} {t("credits")}</span>.
+            <span className="font-semibold text-[#1A1A2E]">{selectedBenefit.cost} {t("credits")}</span>.
           </p>
 
           <div className="bg-[#F2F3F7] rounded-2xl p-4 mb-5">
@@ -636,13 +636,13 @@ export default function HumandApp() {
             </div>
             <div className="flex justify-between mb-3">
               <span className="text-[14px] text-[#8E8E93]">{t("cost")}</span>
-              <span className="text-[14px] font-semibold text-[#E8B230]">-{selectedBenefit.price} {t("credits")}</span>
+              <span className="text-[14px] font-semibold text-[#E8B230]">-{selectedBenefit.cost} {t("credits")}</span>
             </div>
             <div className="h-px bg-[#E5E5EA] my-2" />
             <div className="flex justify-between pt-1">
               <span className="text-[14px] text-[#8E8E93]">{t("remainingBalance")}</span>
               <span className={`text-[15px] font-bold ${canAfford ? "text-[#34C759]" : "text-[#FF3B30]"}`}>
-                {balance - selectedBenefit.price} {t("credits")}
+                {balance - selectedBenefit.cost} {t("credits")}
               </span>
             </div>
           </div>

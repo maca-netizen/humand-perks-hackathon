@@ -775,7 +775,7 @@ function DashboardPage({ data }: { data: any }) {
       {/* Area Chart — Full Width with Date Range */}
       <Card style={{ marginBottom: 32 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
-          <h3 style={{ ...baseStyles, fontSize: 16, fontWeight: 600, margin: 0, lineHeight: 1.4 }}>Créditos cargados vs canjeados</h3>
+          <h3 style={{ ...baseStyles, fontSize: 16, fontWeight: 600, margin: 0, lineHeight: 1.4 }}>{t("creditsAssignedVsRedeemed")}</h3>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span style={{ ...baseStyles, fontSize: 12, color: tokens.semantic.textLighter }}>Desde</span>
             <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} style={dateInputStyle} />
@@ -804,8 +804,8 @@ function DashboardPage({ data }: { data: any }) {
             <XAxis dataKey="month" tick={{ fontSize: 12, fill: tokens.semantic.textLighter }} />
             <YAxis tick={{ fontSize: 12, fill: tokens.semantic.textLighter }} />
             <Tooltip contentStyle={{ borderRadius: 8, border: `1px solid ${tokens.semantic.border}`, fontSize: 13, fontFamily: "Roboto" }} />
-            <Area type="monotone" dataKey="cargados" stroke={tokens.colors.humand[500]} fill="url(#gradLoaded)" strokeWidth={2} name="Cargados" />
-            <Area type="monotone" dataKey="canjeados" stroke={tokens.colors.green[500]} fill="url(#gradRedeemed)" strokeWidth={2} name="Canjeados" />
+            <Area type="monotone" dataKey="cargados" stroke={tokens.colors.humand[500]} fill="url(#gradLoaded)" strokeWidth={2} name={t("assigned")} />
+            <Area type="monotone" dataKey="canjeados" stroke={tokens.colors.green[500]} fill="url(#gradRedeemed)" strokeWidth={2} name={t("redeemed")} />
             <Legend wrapperStyle={{ fontSize: 12, fontFamily: "Roboto" }} />
           </AreaChart>
         </ResponsiveContainer>
@@ -2532,11 +2532,11 @@ function BuyCreditsPage({ data, onRefresh }: { data: any; onRefresh: () => void 
       <Card style={{ marginBottom: 24, background: `linear-gradient(135deg, ${tokens.colors.humand[50]}, ${tokens.colors.purple[50]})` }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
-            <div style={{ fontSize: 13, color: tokens.semantic.textLighter, marginBottom: 4 }}>Créditos disponibles para asignar</div>
-            <div style={{ fontSize: 36, fontWeight: 700, color: tokens.colors.humand[600] }}>{fmtCurrency(data.totalPending)}</div>
+            <div style={{ fontSize: 13, color: tokens.semantic.textLighter, marginBottom: 4 }}>{t("creditsAvailable")}</div>
+            <div style={{ fontSize: 36, fontWeight: 700, color: tokens.colors.humand[600] }}>{fmtCurrency(data.wallets.reduce((s: number, w: any) => s + Number(w.balance), 0))}</div>
           </div>
           <div style={{ textAlign: "right" as const }}>
-            <div style={{ fontSize: 13, color: tokens.semantic.textLighter, marginBottom: 4 }}>Créditos asignados</div>
+            <div style={{ fontSize: 13, color: tokens.semantic.textLighter, marginBottom: 4 }}>{t("creditsAssigned")}</div>
             <div style={{ fontSize: 20, fontWeight: 600 }}>{fmtCurrency(data.totalCredited)}</div>
           </div>
         </div>
